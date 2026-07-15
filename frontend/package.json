@@ -1,0 +1,32 @@
+{
+  "name": "dachshund-frontend",
+  "version": "1.0.0",
+  "description": "Frontend asset build for dachshund.",
+  "scripts": {
+    "sass": "sass --watch src/scss/main.scss:../server/src/main/public/stylesheets/main.css --no-source-map",
+    "tsc": "tsc --watch --project tsconfig.json",
+    "build:sass": "sass src/scss/main.scss:../server/src/main/public/stylesheets/main.css --no-source-map",
+    "build:tsc": "tsc --project tsconfig.json",
+    "build": "pnpm run build:sass && pnpm run build:tsc",
+    "lint:ts": "eslint \"src/ts/**/*.ts\"",
+    "lint:scss": "stylelint \"src/scss/**/*.scss\"",
+    "lint": "pnpm run lint:ts && pnpm run lint:scss",
+    "format": "prettier --write \"src/**/*.{ts,scss}\" \"*.{json,md,cjs,mjs}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,scss}\" \"*.{json,md,cjs,mjs}\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "",
+  "type": "commonjs",
+  "packageManager": "pnpm@10.18.1",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.2",
+    "prettier": "^3.8.1",
+    "sass": "^1.97.3",
+    "stylelint": "^17.4.0",
+    "stylelint-config-standard-scss": "^17.0.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  }
+}

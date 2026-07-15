@@ -1,0 +1,20 @@
+services:
+  dachshund-mysql:
+    image: mysql:8.4.9
+    env_file: ./docker/dev.env
+    environment:
+      - TZ=Asia/Tokyo
+    volumes:
+      - dachshund-data:/var/lib/mysql
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 127.0.0.1:13306:3306
+    networks:
+      - db
+
+volumes:
+  dachshund-data:
+
+networks:
+  db:
+    name: dachshund-db

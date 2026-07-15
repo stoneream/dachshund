@@ -1,0 +1,2 @@
+# Use the system Java trust store so Maven Central certificates/proxy CAs installed in the container are trusted.
+-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts

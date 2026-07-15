@@ -1,0 +1,47 @@
+@(result: Either[io.github.stoneream.dachshund.usecase.home.HomeUseCaseException, io.github.stoneream.dachshund.usecase.home.HomeUseCaseOutput])
+
+@siteHeader(user: Option[io.github.stoneream.dachshund.usecase.home.HomeUseCaseOutput.HomeUser]) = {
+    <header class="site-header">
+        <p class="site-brand">DACHSHUND</p>
+        @for(currentUser <- user) {
+            <p class="site-user">@currentUser.displayName</p>
+        }
+    </header>
+}
+
+@result match {
+    case Right(output) => {
+        @siteHeader(output.user)
+        <main class="page-shell">
+            <section class="home-panel">
+                <header class="home-header">
+                    <h1>New releases</h1>
+                </header>
+
+                @output.user match {
+                    case None => {
+                        <p class="actions">
+                            <a class="primary-action" href="/spotify/auth/login">Spotify でログイン</a>
+                        </p>
+                    }
+                    case Some(_) => {
+                        @if(output.newReleaseMonths.isEmpty) {
+                            <p class="lead">直近 30 日に表示できる新着リリースはありません。</p>
+                        } else {
+                            @views.html.home.newReleaseDays(output.newReleaseMonths)
+                        }
+                    }
+                }
+            </section>
+        </main>
+    }
+    case Left(_) => {
+        @siteHeader(None)
+        <main class="page-shell">
+            <section class="home-panel error-panel">
+                <h1>Server error</h1>
+                <p class="lead">トップページを表示できませんでした。</p>
+            </section>
+        </main>
+    }
+}

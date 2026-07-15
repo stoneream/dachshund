@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      db_schema: ${{ steps.filter.outputs.db_schema }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed areas
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - '.github/workflows/ci.yml'
+              - '.mise.toml'
+              - '.scalafmt.conf'
+              - '.scalafix.conf'
+              - 'build.sbt'
+              - 'project/**'
+              - 'application/**'
+              - 'server/src/main/scala/**'
+              - 'server/src/main/java/**'
+              - 'server/src/main/resources/**'
+              - 'server/src/main/twirl/**'
+              - 'server/src/test/**'
+              - 'logging/**'
+              - 'daemon/**'
+              - 'codegen/**'
+            frontend:
+              - '.github/workflows/ci.yml'
+              - '.mise.toml'
+              - 'frontend/**'
+              - 'server/src/main/public/**'
+            db_schema:
+              - '.github/workflows/ci.yml'
+              - '.mise.toml'
+              - 'docker-compose.yml'
+              - 'docker/**'
+              - 'db/**'
+              - 'tbls/**'
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up toolchain
+        uses: jdx/mise-action@v4
+        with:
+          install_args: java sbt
+
+      - name: Check Scala formatting
+        run: sbt scalafmtCheckAll
+
+      - name: Check Scalafix rules
+        run: sbt "scalafixAll --check"
+
+      - name: Compile backend
+        run: sbt compile
+
+      - name: Run backend tests
+        run: sbt test
+
+      - name: Check generated files and compile output
+        run: git diff --exit-code
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up toolchain
+        uses: jdx/mise-action@v4
+        with:
+          install_args: node pnpm
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Lint frontend
+        run: mise run --skip-tools front-lint
+
+      - name: Check frontend formatting
+        run: mise run --skip-tools front-format-check
+
+      - name: Build frontend assets
+        run: mise run --skip-tools front-build
+
+      - name: Check generated frontend assets
+        run: git diff --exit-code
+
+  db-schema:
+    name: DB schema
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.db_schema == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        with:
+          install: false
+
+      - name: Configure Docker file ownership
+        run: |
+          echo "HOST_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "HOST_GID=$(id -g)" >> "$GITHUB_ENV"
+
+      - name: Apply development migrations
+        run: mise run --skip-tools flyway-dev
+
+      - name: Apply test migrations
+        run: mise run --skip-tools flyway-test
+
+      - name: Generate tbls schema docs
+        run: mise run --skip-tools tbls-doc
+
+      - name: Check tbls schema docs are up to date
+        run: git diff --exit-code -- tbls/schema
+
+      - name: Check generated files are committed
+        run: git diff --exit-code

@@ -1,0 +1,7 @@
+# Routes
+# https://www.playframework.com/documentation/latest/ScalaRouting
+
+-> / io.github.stoneream.dachshund.route.Root
+
+GET /assets/*file controllers.Assets.versioned(path="/public", file: Asset)
+

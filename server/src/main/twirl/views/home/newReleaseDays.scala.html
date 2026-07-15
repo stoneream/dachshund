@@ -1,0 +1,56 @@
+@(newReleaseMonths: Seq[io.github.stoneream.dachshund.usecase.home.HomeUseCaseOutput.NewReleaseMonth])
+
+@releaseTypeLabel(releaseType: String) = @{
+    releaseType match {
+        case "ALBUM" => "Album"
+        case "EP" => "EP"
+        case "SINGLE" => "Single"
+        case value => value
+    }
+}
+
+@monthLabel(yearMonth: java.time.YearMonth) = @{
+    s"${yearMonth.getYear}年${yearMonth.getMonthValue}月"
+}
+
+<div class="release-table-wrap">
+    <table class="release-table">
+        <thead>
+            <tr>
+                <th scope="col">リリース日</th>
+                <th class="release-artwork-heading" scope="col">cover</th>
+                <th scope="col">リリース</th>
+                <th scope="col">アーティスト</th>
+                <th scope="col">種別</th>
+                <th scope="col">レーベル</th>
+                <th class="release-link-heading" scope="col">link</th>
+            </tr>
+        </thead>
+    @for(month <- newReleaseMonths) {
+        <tbody class="release-month-group">
+            <tr class="release-month-row">
+                <th class="release-month-heading" colspan="7" scope="rowgroup">@monthLabel(month.releaseMonth)</th>
+            </tr>
+            @for(day <- month.releaseDays) {
+            @for(release <- day.releases) {
+                <tr class="release-row">
+                    <td class="release-date">@day.releaseDate</td>
+                    <td class="release-artwork-cell">
+                        <span class="release-artwork">
+                            @if(release.primaryImageUrl.nonEmpty) {
+                                <img src="@release.primaryImageUrl" alt="">
+                            }
+                        </span>
+                    </td>
+                    <td><span class="release-title">@release.releaseName</span></td>
+                    <td class="release-artist">@release.sourceArtistName</td>
+                    <td><span class="release-type">@releaseTypeLabel(release.releaseType)</span></td>
+                    <td class="release-label">@release.labelName.getOrElse("-")</td>
+                    <td class="release-link-cell"><a class="release-link" href="@release.spotifyUrl" target="_blank" rel="noopener noreferrer">URL</a></td>
+                </tr>
+            }
+            }
+        </tbody>
+    }
+    </table>
+</div>

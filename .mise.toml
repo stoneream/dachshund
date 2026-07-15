@@ -1,0 +1,221 @@
+# Project-local development toolchain.
+# Install with `mise install` and keep this file as the source of truth for tools
+# that are not already pinned by application-specific lock/config files.
+[tools]
+java = "zulu-21.50.19.0"
+node = "24.16.0"
+pnpm = "10.18.1"
+gh = "2.92.0"
+direnv = "2.37.1"
+sbt = "1.12.3"
+coursier = "2.1.24"
+
+[tasks.default]
+description = "利用可能な mise task を表示"
+run = "mise tasks ls"
+
+[tasks.agents-sync]
+description = ".agents に ai-dotfiles の skills を同期"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+test -d "${MISE_PROJECT_ROOT}/ai-dotfiles/skills" || {
+  echo "ai-dotfiles/skills が見つかりません。git submodule update --init --recursive を実行してください。" >&2
+  exit 1
+}
+mkdir -p "${MISE_PROJECT_ROOT}/.agents"
+rm -rf "${MISE_PROJECT_ROOT}/.agents/skills"
+cp -a "${MISE_PROJECT_ROOT}/ai-dotfiles/skills" "${MISE_PROJECT_ROOT}/.agents/skills"
+'''
+
+[tasks.toolchain-install]
+description = "開発ツールを mise の定義に従ってインストール"
+run = "mise install"
+
+[tasks.metals-mcp-install]
+description = "Metals MCP サーバーを Coursier 経由でインストール"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+mkdir -p "${MISE_PROJECT_ROOT}/.coursier/bin"
+PATH="${MISE_PROJECT_ROOT}/.coursier/bin:${PATH}" cs install --install-dir "${MISE_PROJECT_ROOT}/.coursier/bin" metals-mcp
+'''
+
+[tasks.gen-codex-config]
+description = "Codex のプロジェクトローカル設定を生成"
+run = 'bash "${MISE_PROJECT_ROOT}/scripts/codex-mcp.sh" config "${MISE_PROJECT_ROOT}"'
+
+[tasks.metals-mcp-start]
+description = "Codex 用のプロジェクトローカル Metals MCP サーバーを起動"
+run = 'bash "${MISE_PROJECT_ROOT}/scripts/codex-mcp.sh" start "${MISE_PROJECT_ROOT}"'
+
+[tasks.metals-mcp-stop]
+description = "プロジェクトローカル Metals MCP サーバーを停止"
+run = 'bash "${MISE_PROJECT_ROOT}/scripts/codex-mcp.sh" stop "${MISE_PROJECT_ROOT}"'
+
+[tasks.metals-mcp-status]
+description = "プロジェクトローカル Metals MCP サーバーの状態を表示"
+run = 'bash "${MISE_PROJECT_ROOT}/scripts/codex-mcp.sh" status "${MISE_PROJECT_ROOT}"'
+
+[tasks.toolchain-check]
+description = "開発ツールと必須ホストツールのバージョンを確認"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+command -v mise >/dev/null
+mise version --json --quiet
+java -version
+node --version
+pnpm --version
+gh --version | head -n 1
+sbt --script-version
+cs version
+docker --version
+docker compose version
+direnv version
+'''
+
+[tasks.setup]
+description = "初回ローカルセットアップを実行"
+depends = ["toolchain-install"]
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+test -f "${MISE_PROJECT_ROOT}/.envrc" || cp "${MISE_PROJECT_ROOT}/.envrc.example" "${MISE_PROJECT_ROOT}/.envrc"
+if command -v direnv >/dev/null; then
+  direnv allow "${MISE_PROJECT_ROOT}"
+else
+  echo "direnv not found. Install it, then run direnv allow." >&2
+  exit 1
+fi
+test -f "${MISE_PROJECT_ROOT}/db/flyway.conf" || cp "${MISE_PROJECT_ROOT}/db/flyway.sample.conf" "${MISE_PROJECT_ROOT}/db/flyway.conf"
+mise run --skip-tools metals-mcp-install
+mise run --skip-tools gen-codex-config
+mise run --skip-tools front-install
+mise run --skip-tools flyway-dev
+'''
+
+[tasks.db-up]
+description = "ローカル MySQL コンテナを起動"
+run = "docker compose up -d dachshund-mysql"
+
+[tasks.db-down]
+description = "ローカルコンテナを停止して削除"
+run = "docker compose down"
+
+[tasks.db-down-rm]
+description = "ローカルコンテナと停止とボリュームを削除"
+run = "docker compose down -v --remove-orphans"
+
+[tasks.flyway-dev]
+description = "開発 DB に Flyway migration を適用"
+depends = ["db-up"]
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+docker run --rm \
+  --user "${HOST_UID:-1000}:${HOST_GID:-1000}" \
+  --network dachshund-db \
+  --volume "${MISE_PROJECT_ROOT}/db/migration:/flyway/sql" \
+  flyway/flyway:10.13-alpine \
+  "-url=jdbc:mysql://dachshund-mysql:3306/dachshund_dev?allowPublicKeyRetrieval=true&useSSL=false" \
+  -schemas=dachshund_dev \
+  -connectRetries=60 \
+  -user=dachshund_dev \
+  -password=dachshund_dev \
+  migrate
+'''
+
+[tasks.flyway-test]
+description = "テスト DB に Flyway migration を適用"
+depends = ["db-up"]
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+docker run --rm \
+  --user "${HOST_UID:-1000}:${HOST_GID:-1000}" \
+  --network dachshund-db \
+  --volume "${MISE_PROJECT_ROOT}/db/migration:/flyway/sql" \
+  flyway/flyway:10.13-alpine \
+  "-url=jdbc:mysql://dachshund-mysql:3306/dachshund_test?allowPublicKeyRetrieval=true&useSSL=false" \
+  -schemas=dachshund_test \
+  -connectRetries=60 \
+  -user=dachshund_test \
+  -password=dachshund_test \
+  migrate
+'''
+
+[tasks.tbls-doc]
+description = "開発 DB から tbls schema docs を生成"
+depends = ["db-up"]
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+docker run --rm \
+  --user "${HOST_UID:-1000}:${HOST_GID:-1000}" \
+  --network dachshund-db \
+  --volume "${MISE_PROJECT_ROOT}:/work" \
+  --workdir /work \
+  ghcr.io/k1low/tbls:latest \
+  doc --config /work/tbls/tbls.yml --force --rm-dist
+'''
+
+[tasks.front-install]
+description = "フロントエンドの依存をインストール"
+dir = "frontend"
+run = "pnpm install --frozen-lockfile"
+
+[tasks.front-build]
+description = "フロントエンドのアセットをビルド"
+dir = "frontend"
+run = "pnpm run build"
+
+[tasks.front-lint]
+description = "フロントエンドのlint"
+dir = "frontend"
+run = "pnpm run lint"
+
+[tasks.front-format]
+description = "フロントエンドのフォーマット"
+dir = "frontend"
+run = "pnpm run format"
+
+[tasks.front-format-check]
+description = "フロントエンドのフォーマットチェック"
+dir = "frontend"
+run = "pnpm run format:check"
+
+[tasks.sbt-format]
+description = "Scala / sbt / Twirl などの整形と scalafix を実行"
+run = "sbt scalafixAll scalafmtAll"
+
+[tasks.sbt-format-check]
+description = "Scala / sbt / Twirl などの整形と scalafix のチェック"
+run = 'sbt scalafmtCheckAll "scalafixAll --check"'
+
+[tasks.front-watch]
+description = "フロントエンドの Sass と TypeScript を監視"
+dir = "frontend"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+pnpm run sass & pnpm run tsc & wait
+'''
+
+[tasks.crypto-keygen]
+description = "AES-GCM 用のランダム鍵を生成する"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+openssl rand -base64 32 | tr -d '\n'
+echo
+'''

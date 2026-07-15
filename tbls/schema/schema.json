@@ -1,0 +1,3155 @@
+{
+  "name": "dachshund_dev",
+  "tables": [
+    {
+      "name": "artist_release",
+      "type": "BASE TABLE",
+      "comment": "アーティストリリース",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "spotify_release_code",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "SpotifyリリースID"
+        },
+        {
+          "name": "source_spotify_artist_code",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "取得元SpotifyアーティストID"
+        },
+        {
+          "name": "release_name",
+          "type": "varchar(1024)",
+          "nullable": false,
+          "default": "",
+          "comment": "リリース名"
+        },
+        {
+          "name": "release_type",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "アプリ内リリース種別(ALBUM, EP, SINGLE)"
+        },
+        {
+          "name": "album_type",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "Spotify album_type"
+        },
+        {
+          "name": "album_group",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "Spotify album_group"
+        },
+        {
+          "name": "spotify_release_uri",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "SpotifyリリースURI"
+        },
+        {
+          "name": "spotify_url",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": "",
+          "comment": "Spotify URL"
+        },
+        {
+          "name": "href",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": "",
+          "comment": "Spotify Web API URL"
+        },
+        {
+          "name": "primary_image_url",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": "",
+          "comment": "代表画像URL"
+        },
+        {
+          "name": "primary_image_height",
+          "type": "int",
+          "nullable": true,
+          "comment": "代表画像高さ"
+        },
+        {
+          "name": "primary_image_width",
+          "type": "int",
+          "nullable": true,
+          "comment": "代表画像幅"
+        },
+        {
+          "name": "images_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotify画像一覧JSON"
+        },
+        {
+          "name": "release_date_text",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "リリース日文字列"
+        },
+        {
+          "name": "release_date_precision",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "リリース日精度"
+        },
+        {
+          "name": "release_date_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "リリース日"
+        },
+        {
+          "name": "total_tracks_count",
+          "type": "int",
+          "nullable": true,
+          "comment": "総トラック数"
+        },
+        {
+          "name": "label_name",
+          "type": "varchar(512)",
+          "nullable": true,
+          "comment": "レーベル名"
+        },
+        {
+          "name": "normalized_label_name",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "正規化レーベル名"
+        },
+        {
+          "name": "external_ids_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotify外部ID JSON"
+        },
+        {
+          "name": "upc_code",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "UPCコード"
+        },
+        {
+          "name": "ean_code",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "EANコード"
+        },
+        {
+          "name": "isrc_code",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "ISRCコード"
+        },
+        {
+          "name": "copyrights_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotify著作権情報JSON"
+        },
+        {
+          "name": "available_markets_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotify提供国一覧JSON"
+        },
+        {
+          "name": "genres_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotifyジャンル一覧JSON"
+        },
+        {
+          "name": "restrictions_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotify制限情報JSON"
+        },
+        {
+          "name": "popularity",
+          "type": "int",
+          "nullable": true,
+          "comment": "Spotify人気度"
+        },
+        {
+          "name": "synced_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "同期日時"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_artist_release_label",
+          "def": "KEY idx_artist_release_label (normalized_label_name, deleted) USING BTREE",
+          "table": "artist_release",
+          "columns": [
+            "normalized_label_name",
+            "deleted"
+          ]
+        },
+        {
+          "name": "idx_artist_release_release_date",
+          "def": "KEY idx_artist_release_release_date (deleted, release_date_at) USING BTREE",
+          "table": "artist_release",
+          "columns": [
+            "deleted",
+            "release_date_at"
+          ]
+        },
+        {
+          "name": "idx_artist_release_source_artist",
+          "def": "KEY idx_artist_release_source_artist (source_spotify_artist_code, deleted) USING BTREE",
+          "table": "artist_release",
+          "columns": [
+            "source_spotify_artist_code",
+            "deleted"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "artist_release",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "artist_release",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_artist_release_release",
+          "def": "UNIQUE KEY uq_artist_release_release (spotify_release_code) USING BTREE",
+          "table": "artist_release",
+          "columns": [
+            "spotify_release_code"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "artist_release",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "artist_release",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_artist_release_release",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_artist_release_release (spotify_release_code)",
+          "table": "artist_release",
+          "columns": [
+            "spotify_release_code"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `artist_release` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `spotify_release_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'SpotifyリリースID',\n  `source_spotify_artist_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '取得元SpotifyアーティストID',\n  `release_name` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'リリース名',\n  `release_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'アプリ内リリース種別(ALBUM, EP, SINGLE)',\n  `album_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Spotify album_type',\n  `album_group` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Spotify album_group',\n  `spotify_release_uri` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'SpotifyリリースURI',\n  `spotify_url` varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Spotify URL',\n  `href` varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Spotify Web API URL',\n  `primary_image_url` varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '代表画像URL',\n  `primary_image_height` int DEFAULT NULL COMMENT '代表画像高さ',\n  `primary_image_width` int DEFAULT NULL COMMENT '代表画像幅',\n  `images_json` json DEFAULT NULL COMMENT 'Spotify画像一覧JSON',\n  `release_date_text` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'リリース日文字列',\n  `release_date_precision` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'リリース日精度',\n  `release_date_at` datetime DEFAULT NULL COMMENT 'リリース日',\n  `total_tracks_count` int DEFAULT NULL COMMENT '総トラック数',\n  `label_name` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'レーベル名',\n  `normalized_label_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '正規化レーベル名',\n  `external_ids_json` json DEFAULT NULL COMMENT 'Spotify外部ID JSON',\n  `upc_code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'UPCコード',\n  `ean_code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'EANコード',\n  `isrc_code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'ISRCコード',\n  `copyrights_json` json DEFAULT NULL COMMENT 'Spotify著作権情報JSON',\n  `available_markets_json` json DEFAULT NULL COMMENT 'Spotify提供国一覧JSON',\n  `genres_json` json DEFAULT NULL COMMENT 'Spotifyジャンル一覧JSON',\n  `restrictions_json` json DEFAULT NULL COMMENT 'Spotify制限情報JSON',\n  `popularity` int DEFAULT NULL COMMENT 'Spotify人気度',\n  `synced_at` datetime DEFAULT NULL COMMENT '同期日時',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_artist_release_release` (`spotify_release_code`),\n  KEY `idx_artist_release_source_artist` (`source_spotify_artist_code`,`deleted`),\n  KEY `idx_artist_release_release_date` (`deleted`,`release_date_at`),\n  KEY `idx_artist_release_label` (`normalized_label_name`,`deleted`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='アーティストリリース'"
+    },
+    {
+      "name": "artist_release_sync_queue",
+      "type": "BASE TABLE",
+      "comment": "アーティストリリース同期キュー",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "spotify_artist_code",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "SpotifyアーティストID"
+        },
+        {
+          "name": "sync_scope",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "INCREMENTAL",
+          "comment": "同期範囲(INITIAL_IMPORT, INCREMENTAL)"
+        },
+        {
+          "name": "status",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "SCHEDULED",
+          "comment": "キュー状態(SCHEDULED, PROCESSING, SUCCEEDED, FAILED, BLOCKED, SKIPPED)"
+        },
+        {
+          "name": "include_groups",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "album,single",
+          "comment": "Spotify include_groups"
+        },
+        {
+          "name": "market",
+          "type": "varchar(2)",
+          "nullable": true,
+          "comment": "Spotify market"
+        },
+        {
+          "name": "requested_limit",
+          "type": "int",
+          "nullable": false,
+          "default": "10",
+          "comment": "Spotify API取得件数"
+        },
+        {
+          "name": "next_offset",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "comment": "次ページ取得用offset"
+        },
+        {
+          "name": "next_attempt_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "次回試行日時"
+        },
+        {
+          "name": "last_attempted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終試行日時"
+        },
+        {
+          "name": "completed_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "処理完了日時"
+        },
+        {
+          "name": "attempt_count",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "comment": "試行回数"
+        },
+        {
+          "name": "last_failed_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終失敗日時"
+        },
+        {
+          "name": "last_error_type",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "最終エラー種別"
+        },
+        {
+          "name": "lock_token",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "処理ロックトークン"
+        },
+        {
+          "name": "locked_until",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "処理ロック期限"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_artist_release_sync_queue_target",
+          "def": "KEY idx_artist_release_sync_queue_target (deleted, status, next_attempt_at, locked_until, id) USING BTREE",
+          "table": "artist_release_sync_queue",
+          "columns": [
+            "deleted",
+            "status",
+            "next_attempt_at",
+            "locked_until",
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "artist_release_sync_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "artist_release_sync_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_artist_release_sync_queue_artist_scope",
+          "def": "UNIQUE KEY uq_artist_release_sync_queue_artist_scope (spotify_artist_code, sync_scope) USING BTREE",
+          "table": "artist_release_sync_queue",
+          "columns": [
+            "spotify_artist_code",
+            "sync_scope"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "artist_release_sync_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "artist_release_sync_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_artist_release_sync_queue_artist_scope",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_artist_release_sync_queue_artist_scope (spotify_artist_code, sync_scope)",
+          "table": "artist_release_sync_queue",
+          "columns": [
+            "spotify_artist_code",
+            "sync_scope"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `artist_release_sync_queue` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `spotify_artist_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'SpotifyアーティストID',\n  `sync_scope` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'INCREMENTAL' COMMENT '同期範囲(INITIAL_IMPORT, INCREMENTAL)',\n  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SCHEDULED' COMMENT 'キュー状態(SCHEDULED, PROCESSING, SUCCEEDED, FAILED, BLOCKED, SKIPPED)',\n  `include_groups` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'album,single' COMMENT 'Spotify include_groups',\n  `market` varchar(2) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Spotify market',\n  `requested_limit` int NOT NULL DEFAULT '10' COMMENT 'Spotify API取得件数',\n  `next_offset` int NOT NULL DEFAULT '0' COMMENT '次ページ取得用offset',\n  `next_attempt_at` datetime DEFAULT NULL COMMENT '次回試行日時',\n  `last_attempted_at` datetime DEFAULT NULL COMMENT '最終試行日時',\n  `completed_at` datetime DEFAULT NULL COMMENT '処理完了日時',\n  `attempt_count` int NOT NULL DEFAULT '0' COMMENT '試行回数',\n  `last_failed_at` datetime DEFAULT NULL COMMENT '最終失敗日時',\n  `last_error_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '最終エラー種別',\n  `lock_token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '処理ロックトークン',\n  `locked_until` datetime DEFAULT NULL COMMENT '処理ロック期限',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_artist_release_sync_queue_artist_scope` (`spotify_artist_code`,`sync_scope`),\n  KEY `idx_artist_release_sync_queue_target` (`deleted`,`status`,`next_attempt_at`,`locked_until`,`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='アーティストリリース同期キュー'"
+    },
+    {
+      "name": "blocked_label",
+      "type": "BASE TABLE",
+      "comment": "新着リリース除外レーベル",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "ユーザーID"
+        },
+        {
+          "name": "label_name",
+          "type": "varchar(512)",
+          "nullable": false,
+          "comment": "レーベル名"
+        },
+        {
+          "name": "normalized_label_name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "正規化レーベル名"
+        },
+        {
+          "name": "reason_text",
+          "type": "text",
+          "nullable": false,
+          "comment": "理由"
+        },
+        {
+          "name": "enabled",
+          "type": "bigint",
+          "nullable": false,
+          "default": "1",
+          "comment": "有効フラグ(0=無効、1=有効)"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_blocked_label_match",
+          "def": "KEY idx_blocked_label_match (user_id, deleted, enabled, normalized_label_name) USING BTREE",
+          "table": "blocked_label",
+          "columns": [
+            "user_id",
+            "deleted",
+            "enabled",
+            "normalized_label_name"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "blocked_label",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "blocked_label",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_blocked_label_user_label",
+          "def": "UNIQUE KEY uq_blocked_label_user_label (user_id, normalized_label_name) USING BTREE",
+          "table": "blocked_label",
+          "columns": [
+            "user_id",
+            "normalized_label_name"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fk_blocked_label_user_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_id) REFERENCES user (id)",
+          "table": "blocked_label",
+          "referenced_table": "user",
+          "columns": [
+            "user_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "blocked_label",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "blocked_label",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_blocked_label_user_label",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_blocked_label_user_label (user_id, normalized_label_name)",
+          "table": "blocked_label",
+          "columns": [
+            "user_id",
+            "normalized_label_name"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `blocked_label` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_id` bigint unsigned NOT NULL COMMENT 'ユーザーID',\n  `label_name` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'レーベル名',\n  `normalized_label_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '正規化レーベル名',\n  `reason_text` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '理由',\n  `enabled` bigint NOT NULL DEFAULT '1' COMMENT '有効フラグ(0=無効、1=有効)',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_blocked_label_user_label` (`user_id`,`normalized_label_name`),\n  KEY `idx_blocked_label_match` (`user_id`,`deleted`,`enabled`,`normalized_label_name`),\n  CONSTRAINT `fk_blocked_label_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='新着リリース除外レーベル'"
+    },
+    {
+      "name": "external_auth_request",
+      "type": "BASE TABLE",
+      "comment": "外部認証要求",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "flow_type",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "認証フロー種別(SIGNUP)"
+        },
+        {
+          "name": "provider_type",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "外部認証種別(SPOTIFY)"
+        },
+        {
+          "name": "state",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "OAuth state照合値"
+        },
+        {
+          "name": "nonce",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "OIDC nonce照合値"
+        },
+        {
+          "name": "code_verifier",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "PKCE利用時のcode verifier"
+        },
+        {
+          "name": "redirect_uri",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "comment": "OAuth認可要求時のredirect URI"
+        },
+        {
+          "name": "scopes",
+          "type": "varchar(1024)",
+          "nullable": false,
+          "comment": "認可要求scope一覧(スペース区切り)"
+        },
+        {
+          "name": "status",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "PENDING",
+          "comment": "外部認証要求状態(PENDING, PROCESSING, SUCCEEDED, FAILED)"
+        },
+        {
+          "name": "expires_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "認可要求有効期限日時"
+        },
+        {
+          "name": "completed_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "認可要求完了日時"
+        },
+        {
+          "name": "error_code",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "認可要求エラーコード"
+        },
+        {
+          "name": "error_description",
+          "type": "varchar(1024)",
+          "nullable": true,
+          "comment": "認可要求エラー詳細"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_external_auth_request_completed_at",
+          "def": "KEY idx_external_auth_request_completed_at (completed_at) USING BTREE",
+          "table": "external_auth_request",
+          "columns": [
+            "completed_at"
+          ]
+        },
+        {
+          "name": "idx_external_auth_request_expires_at",
+          "def": "KEY idx_external_auth_request_expires_at (expires_at) USING BTREE",
+          "table": "external_auth_request",
+          "columns": [
+            "expires_at"
+          ]
+        },
+        {
+          "name": "idx_external_auth_request_flow_provider",
+          "def": "KEY idx_external_auth_request_flow_provider (flow_type, provider_type) USING BTREE",
+          "table": "external_auth_request",
+          "columns": [
+            "flow_type",
+            "provider_type"
+          ]
+        },
+        {
+          "name": "idx_external_auth_request_status",
+          "def": "KEY idx_external_auth_request_status (status) USING BTREE",
+          "table": "external_auth_request",
+          "columns": [
+            "status"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "external_auth_request",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "external_auth_request",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_external_auth_request_state",
+          "def": "UNIQUE KEY uq_external_auth_request_state (state) USING BTREE",
+          "table": "external_auth_request",
+          "columns": [
+            "state"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "external_auth_request",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "external_auth_request",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_external_auth_request_state",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_external_auth_request_state (state)",
+          "table": "external_auth_request",
+          "columns": [
+            "state"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `external_auth_request` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `flow_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '認証フロー種別(SIGNUP)',\n  `provider_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '外部認証種別(SPOTIFY)',\n  `state` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'OAuth state照合値',\n  `nonce` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'OIDC nonce照合値',\n  `code_verifier` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'PKCE利用時のcode verifier',\n  `redirect_uri` varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'OAuth認可要求時のredirect URI',\n  `scopes` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '認可要求scope一覧(スペース区切り)',\n  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING' COMMENT '外部認証要求状態(PENDING, PROCESSING, SUCCEEDED, FAILED)',\n  `expires_at` datetime NOT NULL COMMENT '認可要求有効期限日時',\n  `completed_at` datetime DEFAULT NULL COMMENT '認可要求完了日時',\n  `error_code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '認可要求エラーコード',\n  `error_description` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '認可要求エラー詳細',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_external_auth_request_state` (`state`),\n  KEY `idx_external_auth_request_flow_provider` (`flow_type`,`provider_type`),\n  KEY `idx_external_auth_request_status` (`status`),\n  KEY `idx_external_auth_request_expires_at` (`expires_at`),\n  KEY `idx_external_auth_request_completed_at` (`completed_at`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='外部認証要求'"
+    },
+    {
+      "name": "flyway_schema_history",
+      "type": "BASE TABLE",
+      "columns": [
+        {
+          "name": "installed_rank",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "version",
+          "type": "varchar(50)",
+          "nullable": true
+        },
+        {
+          "name": "description",
+          "type": "varchar(200)",
+          "nullable": false
+        },
+        {
+          "name": "type",
+          "type": "varchar(20)",
+          "nullable": false
+        },
+        {
+          "name": "script",
+          "type": "varchar(1000)",
+          "nullable": false
+        },
+        {
+          "name": "checksum",
+          "type": "int",
+          "nullable": true
+        },
+        {
+          "name": "installed_by",
+          "type": "varchar(100)",
+          "nullable": false
+        },
+        {
+          "name": "installed_on",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "extra_def": "DEFAULT_GENERATED"
+        },
+        {
+          "name": "execution_time",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "success",
+          "type": "tinyint(1)",
+          "nullable": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "flyway_schema_history_s_idx",
+          "def": "KEY flyway_schema_history_s_idx (success) USING BTREE",
+          "table": "flyway_schema_history",
+          "columns": [
+            "success"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (installed_rank) USING BTREE",
+          "table": "flyway_schema_history",
+          "columns": [
+            "installed_rank"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (installed_rank)",
+          "table": "flyway_schema_history",
+          "columns": [
+            "installed_rank"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `flyway_schema_history` (\n  `installed_rank` int NOT NULL,\n  `version` varchar(50) DEFAULT NULL,\n  `description` varchar(200) NOT NULL,\n  `type` varchar(20) NOT NULL,\n  `script` varchar(1000) NOT NULL,\n  `checksum` int DEFAULT NULL,\n  `installed_by` varchar(100) NOT NULL,\n  `installed_on` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `execution_time` int NOT NULL,\n  `success` tinyint(1) NOT NULL,\n  PRIMARY KEY (`installed_rank`),\n  KEY `flyway_schema_history_s_idx` (`success`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci"
+    },
+    {
+      "name": "followed_artist_sync_queue",
+      "type": "BASE TABLE",
+      "comment": "フォロー中アーティスト同期キュー",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "ユーザーID"
+        },
+        {
+          "name": "sync_date",
+          "type": "date",
+          "nullable": false,
+          "comment": "同期対象日"
+        },
+        {
+          "name": "status",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "SCHEDULED",
+          "comment": "キュー状態(SCHEDULED, PROCESSING, SUCCEEDED, FAILED, BLOCKED, SKIPPED)"
+        },
+        {
+          "name": "requested_limit",
+          "type": "int",
+          "nullable": false,
+          "comment": "Spotify API取得件数"
+        },
+        {
+          "name": "after_cursor",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "次ページ取得用afterカーソル"
+        },
+        {
+          "name": "next_attempt_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "次回試行日時"
+        },
+        {
+          "name": "last_attempted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終試行日時"
+        },
+        {
+          "name": "completed_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "処理完了日時"
+        },
+        {
+          "name": "attempt_count",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "comment": "試行回数"
+        },
+        {
+          "name": "last_failed_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終失敗日時"
+        },
+        {
+          "name": "last_error_type",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "最終エラー種別"
+        },
+        {
+          "name": "lock_token",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "処理ロックトークン"
+        },
+        {
+          "name": "locked_until",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "処理ロック期限"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_followed_artist_sync_queue_target",
+          "def": "KEY idx_followed_artist_sync_queue_target (deleted, status, next_attempt_at, locked_until, id) USING BTREE",
+          "table": "followed_artist_sync_queue",
+          "columns": [
+            "deleted",
+            "status",
+            "next_attempt_at",
+            "locked_until",
+            "id"
+          ]
+        },
+        {
+          "name": "idx_followed_artist_sync_queue_user_status",
+          "def": "KEY idx_followed_artist_sync_queue_user_status (user_id, status, created_at) USING BTREE",
+          "table": "followed_artist_sync_queue",
+          "columns": [
+            "user_id",
+            "status",
+            "created_at"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "followed_artist_sync_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "followed_artist_sync_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_followed_artist_sync_queue_user_date",
+          "def": "UNIQUE KEY uq_followed_artist_sync_queue_user_date (user_id, sync_date) USING BTREE",
+          "table": "followed_artist_sync_queue",
+          "columns": [
+            "user_id",
+            "sync_date"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fk_followed_artist_sync_queue_user_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_id) REFERENCES user (id)",
+          "table": "followed_artist_sync_queue",
+          "referenced_table": "user",
+          "columns": [
+            "user_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "followed_artist_sync_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "followed_artist_sync_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_followed_artist_sync_queue_user_date",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_followed_artist_sync_queue_user_date (user_id, sync_date)",
+          "table": "followed_artist_sync_queue",
+          "columns": [
+            "user_id",
+            "sync_date"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `followed_artist_sync_queue` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_id` bigint unsigned NOT NULL COMMENT 'ユーザーID',\n  `sync_date` date NOT NULL COMMENT '同期対象日',\n  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SCHEDULED' COMMENT 'キュー状態(SCHEDULED, PROCESSING, SUCCEEDED, FAILED, BLOCKED, SKIPPED)',\n  `requested_limit` int NOT NULL COMMENT 'Spotify API取得件数',\n  `after_cursor` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '次ページ取得用afterカーソル',\n  `next_attempt_at` datetime DEFAULT NULL COMMENT '次回試行日時',\n  `last_attempted_at` datetime DEFAULT NULL COMMENT '最終試行日時',\n  `completed_at` datetime DEFAULT NULL COMMENT '処理完了日時',\n  `attempt_count` int NOT NULL DEFAULT '0' COMMENT '試行回数',\n  `last_failed_at` datetime DEFAULT NULL COMMENT '最終失敗日時',\n  `last_error_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '最終エラー種別',\n  `lock_token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '処理ロックトークン',\n  `locked_until` datetime DEFAULT NULL COMMENT '処理ロック期限',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_followed_artist_sync_queue_user_date` (`user_id`,`sync_date`),\n  KEY `idx_followed_artist_sync_queue_target` (`deleted`,`status`,`next_attempt_at`,`locked_until`,`id`),\n  KEY `idx_followed_artist_sync_queue_user_status` (`user_id`,`status`,`created_at`),\n  CONSTRAINT `fk_followed_artist_sync_queue_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='フォロー中アーティスト同期キュー'"
+    },
+    {
+      "name": "release_track",
+      "type": "BASE TABLE",
+      "comment": "リリーストラック",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "artist_release_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "アーティストリリースID"
+        },
+        {
+          "name": "spotify_track_code",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "SpotifyトラックID"
+        },
+        {
+          "name": "track_name",
+          "type": "varchar(1024)",
+          "nullable": false,
+          "default": "",
+          "comment": "トラック名"
+        },
+        {
+          "name": "spotify_track_uri",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "SpotifyトラックURI"
+        },
+        {
+          "name": "spotify_url",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": "",
+          "comment": "Spotify URL"
+        },
+        {
+          "name": "href",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": "",
+          "comment": "Spotify Web API URL"
+        },
+        {
+          "name": "disc_number",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "comment": "ディスク番号"
+        },
+        {
+          "name": "track_number",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "comment": "トラック番号"
+        },
+        {
+          "name": "duration_ms",
+          "type": "int",
+          "nullable": true,
+          "comment": "再生時間ミリ秒"
+        },
+        {
+          "name": "explicit",
+          "type": "bigint",
+          "nullable": true,
+          "comment": "Explicitフラグ(0=無効、1=有効)"
+        },
+        {
+          "name": "is_playable",
+          "type": "bigint",
+          "nullable": true,
+          "comment": "再生可能フラグ(0=無効、1=有効)"
+        },
+        {
+          "name": "is_local",
+          "type": "bigint",
+          "nullable": true,
+          "comment": "ローカルトラックフラグ(0=無効、1=有効)"
+        },
+        {
+          "name": "linked_from_spotify_track_code",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "置換元SpotifyトラックID"
+        },
+        {
+          "name": "linked_from_spotify_track_uri",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "置換元SpotifyトラックURI"
+        },
+        {
+          "name": "preview_url",
+          "type": "varchar(2048)",
+          "nullable": true,
+          "comment": "SpotifyプレビューURL"
+        },
+        {
+          "name": "external_ids_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotify外部ID JSON"
+        },
+        {
+          "name": "isrc_code",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "ISRCコード"
+        },
+        {
+          "name": "ean_code",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "EANコード"
+        },
+        {
+          "name": "upc_code",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "UPCコード"
+        },
+        {
+          "name": "available_markets_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotify提供国一覧JSON"
+        },
+        {
+          "name": "restrictions_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotify制限情報JSON"
+        },
+        {
+          "name": "popularity",
+          "type": "int",
+          "nullable": true,
+          "comment": "Spotify人気度"
+        },
+        {
+          "name": "synced_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "同期日時"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_release_track_order",
+          "def": "KEY idx_release_track_order (artist_release_id, disc_number, track_number) USING BTREE",
+          "table": "release_track",
+          "columns": [
+            "artist_release_id",
+            "disc_number",
+            "track_number"
+          ]
+        },
+        {
+          "name": "idx_release_track_track_code",
+          "def": "KEY idx_release_track_track_code (spotify_track_code) USING BTREE",
+          "table": "release_track",
+          "columns": [
+            "spotify_track_code"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "release_track",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "release_track",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_release_track_release_track",
+          "def": "UNIQUE KEY uq_release_track_release_track (artist_release_id, spotify_track_code) USING BTREE",
+          "table": "release_track",
+          "columns": [
+            "artist_release_id",
+            "spotify_track_code"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fk_release_track_artist_release_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (artist_release_id) REFERENCES artist_release (id)",
+          "table": "release_track",
+          "referenced_table": "artist_release",
+          "columns": [
+            "artist_release_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "release_track",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "release_track",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_release_track_release_track",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_release_track_release_track (artist_release_id, spotify_track_code)",
+          "table": "release_track",
+          "columns": [
+            "artist_release_id",
+            "spotify_track_code"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `release_track` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `artist_release_id` bigint unsigned NOT NULL COMMENT 'アーティストリリースID',\n  `spotify_track_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'SpotifyトラックID',\n  `track_name` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'トラック名',\n  `spotify_track_uri` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'SpotifyトラックURI',\n  `spotify_url` varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Spotify URL',\n  `href` varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Spotify Web API URL',\n  `disc_number` int NOT NULL DEFAULT '0' COMMENT 'ディスク番号',\n  `track_number` int NOT NULL DEFAULT '0' COMMENT 'トラック番号',\n  `duration_ms` int DEFAULT NULL COMMENT '再生時間ミリ秒',\n  `explicit` bigint DEFAULT NULL COMMENT 'Explicitフラグ(0=無効、1=有効)',\n  `is_playable` bigint DEFAULT NULL COMMENT '再生可能フラグ(0=無効、1=有効)',\n  `is_local` bigint DEFAULT NULL COMMENT 'ローカルトラックフラグ(0=無効、1=有効)',\n  `linked_from_spotify_track_code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '置換元SpotifyトラックID',\n  `linked_from_spotify_track_uri` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '置換元SpotifyトラックURI',\n  `preview_url` varchar(2048) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'SpotifyプレビューURL',\n  `external_ids_json` json DEFAULT NULL COMMENT 'Spotify外部ID JSON',\n  `isrc_code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'ISRCコード',\n  `ean_code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'EANコード',\n  `upc_code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'UPCコード',\n  `available_markets_json` json DEFAULT NULL COMMENT 'Spotify提供国一覧JSON',\n  `restrictions_json` json DEFAULT NULL COMMENT 'Spotify制限情報JSON',\n  `popularity` int DEFAULT NULL COMMENT 'Spotify人気度',\n  `synced_at` datetime DEFAULT NULL COMMENT '同期日時',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_release_track_release_track` (`artist_release_id`,`spotify_track_code`),\n  KEY `idx_release_track_track_code` (`spotify_track_code`),\n  KEY `idx_release_track_order` (`artist_release_id`,`disc_number`,`track_number`),\n  CONSTRAINT `fk_release_track_artist_release_id` FOREIGN KEY (`artist_release_id`) REFERENCES `artist_release` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='リリーストラック'"
+    },
+    {
+      "name": "user",
+      "type": "BASE TABLE",
+      "comment": "アプリケーションユーザー",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "user_name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "ユーザー名"
+        },
+        {
+          "name": "display_name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "表示名"
+        },
+        {
+          "name": "time_zone",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "Asia/Tokyo",
+          "comment": "タイムゾーン"
+        },
+        {
+          "name": "enabled",
+          "type": "bigint",
+          "nullable": false,
+          "default": "1",
+          "comment": "有効フラグ(0=無効、1=有効)"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_enabled",
+          "def": "KEY idx_user_enabled (deleted, enabled) USING BTREE",
+          "table": "user",
+          "columns": [
+            "deleted",
+            "enabled"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "user",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "user",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_user_name",
+          "def": "UNIQUE KEY uq_user_user_name (user_name) USING BTREE",
+          "table": "user",
+          "columns": [
+            "user_name"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "user",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "user",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_user_name",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_user_user_name (user_name)",
+          "table": "user",
+          "columns": [
+            "user_name"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `user` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ユーザー名',\n  `display_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '表示名',\n  `time_zone` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Asia/Tokyo' COMMENT 'タイムゾーン',\n  `enabled` bigint NOT NULL DEFAULT '1' COMMENT '有効フラグ(0=無効、1=有効)',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_user_user_name` (`user_name`),\n  KEY `idx_user_enabled` (`deleted`,`enabled`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='アプリケーションユーザー'"
+    },
+    {
+      "name": "user_followed_artist",
+      "type": "BASE TABLE",
+      "comment": "ユーザー別フォロー中アーティスト",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "ユーザーID"
+        },
+        {
+          "name": "spotify_artist_code",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "SpotifyアーティストID"
+        },
+        {
+          "name": "artist_name",
+          "type": "varchar(512)",
+          "nullable": false,
+          "default": "",
+          "comment": "アーティスト名"
+        },
+        {
+          "name": "spotify_artist_uri",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "SpotifyアーティストURI"
+        },
+        {
+          "name": "spotify_url",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": "",
+          "comment": "Spotify URL"
+        },
+        {
+          "name": "href",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": "",
+          "comment": "Spotify Web API URL"
+        },
+        {
+          "name": "primary_image_url",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": "",
+          "comment": "代表画像URL"
+        },
+        {
+          "name": "primary_image_height",
+          "type": "int",
+          "nullable": true,
+          "comment": "代表画像高さ"
+        },
+        {
+          "name": "primary_image_width",
+          "type": "int",
+          "nullable": true,
+          "comment": "代表画像幅"
+        },
+        {
+          "name": "images_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotify画像一覧JSON"
+        },
+        {
+          "name": "genres_json",
+          "type": "json",
+          "nullable": true,
+          "comment": "Spotifyジャンル一覧JSON"
+        },
+        {
+          "name": "followers_total",
+          "type": "bigint",
+          "nullable": true,
+          "comment": "Spotifyフォロワー数"
+        },
+        {
+          "name": "popularity",
+          "type": "int",
+          "nullable": true,
+          "comment": "Spotify人気度"
+        },
+        {
+          "name": "first_followed_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "初回フォロー検出日時"
+        },
+        {
+          "name": "last_seen_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終検出日時"
+        },
+        {
+          "name": "last_synced_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終同期日時"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_followed_artist_artist_code",
+          "def": "KEY idx_user_followed_artist_artist_code (spotify_artist_code) USING BTREE",
+          "table": "user_followed_artist",
+          "columns": [
+            "spotify_artist_code"
+          ]
+        },
+        {
+          "name": "idx_user_followed_artist_sync_target",
+          "def": "KEY idx_user_followed_artist_sync_target (deleted, user_id, last_synced_at) USING BTREE",
+          "table": "user_followed_artist",
+          "columns": [
+            "deleted",
+            "user_id",
+            "last_synced_at"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "user_followed_artist",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "user_followed_artist",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_followed_artist_user_artist",
+          "def": "UNIQUE KEY uq_user_followed_artist_user_artist (user_id, spotify_artist_code) USING BTREE",
+          "table": "user_followed_artist",
+          "columns": [
+            "user_id",
+            "spotify_artist_code"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fk_user_followed_artist_user_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_id) REFERENCES user (id)",
+          "table": "user_followed_artist",
+          "referenced_table": "user",
+          "columns": [
+            "user_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "user_followed_artist",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "user_followed_artist",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_followed_artist_user_artist",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_user_followed_artist_user_artist (user_id, spotify_artist_code)",
+          "table": "user_followed_artist",
+          "columns": [
+            "user_id",
+            "spotify_artist_code"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `user_followed_artist` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_id` bigint unsigned NOT NULL COMMENT 'ユーザーID',\n  `spotify_artist_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'SpotifyアーティストID',\n  `artist_name` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'アーティスト名',\n  `spotify_artist_uri` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'SpotifyアーティストURI',\n  `spotify_url` varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Spotify URL',\n  `href` varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Spotify Web API URL',\n  `primary_image_url` varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '代表画像URL',\n  `primary_image_height` int DEFAULT NULL COMMENT '代表画像高さ',\n  `primary_image_width` int DEFAULT NULL COMMENT '代表画像幅',\n  `images_json` json DEFAULT NULL COMMENT 'Spotify画像一覧JSON',\n  `genres_json` json DEFAULT NULL COMMENT 'Spotifyジャンル一覧JSON',\n  `followers_total` bigint DEFAULT NULL COMMENT 'Spotifyフォロワー数',\n  `popularity` int DEFAULT NULL COMMENT 'Spotify人気度',\n  `first_followed_at` datetime DEFAULT NULL COMMENT '初回フォロー検出日時',\n  `last_seen_at` datetime DEFAULT NULL COMMENT '最終検出日時',\n  `last_synced_at` datetime DEFAULT NULL COMMENT '最終同期日時',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_user_followed_artist_user_artist` (`user_id`,`spotify_artist_code`),\n  KEY `idx_user_followed_artist_sync_target` (`deleted`,`user_id`,`last_synced_at`),\n  KEY `idx_user_followed_artist_artist_code` (`spotify_artist_code`),\n  CONSTRAINT `fk_user_followed_artist_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザー別フォロー中アーティスト'"
+    },
+    {
+      "name": "user_new_release_event",
+      "type": "BASE TABLE",
+      "comment": "ユーザー別新着リリース履歴",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "ユーザーID"
+        },
+        {
+          "name": "artist_release_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "アーティストリリースID"
+        },
+        {
+          "name": "spotify_release_code",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "SpotifyリリースID"
+        },
+        {
+          "name": "source_spotify_artist_code",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "取得元SpotifyアーティストID"
+        },
+        {
+          "name": "detected_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "新着検出日時"
+        },
+        {
+          "name": "detection_sync_code",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "検出同期コード"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_new_release_event_detected",
+          "def": "KEY idx_user_new_release_event_detected (user_id, deleted, detected_at) USING BTREE",
+          "table": "user_new_release_event",
+          "columns": [
+            "user_id",
+            "deleted",
+            "detected_at"
+          ]
+        },
+        {
+          "name": "idx_user_new_release_event_release",
+          "def": "KEY idx_user_new_release_event_release (artist_release_id, deleted) USING BTREE",
+          "table": "user_new_release_event",
+          "columns": [
+            "artist_release_id",
+            "deleted"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "user_new_release_event",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "user_new_release_event",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_new_release_event_user_artist_release",
+          "def": "UNIQUE KEY uq_user_new_release_event_user_artist_release (user_id, artist_release_id) USING BTREE",
+          "table": "user_new_release_event",
+          "columns": [
+            "user_id",
+            "artist_release_id"
+          ]
+        },
+        {
+          "name": "uq_user_new_release_event_user_release",
+          "def": "UNIQUE KEY uq_user_new_release_event_user_release (user_id, spotify_release_code) USING BTREE",
+          "table": "user_new_release_event",
+          "columns": [
+            "user_id",
+            "spotify_release_code"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fk_user_new_release_event_artist_release_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (artist_release_id) REFERENCES artist_release (id)",
+          "table": "user_new_release_event",
+          "referenced_table": "artist_release",
+          "columns": [
+            "artist_release_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "fk_user_new_release_event_user_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_id) REFERENCES user (id)",
+          "table": "user_new_release_event",
+          "referenced_table": "user",
+          "columns": [
+            "user_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "user_new_release_event",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "user_new_release_event",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_new_release_event_user_artist_release",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_user_new_release_event_user_artist_release (user_id, artist_release_id)",
+          "table": "user_new_release_event",
+          "columns": [
+            "user_id",
+            "artist_release_id"
+          ]
+        },
+        {
+          "name": "uq_user_new_release_event_user_release",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_user_new_release_event_user_release (user_id, spotify_release_code)",
+          "table": "user_new_release_event",
+          "columns": [
+            "user_id",
+            "spotify_release_code"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `user_new_release_event` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_id` bigint unsigned NOT NULL COMMENT 'ユーザーID',\n  `artist_release_id` bigint unsigned NOT NULL COMMENT 'アーティストリリースID',\n  `spotify_release_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'SpotifyリリースID',\n  `source_spotify_artist_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '取得元SpotifyアーティストID',\n  `detected_at` datetime NOT NULL COMMENT '新着検出日時',\n  `detection_sync_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '検出同期コード',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_user_new_release_event_user_release` (`user_id`,`spotify_release_code`),\n  UNIQUE KEY `uq_user_new_release_event_user_artist_release` (`user_id`,`artist_release_id`),\n  KEY `idx_user_new_release_event_release` (`artist_release_id`,`deleted`),\n  KEY `idx_user_new_release_event_detected` (`user_id`,`deleted`,`detected_at`),\n  CONSTRAINT `fk_user_new_release_event_artist_release_id` FOREIGN KEY (`artist_release_id`) REFERENCES `artist_release` (`id`),\n  CONSTRAINT `fk_user_new_release_event_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザー別新着リリース履歴'"
+    },
+    {
+      "name": "user_session_token",
+      "type": "BASE TABLE",
+      "comment": "ユーザーセッション",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "ユーザーID"
+        },
+        {
+          "name": "hashed_token",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "セッショントークンのハッシュ値"
+        },
+        {
+          "name": "issued_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "トークン発行日時"
+        },
+        {
+          "name": "last_accessed_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "最終アクセス日時"
+        },
+        {
+          "name": "idle_expires_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "アイドルタイムアウト日時"
+        },
+        {
+          "name": "expires_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "トークン有効期限日時"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_session_token_expires_at",
+          "def": "KEY idx_user_session_token_expires_at (expires_at) USING BTREE",
+          "table": "user_session_token",
+          "columns": [
+            "expires_at"
+          ]
+        },
+        {
+          "name": "idx_user_session_token_idle_expires_at",
+          "def": "KEY idx_user_session_token_idle_expires_at (idle_expires_at) USING BTREE",
+          "table": "user_session_token",
+          "columns": [
+            "idle_expires_at"
+          ]
+        },
+        {
+          "name": "idx_user_session_token_user_id",
+          "def": "KEY idx_user_session_token_user_id (user_id) USING BTREE",
+          "table": "user_session_token",
+          "columns": [
+            "user_id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "user_session_token",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "user_session_token",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_session_token_hashed_token",
+          "def": "UNIQUE KEY uq_user_session_token_hashed_token (hashed_token) USING BTREE",
+          "table": "user_session_token",
+          "columns": [
+            "hashed_token"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fk_user_session_token_user_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_id) REFERENCES user (id)",
+          "table": "user_session_token",
+          "referenced_table": "user",
+          "columns": [
+            "user_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "user_session_token",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "user_session_token",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_session_token_hashed_token",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_user_session_token_hashed_token (hashed_token)",
+          "table": "user_session_token",
+          "columns": [
+            "hashed_token"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `user_session_token` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_id` bigint unsigned NOT NULL COMMENT 'ユーザーID',\n  `hashed_token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'セッショントークンのハッシュ値',\n  `issued_at` datetime NOT NULL COMMENT 'トークン発行日時',\n  `last_accessed_at` datetime NOT NULL COMMENT '最終アクセス日時',\n  `idle_expires_at` datetime NOT NULL COMMENT 'アイドルタイムアウト日時',\n  `expires_at` datetime NOT NULL COMMENT 'トークン有効期限日時',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_user_session_token_hashed_token` (`hashed_token`),\n  KEY `idx_user_session_token_user_id` (`user_id`),\n  KEY `idx_user_session_token_idle_expires_at` (`idle_expires_at`),\n  KEY `idx_user_session_token_expires_at` (`expires_at`),\n  CONSTRAINT `fk_user_session_token_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザーセッション'"
+    },
+    {
+      "name": "user_spotify_auth",
+      "type": "BASE TABLE",
+      "comment": "Spotify認証識別子",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "ユーザーID"
+        },
+        {
+          "name": "spotify_user_id",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "SpotifyユーザーID"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "user_spotify_auth",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "user_spotify_auth",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_spotify_auth_spotify_user_id",
+          "def": "UNIQUE KEY uq_user_spotify_auth_spotify_user_id (spotify_user_id) USING BTREE",
+          "table": "user_spotify_auth",
+          "columns": [
+            "spotify_user_id"
+          ]
+        },
+        {
+          "name": "uq_user_spotify_auth_user_id",
+          "def": "UNIQUE KEY uq_user_spotify_auth_user_id (user_id) USING BTREE",
+          "table": "user_spotify_auth",
+          "columns": [
+            "user_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fk_user_spotify_auth_user_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_id) REFERENCES user (id)",
+          "table": "user_spotify_auth",
+          "referenced_table": "user",
+          "columns": [
+            "user_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "user_spotify_auth",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "user_spotify_auth",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_spotify_auth_spotify_user_id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_user_spotify_auth_spotify_user_id (spotify_user_id)",
+          "table": "user_spotify_auth",
+          "columns": [
+            "spotify_user_id"
+          ]
+        },
+        {
+          "name": "uq_user_spotify_auth_user_id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_user_spotify_auth_user_id (user_id)",
+          "table": "user_spotify_auth",
+          "columns": [
+            "user_id"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `user_spotify_auth` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_id` bigint unsigned NOT NULL COMMENT 'ユーザーID',\n  `spotify_user_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'SpotifyユーザーID',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_user_spotify_auth_user_id` (`user_id`),\n  UNIQUE KEY `uq_user_spotify_auth_spotify_user_id` (`spotify_user_id`),\n  CONSTRAINT `fk_user_spotify_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spotify認証識別子'"
+    },
+    {
+      "name": "user_spotify_authorization",
+      "type": "BASE TABLE",
+      "comment": "ユーザーSpotify認可情報",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "ユーザーID"
+        },
+        {
+          "name": "scope_text",
+          "type": "text",
+          "nullable": false,
+          "comment": "認可スコープ"
+        },
+        {
+          "name": "access_token_cipher",
+          "type": "varbinary(4096)",
+          "nullable": false,
+          "comment": "暗号化アクセストークン"
+        },
+        {
+          "name": "access_token_nonce",
+          "type": "varbinary(12)",
+          "nullable": false,
+          "comment": "アクセストークンNonce"
+        },
+        {
+          "name": "access_token_tag",
+          "type": "varbinary(16)",
+          "nullable": false,
+          "comment": "アクセストークン認証タグ"
+        },
+        {
+          "name": "refresh_token_cipher",
+          "type": "varbinary(4096)",
+          "nullable": false,
+          "comment": "暗号化リフレッシュトークン"
+        },
+        {
+          "name": "refresh_token_nonce",
+          "type": "varbinary(12)",
+          "nullable": false,
+          "comment": "リフレッシュトークンNonce"
+        },
+        {
+          "name": "refresh_token_tag",
+          "type": "varbinary(16)",
+          "nullable": false,
+          "comment": "リフレッシュトークン認証タグ"
+        },
+        {
+          "name": "encryption_algorithm",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "暗号化方式"
+        },
+        {
+          "name": "encryption_key_version",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "暗号化キーバージョン"
+        },
+        {
+          "name": "token_type",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "トークン種別"
+        },
+        {
+          "name": "access_token_expires_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "アクセストークン失効日時"
+        },
+        {
+          "name": "refresh_margin_seconds",
+          "type": "int",
+          "nullable": false,
+          "default": "300",
+          "comment": "期限前更新猶予秒"
+        },
+        {
+          "name": "last_authorized_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終認可日時"
+        },
+        {
+          "name": "last_refreshed_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終更新日時"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "user_spotify_authorization",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "user_spotify_authorization",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_spotify_authorization_user_id",
+          "def": "UNIQUE KEY uq_user_spotify_authorization_user_id (user_id) USING BTREE",
+          "table": "user_spotify_authorization",
+          "columns": [
+            "user_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fk_user_spotify_authorization_user_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_id) REFERENCES user (id)",
+          "table": "user_spotify_authorization",
+          "referenced_table": "user",
+          "columns": [
+            "user_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "user_spotify_authorization",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "user_spotify_authorization",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_spotify_authorization_user_id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_user_spotify_authorization_user_id (user_id)",
+          "table": "user_spotify_authorization",
+          "columns": [
+            "user_id"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `user_spotify_authorization` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_id` bigint unsigned NOT NULL COMMENT 'ユーザーID',\n  `scope_text` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '認可スコープ',\n  `access_token_cipher` varbinary(4096) NOT NULL COMMENT '暗号化アクセストークン',\n  `access_token_nonce` varbinary(12) NOT NULL COMMENT 'アクセストークンNonce',\n  `access_token_tag` varbinary(16) NOT NULL COMMENT 'アクセストークン認証タグ',\n  `refresh_token_cipher` varbinary(4096) NOT NULL COMMENT '暗号化リフレッシュトークン',\n  `refresh_token_nonce` varbinary(12) NOT NULL COMMENT 'リフレッシュトークンNonce',\n  `refresh_token_tag` varbinary(16) NOT NULL COMMENT 'リフレッシュトークン認証タグ',\n  `encryption_algorithm` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '暗号化方式',\n  `encryption_key_version` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '暗号化キーバージョン',\n  `token_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'トークン種別',\n  `access_token_expires_at` datetime NOT NULL COMMENT 'アクセストークン失効日時',\n  `refresh_margin_seconds` int NOT NULL DEFAULT '300' COMMENT '期限前更新猶予秒',\n  `last_authorized_at` datetime DEFAULT NULL COMMENT '最終認可日時',\n  `last_refreshed_at` datetime DEFAULT NULL COMMENT '最終更新日時',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_user_spotify_authorization_user_id` (`user_id`),\n  CONSTRAINT `fk_user_spotify_authorization_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザーSpotify認可情報'"
+    },
+    {
+      "name": "user_spotify_authorization_refresh_queue",
+      "type": "BASE TABLE",
+      "comment": "ユーザーSpotify認可更新キュー",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "extra_def": "auto_increment"
+        },
+        {
+          "name": "authorization_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "comment": "Spotify認可情報ID"
+        },
+        {
+          "name": "status",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "SCHEDULED",
+          "comment": "キュー状態(SCHEDULED, PROCESSING, SUCCEEDED, FAILED, BLOCKED, SKIPPED)"
+        },
+        {
+          "name": "next_attempt_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "次回試行日時"
+        },
+        {
+          "name": "attempt_count",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "comment": "試行回数"
+        },
+        {
+          "name": "last_failed_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終失敗日時"
+        },
+        {
+          "name": "last_error_type",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "最終エラー種別"
+        },
+        {
+          "name": "lock_token",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "処理ロックトークン"
+        },
+        {
+          "name": "locked_until",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "処理ロック期限"
+        },
+        {
+          "name": "last_attempted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "最終試行日時"
+        },
+        {
+          "name": "completed_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "処理完了日時"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "作成日時"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "nullable": false,
+          "comment": "更新日時"
+        },
+        {
+          "name": "deleted_at",
+          "type": "datetime",
+          "nullable": true,
+          "comment": "削除日時"
+        },
+        {
+          "name": "created_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "作成者"
+        },
+        {
+          "name": "updated_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "更新者"
+        },
+        {
+          "name": "deleted_user",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "",
+          "comment": "削除者"
+        },
+        {
+          "name": "deleted",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "論理削除フラグ(0=有効、1=無効)"
+        },
+        {
+          "name": "lock_version",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "楽観ロックバージョン"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_spotify_authorization_refresh_queue_target",
+          "def": "KEY idx_user_spotify_authorization_refresh_queue_target (deleted, status, next_attempt_at, locked_until, id) USING BTREE",
+          "table": "user_spotify_authorization_refresh_queue",
+          "columns": [
+            "deleted",
+            "status",
+            "next_attempt_at",
+            "locked_until",
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "def": "PRIMARY KEY (id) USING BTREE",
+          "table": "user_spotify_authorization_refresh_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "def": "UNIQUE KEY id (id) USING BTREE",
+          "table": "user_spotify_authorization_refresh_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_spotify_authorization_refresh_queue_authorization_id",
+          "def": "UNIQUE KEY uq_user_spotify_authorization_refresh_queue_authorization_id (authorization_id) USING BTREE",
+          "table": "user_spotify_authorization_refresh_queue",
+          "columns": [
+            "authorization_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fk_user_spotify_authorization_refresh_queue_authorization_id",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (authorization_id) REFERENCES user_spotify_authorization (id)",
+          "table": "user_spotify_authorization_refresh_queue",
+          "referenced_table": "user_spotify_authorization",
+          "columns": [
+            "authorization_id"
+          ],
+          "referenced_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY id (id)",
+          "table": "user_spotify_authorization_refresh_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "PRIMARY",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (id)",
+          "table": "user_spotify_authorization_refresh_queue",
+          "columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "uq_user_spotify_authorization_refresh_queue_authorization_id",
+          "type": "UNIQUE",
+          "def": "UNIQUE KEY uq_user_spotify_authorization_refresh_queue_authorization_id (authorization_id)",
+          "table": "user_spotify_authorization_refresh_queue",
+          "columns": [
+            "authorization_id"
+          ]
+        }
+      ],
+      "def": "CREATE TABLE `user_spotify_authorization_refresh_queue` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `authorization_id` bigint unsigned NOT NULL COMMENT 'Spotify認可情報ID',\n  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SCHEDULED' COMMENT 'キュー状態(SCHEDULED, PROCESSING, SUCCEEDED, FAILED, BLOCKED, SKIPPED)',\n  `next_attempt_at` datetime DEFAULT NULL COMMENT '次回試行日時',\n  `attempt_count` int NOT NULL DEFAULT '0' COMMENT '試行回数',\n  `last_failed_at` datetime DEFAULT NULL COMMENT '最終失敗日時',\n  `last_error_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '最終エラー種別',\n  `lock_token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '処理ロックトークン',\n  `locked_until` datetime DEFAULT NULL COMMENT '処理ロック期限',\n  `last_attempted_at` datetime DEFAULT NULL COMMENT '最終試行日時',\n  `completed_at` datetime DEFAULT NULL COMMENT '処理完了日時',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_user_spotify_authorization_refresh_queue_authorization_id` (`authorization_id`),\n  KEY `idx_user_spotify_authorization_refresh_queue_target` (`deleted`,`status`,`next_attempt_at`,`locked_until`,`id`),\n  CONSTRAINT `fk_user_spotify_authorization_refresh_queue_authorization_id` FOREIGN KEY (`authorization_id`) REFERENCES `user_spotify_authorization` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザーSpotify認可更新キュー'"
+    }
+  ],
+  "relations": [
+    {
+      "table": "blocked_label",
+      "columns": [
+        "user_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "user",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_id) REFERENCES user (id)"
+    },
+    {
+      "table": "followed_artist_sync_queue",
+      "columns": [
+        "user_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "user",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_id) REFERENCES user (id)"
+    },
+    {
+      "table": "release_track",
+      "columns": [
+        "artist_release_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "artist_release",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (artist_release_id) REFERENCES artist_release (id)"
+    },
+    {
+      "table": "user_followed_artist",
+      "columns": [
+        "user_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "user",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_id) REFERENCES user (id)"
+    },
+    {
+      "table": "user_new_release_event",
+      "columns": [
+        "artist_release_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "artist_release",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (artist_release_id) REFERENCES artist_release (id)"
+    },
+    {
+      "table": "user_new_release_event",
+      "columns": [
+        "user_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "user",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_id) REFERENCES user (id)"
+    },
+    {
+      "table": "user_session_token",
+      "columns": [
+        "user_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "user",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_id) REFERENCES user (id)"
+    },
+    {
+      "table": "user_spotify_auth",
+      "columns": [
+        "user_id"
+      ],
+      "cardinality": "zero_or_one",
+      "parent_table": "user",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_id) REFERENCES user (id)"
+    },
+    {
+      "table": "user_spotify_authorization",
+      "columns": [
+        "user_id"
+      ],
+      "cardinality": "zero_or_one",
+      "parent_table": "user",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_id) REFERENCES user (id)"
+    },
+    {
+      "table": "user_spotify_authorization_refresh_queue",
+      "columns": [
+        "authorization_id"
+      ],
+      "cardinality": "zero_or_one",
+      "parent_table": "user_spotify_authorization",
+      "parent_columns": [
+        "id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (authorization_id) REFERENCES user_spotify_authorization (id)"
+    }
+  ],
+  "driver": {
+    "name": "mysql",
+    "database_version": "8.4.9",
+    "meta": {
+      "dict": {
+        "Functions": "Stored procedures and functions"
+      }
+    }
+  }
+}

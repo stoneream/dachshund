@@ -1,0 +1,3 @@
+[submodule "ai-dotfiles"]
+	path = ai-dotfiles
+	url = git@github.com:stoneream/ai-dotfiles.git

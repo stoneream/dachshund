@@ -1,0 +1,11 @@
+@(path: String)
+
+@views.html.main(io.github.stoneream.dachshund.handler.lib.PageMeta(title = "Not Found")) {
+  <main class="page-shell">
+    <section class="home-panel error-panel">
+      <h1>404 Not Found</h1>
+      <p>Requested path: @path</p>
+    </section>
+  </main>
+}
+

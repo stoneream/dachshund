@@ -1,0 +1,7 @@
+dsn: mysql://root:@dachshund-mysql:3306/dachshund_dev
+docPath: tbls/schema
+er:
+  format: mermaid
+  comment: true
+  hideDef: true
+  distance: 2

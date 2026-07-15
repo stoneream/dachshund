@@ -1,0 +1,17 @@
+@(pageMeta: io.github.stoneream.dachshund.handler.lib.PageMeta)(content: Html)
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="color-scheme" content="light dark">
+        <meta name="robots" content="@pageMeta.robots.getOrElse(io.github.stoneream.dachshund.handler.lib.PageMeta.NoIndexNoFollow)">
+        <title>@pageMeta.title</title>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+    </head>
+    <body>
+        @content
+        <script src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
+    </body>
+</html>

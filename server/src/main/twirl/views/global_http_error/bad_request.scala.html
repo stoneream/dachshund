@@ -1,0 +1,14 @@
+@(path: String, message: String)
+
+@views.html.main(io.github.stoneream.dachshund.handler.lib.PageMeta(title = "Bad Request")) {
+  <main class="page-shell">
+    <section class="home-panel error-panel">
+      <h1>400 Bad Request</h1>
+      <p>Requested path: @path</p>
+      @if(message.nonEmpty) {
+        <p>Reason: @message</p>
+      }
+    </section>
+  </main>
+}
+
