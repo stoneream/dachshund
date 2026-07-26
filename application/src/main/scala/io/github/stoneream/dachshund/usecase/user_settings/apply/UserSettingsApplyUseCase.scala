@@ -103,9 +103,11 @@ class UserSettingsApplyUseCase @Inject() (
     if (writeCount > 0) {
       Future.unit
     } else {
-      cleanupSpotifyManagedPlaylistStep.run(accessToken, createdPlaylist.spotifyPlaylistCode).recoverWith { case NonFatal(exception) =>
-        Future.failed(UseCaseException.PlaylistSetupFailed(exception))
-      }(using defaultExecutor)
+      cleanupSpotifyManagedPlaylistStep
+        .run(accessToken, createdPlaylist.spotifyPlaylistCode)
+        .recoverWith { case NonFatal(exception) =>
+          Future.failed(UseCaseException.PlaylistSetupFailed(exception))
+        }(using defaultExecutor)
     }
 
   private def recoverApplyFailure(using LoggingContext): PartialFunction[Throwable, Future[UseCaseOutput]] = {
