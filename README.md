@@ -1,5 +1,7 @@
 # dachshund
 
+![DAX](docs/DAX.png)
+
 ## 概要
 
 Dachshund は、Spotify でフォローしているアーティストの新着リリース情報をWebで閲覧できます。
