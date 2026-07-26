@@ -4,6 +4,7 @@ import scala.concurrent.duration.FiniteDuration
 
 final case class JobSetting(
     name: JobName,
+    enabled: Boolean,
     schedule: JobSchedule,
     timeout: FiniteDuration,
     retryPolicy: JobRetryPolicy

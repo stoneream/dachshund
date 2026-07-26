@@ -15,6 +15,7 @@ object UserNewReleaseEventsSyncJobConfig {
   private val ConfigPath: String = "daemon.jobs.user-new-release-events-sync"
 
   private final case class RawUserNewReleaseEventsSyncJobConfig(
+      enabled: Boolean,
       interval: FiniteDuration,
       timeout: FiniteDuration,
       retry: JobRetryPolicy,
@@ -22,6 +23,7 @@ object UserNewReleaseEventsSyncJobConfig {
   ) derives ConfigReader {
     def settingConfig: JobSettingConfig =
       JobSettingConfig(
+        enabled = enabled,
         interval = interval,
         timeout = timeout,
         retry = retry

@@ -41,7 +41,7 @@ CREATE TABLE `user_new_release_event` (
 
 | Name | Type | Default | Nullable | Extra Definition | Children | Parents | Comment |
 | ---- | ---- | ------- | -------- | ---------------- | -------- | ------- | ------- |
-| id | bigint unsigned |  | false | auto_increment |  |  |  |
+| id | bigint unsigned |  | false | auto_increment | [user_new_release_notification_queue](user_new_release_notification_queue.md) |  |  |
 | user_id | bigint unsigned |  | false |  |  | [user](user.md) | ユーザーID |
 | artist_release_id | bigint unsigned |  | false |  |  | [artist_release](artist_release.md) | アーティストリリースID |
 | spotify_release_code | varchar(255) |  | false |  |  |  | SpotifyリリースID |
@@ -84,10 +84,13 @@ CREATE TABLE `user_new_release_event` (
 ```mermaid
 erDiagram
 
+"user_new_release_notification_queue" }o--|| "user_new_release_event" : ""
+"user_new_release_notification_queue" }o--|| "user_playlist_setting" : ""
 "user_new_release_event" }o--|| "user" : ""
 "blocked_label" }o--|| "user" : ""
 "followed_artist_sync_queue" }o--|| "user" : ""
 "user_followed_artist" }o--|| "user" : ""
+"user_playlist_setting" }o--|| "user" : ""
 "user_session_token" }o--|| "user" : ""
 "user_spotify_auth" |o--|| "user" : ""
 "user_spotify_authorization" |o--|| "user" : ""
@@ -102,6 +105,47 @@ erDiagram
   varchar_255_ source_spotify_artist_code "取得元SpotifyアーティストID"
   datetime detected_at "新着検出日時"
   varchar_255_ detection_sync_code "検出同期コード"
+  datetime created_at "作成日時"
+  datetime updated_at "更新日時"
+  datetime deleted_at "削除日時"
+  varchar_255_ created_user "作成者"
+  varchar_255_ updated_user "更新者"
+  varchar_255_ deleted_user "削除者"
+  bigint deleted "論理削除フラグ(0=有効、1=無効)"
+  bigint lock_version "楽観ロックバージョン"
+}
+"user_new_release_notification_queue" {
+  bigint_unsigned id PK ""
+  bigint_unsigned user_new_release_event_id FK "ユーザー別新着リリース履歴ID"
+  varchar_255_ release_notification_type "リリース通知種別(PLAYLIST)"
+  bigint_unsigned playlist_setting_id FK "ユーザープレイリスト設定ID"
+  varchar_255_ status "キュー状態(SCHEDULED, PROCESSING, SUCCEEDED, FAILED, BLOCKED, SKIPPED)"
+  datetime next_attempt_at "次回試行日時"
+  int attempt_count "試行回数"
+  datetime last_failed_at "最終失敗日時"
+  varchar_255_ last_error_type "最終エラー種別"
+  varchar_255_ lock_token "処理ロックトークン"
+  datetime locked_until "処理ロック期限"
+  datetime last_attempted_at "最終試行日時"
+  datetime completed_at "処理完了日時"
+  varchar_255_ spotify_snapshot_id "SpotifyプレイリストスナップショットID"
+  datetime created_at "作成日時"
+  datetime updated_at "更新日時"
+  datetime deleted_at "削除日時"
+  varchar_255_ created_user "作成者"
+  varchar_255_ updated_user "更新者"
+  varchar_255_ deleted_user "削除者"
+  bigint deleted "論理削除フラグ(0=有効、1=無効)"
+  bigint lock_version "楽観ロックバージョン"
+}
+"user_playlist_setting" {
+  bigint_unsigned id PK ""
+  bigint_unsigned user_id FK "ユーザーID"
+  varchar_255_ playlist_usage_type "プレイリスト用途種別(NEW_RELEASE_NOTIFICATION)"
+  varchar_255_ spotify_playlist_code "SpotifyプレイリストID"
+  varchar_255_ spotify_playlist_uri "SpotifyプレイリストURI"
+  varchar_512_ playlist_name "プレイリスト名"
+  bigint enabled "有効フラグ(0=無効、1=有効)"
   datetime created_at "作成日時"
   datetime updated_at "更新日時"
   datetime deleted_at "削除日時"

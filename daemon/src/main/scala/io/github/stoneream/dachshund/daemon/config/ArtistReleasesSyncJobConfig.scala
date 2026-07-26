@@ -16,6 +16,7 @@ object ArtistReleasesSyncJobConfig {
   private val ConfigPath: String = "daemon.jobs.artist-releases-sync"
 
   private final case class RawArtistReleasesSyncJobConfig(
+      enabled: Boolean,
       interval: FiniteDuration,
       timeout: FiniteDuration,
       retry: JobRetryPolicy,
@@ -24,6 +25,7 @@ object ArtistReleasesSyncJobConfig {
   ) derives ConfigReader {
     def settingConfig: JobSettingConfig =
       JobSettingConfig(
+        enabled = enabled,
         interval = interval,
         timeout = timeout,
         retry = retry

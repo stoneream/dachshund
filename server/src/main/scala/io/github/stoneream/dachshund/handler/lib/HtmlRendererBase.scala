@@ -1,6 +1,6 @@
 package io.github.stoneream.dachshund.handler.lib
 
-import play.api.mvc.{Result, Results}
+import play.api.mvc.{RequestHeader, Result, Results}
 import play.twirl.api.Html
 
 trait HtmlRendererBase[
@@ -16,5 +16,15 @@ trait HtmlRendererBase[
 
   def success(output: UseCaseOutput): Result
 
+  def success(output: UseCaseOutput, request: RequestHeader): Result = {
+    val _ = request
+    success(output)
+  }
+
   def failure(exception: UseCaseException): Result
+
+  def failure(exception: UseCaseException, request: RequestHeader): Result = {
+    val _ = request
+    failure(exception)
+  }
 }

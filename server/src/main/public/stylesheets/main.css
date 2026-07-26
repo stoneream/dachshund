@@ -26,6 +26,28 @@ body {
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.site-nav-link {
+  color: #596772;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.site-nav-link:hover {
+  color: #1a7f64;
+}
+
+.site-nav-link.is-active {
+  color: #17202a;
 }
 
 .site-user {
@@ -85,12 +107,87 @@ h1 {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
+  border: 0;
   border-radius: 6px;
   background: #1a7f64;
   color: #fff;
+  cursor: pointer;
+  font: inherit;
   padding: 0 18px;
   font-weight: 700;
   text-decoration: none;
+}
+
+.settings-panel {
+  width: 100%;
+  max-width: 760px;
+  box-sizing: border-box;
+}
+
+.flash-message {
+  margin: 24px 0 0;
+  border-left: 4px solid #1a7f64;
+  background: #e7f4ef;
+  color: #1c5f4d;
+  padding: 12px 14px;
+  font-weight: 700;
+}
+
+.settings-form {
+  margin-top: 28px;
+}
+
+.settings-fieldset {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  border: 1px solid #d9dee3;
+  border-radius: 6px;
+  padding: 20px;
+}
+
+.settings-fieldset legend {
+  padding: 0 8px;
+  color: #17202a;
+  font-weight: 800;
+}
+
+.settings-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #17202a;
+  font-weight: 700;
+}
+
+.settings-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: #1a7f64;
+}
+
+.settings-field {
+  display: grid;
+  gap: 6px;
+  color: #3f4d58;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.settings-field input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #cfd6dc;
+  border-radius: 6px;
+  background: #fff;
+  color: #17202a;
+  font: inherit;
+  padding: 8px 10px;
+}
+
+.settings-actions {
+  margin-top: 20px;
 }
 
 .release-table-wrap {
@@ -212,6 +309,8 @@ h1 {
   }
   .lead,
   .site-user,
+  .site-nav-link,
+  .settings-field,
   .release-table th,
   .release-artist,
   .release-label {
@@ -243,12 +342,33 @@ h1 {
   .release-title {
     color: #f5f7f8;
   }
+  .site-nav-link.is-active,
+  .settings-fieldset legend,
+  .settings-check,
+  .settings-field input {
+    color: #edf2f7;
+  }
+  .settings-fieldset,
+  .settings-field input {
+    border-color: #303943;
+  }
+  .settings-field input {
+    background: #171d22;
+  }
+  .flash-message {
+    background: #17372f;
+    color: #bfe4d8;
+  }
 }
 @media (width <= 640px) {
   .site-header {
     display: grid;
-    gap: 4px;
+    gap: 10px;
     padding: 16px 16px 0;
+  }
+  .site-nav {
+    display: grid;
+    gap: 6px;
   }
   .site-user {
     text-align: left;

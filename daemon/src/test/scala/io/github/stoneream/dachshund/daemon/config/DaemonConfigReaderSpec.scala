@@ -19,46 +19,87 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
       val artistReleaseSyncQueueJobConfig = result.jobs.artistReleaseSyncQueue
       val artistReleasesSyncJobConfig = result.jobs.artistReleasesSync
       val userNewReleaseEventsSyncJobConfig = result.jobs.userNewReleaseEventsSync
+      val userNewReleaseNotificationDeliveryJobConfig = result.jobs.userNewReleaseNotificationDelivery
       val commonJobConfig: JobConfig = jobConfig
       val followedCommonJobConfig: JobConfig = followedArtistsSyncQueueJobConfig
       val syncCommonJobConfig: JobConfig = followedArtistsSyncJobConfig
       val artistReleaseCommonJobConfig: JobConfig = artistReleaseSyncQueueJobConfig
       val artistReleasesCommonJobConfig: JobConfig = artistReleasesSyncJobConfig
       val userNewReleaseEventsCommonJobConfig: JobConfig = userNewReleaseEventsSyncJobConfig
+      val userNewReleaseNotificationDeliveryCommonJobConfig: JobConfig = userNewReleaseNotificationDeliveryJobConfig
 
       assert(executorsConfig.defaultExecutor == DaemonExecutorConfig(2, 1.second))
       assert(executorsConfig.databaseExecutor == DaemonExecutorConfig(16, 1.second))
       assert(executorsConfig.ioDispatcher == DaemonExecutorConfig(16, 1.second))
       assert(commonJobConfig.setting.name == JobName("spotify-access-token-refresh"))
+      assert(commonJobConfig.setting.enabled)
       assert(commonJobConfig.setting.schedule == JobSchedule.Every(60.seconds))
       assert(commonJobConfig.setting.timeout == 5.minutes)
       assert(commonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
       assert(jobConfig.batchSize == 50)
       assert(followedCommonJobConfig.setting.name == JobName("followed-artists-sync-queue"))
+      assert(followedCommonJobConfig.setting.enabled)
       assert(followedCommonJobConfig.setting.schedule == JobSchedule.Every(1.hour))
       assert(followedCommonJobConfig.setting.timeout == 5.minutes)
       assert(followedCommonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
       assert(syncCommonJobConfig.setting.name == JobName("followed-artists-sync"))
+      assert(syncCommonJobConfig.setting.enabled)
       assert(syncCommonJobConfig.setting.schedule == JobSchedule.Every(1.minute))
       assert(syncCommonJobConfig.setting.timeout == 10.minutes)
       assert(syncCommonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
       assert(followedArtistsSyncJobConfig.batchSize == 25)
       assert(followedArtistsSyncJobConfig.processingLease == 1.hour)
       assert(artistReleaseCommonJobConfig.setting.name == JobName("artist-release-sync-queue"))
+      assert(artistReleaseCommonJobConfig.setting.enabled)
       assert(artistReleaseCommonJobConfig.setting.schedule == JobSchedule.Every(1.hour))
       assert(artistReleaseCommonJobConfig.setting.timeout == 5.minutes)
       assert(artistReleaseCommonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
       assert(artistReleasesCommonJobConfig.setting.name == JobName("artist-releases-sync"))
+      assert(artistReleasesCommonJobConfig.setting.enabled)
       assert(artistReleasesCommonJobConfig.setting.schedule == JobSchedule.Every(1.minute))
       assert(artistReleasesCommonJobConfig.setting.timeout == 10.minutes)
       assert(artistReleasesCommonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
       assert(artistReleasesSyncJobConfig.batchSize == 5)
       assert(artistReleasesSyncJobConfig.processingLease == 1.hour)
       assert(userNewReleaseEventsCommonJobConfig.setting.name == JobName("user-new-release-events-sync"))
+      assert(userNewReleaseEventsCommonJobConfig.setting.enabled)
       assert(userNewReleaseEventsCommonJobConfig.setting.schedule == JobSchedule.Every(1.minute))
       assert(userNewReleaseEventsCommonJobConfig.setting.timeout == 5.minutes)
       assert(userNewReleaseEventsCommonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
       assert(userNewReleaseEventsSyncJobConfig.batchSize == 500)
+      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.name == JobName("user-new-release-notification-delivery"))
+      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.enabled)
+      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.schedule == JobSchedule.Every(1.minute))
+      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.timeout == 10.minutes)
+      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
+      assert(userNewReleaseNotificationDeliveryJobConfig.batchSize == 25)
+      assert(userNewReleaseNotificationDeliveryJobConfig.processingLease == 1.hour)
+    }
+
+    Scenario("Spotify access token refresh job の enabled が false の場合は false として読み込む") {
+      val config = daemonConfig(
+        interval = "60s",
+        timeout = "5m",
+        batchSize = 50,
+        spotifyAccessTokenRefreshEnabledConfig = Some("enabled = false")
+      )
+
+      val result = DaemonConfigReader.load(config)
+
+      assert(!result.jobs.spotifyAccessTokenRefresh.setting.enabled)
+    }
+
+    Scenario("Spotify access token refresh job の enabled は後続設定で上書きできる") {
+      val config = daemonConfig(
+        interval = "60s",
+        timeout = "5m",
+        batchSize = 50,
+        spotifyAccessTokenRefreshEnabledConfig = Some("enabled = true\n    enabled = false")
+      )
+
+      val result = DaemonConfigReader.load(config)
+
+      assert(!result.jobs.spotifyAccessTokenRefresh.setting.enabled)
     }
 
     Scenario("executor の thread count が 0 の場合は読み込みを拒否する") {
@@ -126,6 +167,22 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
       }
     }
 
+    Scenario("User new release notification delivery job の batch size が 0 の場合は読み込みを拒否する") {
+      val config = daemonConfig(interval = "60s", timeout = "5m", batchSize = 50, userNewReleaseNotificationDeliveryBatchSize = 0)
+
+      assertThrows[ConfigReaderException[?]] {
+        DaemonConfigReader.load(config)
+      }
+    }
+
+    Scenario("User new release notification delivery job の processing lease が 0 の場合は読み込みを拒否する") {
+      val config = daemonConfig(interval = "60s", timeout = "5m", batchSize = 50, userNewReleaseNotificationDeliveryProcessingLease = "0s")
+
+      assertThrows[ConfigReaderException[?]] {
+        DaemonConfigReader.load(config)
+      }
+    }
+
     Scenario("Spotify access token refresh job の interval が 0 の場合は読み込みを拒否する") {
       val config = daemonConfig(interval = "0s", timeout = "5m", batchSize = 50)
 
@@ -174,8 +231,10 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
       assert(result.jobs.spotifyAccessTokenRefresh.setting.retryPolicy.jitterRatio.isEmpty)
     }
 
-    Scenario("Spotify access token refresh job の必須設定が null の場合は読み込みを拒否する") {
+    Scenario("Spotify access token refresh job の必須設定が null または未設定の場合は読み込みを拒否する") {
       val nullConfigs = Seq(
+        daemonConfig(interval = "60s", timeout = "5m", batchSize = 50, spotifyAccessTokenRefreshEnabledConfig = Some("enabled = null")),
+        daemonConfig(interval = "60s", timeout = "5m", batchSize = 50, spotifyAccessTokenRefreshEnabledConfig = None),
         daemonConfig(interval = "null", timeout = "5m", batchSize = 50),
         daemonConfig(interval = "60s", timeout = "null", batchSize = 50),
         daemonConfig(interval = "60s", timeout = "5m", retryConfig = Some("retry = null"), batchSize = 50),
@@ -209,6 +268,9 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
       artistReleasesSyncBatchSize: Int = 5,
       artistReleasesSyncProcessingLease: String = "1h",
       userNewReleaseEventsSyncBatchSize: Int = 500,
+      userNewReleaseNotificationDeliveryBatchSize: Int = 25,
+      userNewReleaseNotificationDeliveryProcessingLease: String = "1h",
+      spotifyAccessTokenRefreshEnabledConfig: Option[String] = Some("enabled = true"),
       retryConfig: Option[String] = None
   ) = {
     val resolvedRetryConfig = retryConfig.getOrElse {
@@ -222,61 +284,77 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
          |""".stripMargin
     }
 
-    ConfigFactory.parseString(s"""
-                                 |daemon {
-                                 |executors {
-                                 |  default-executor {
-                                 |    thread-count = $defaultExecutorThreadCount
-                                 |    shutdown-grace-period = $defaultExecutorShutdownGracePeriod
-                                 |  }
-                                 |  database-executor {
-                                 |    thread-count = $databaseExecutorThreadCount
-                                 |    shutdown-grace-period = $databaseExecutorShutdownGracePeriod
-                                 |  }
-                                 |  io-dispatcher {
-                                 |    thread-count = $ioDispatcherThreadCount
-                                 |    shutdown-grace-period = $ioDispatcherShutdownGracePeriod
-                                 |  }
-                                 |}
-                                 |jobs {
-                                 |  spotify-access-token-refresh {
-                                 |    interval = $interval
-                                 |    timeout = $timeout
-                                 |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
-                                 |    batch-size = $batchSize
-                                 |  }
-                                 |  followed-artists-sync-queue {
-                                 |    interval = 1h
-                                 |    timeout = 5m
-                                 |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
-                                 |  }
-                                 |  followed-artists-sync {
-                                 |    interval = 1m
-                                 |    timeout = 10m
-                                 |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
-                                 |    batch-size = $followedSyncBatchSize
-                                 |    processing-lease = $followedSyncProcessingLease
-                                 |  }
-                                 |  artist-release-sync-queue {
-                                 |    interval = 1h
-                                 |    timeout = 5m
-                                 |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
-                                 |  }
-                                 |  artist-releases-sync {
-                                 |    interval = 1m
-                                 |    timeout = 10m
-                                 |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
-                                 |    batch-size = $artistReleasesSyncBatchSize
-                                 |    processing-lease = $artistReleasesSyncProcessingLease
-                                 |  }
-                                 |  user-new-release-events-sync {
-                                 |    interval = 1m
-                                 |    timeout = 5m
-                                 |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
-                                 |    batch-size = $userNewReleaseEventsSyncBatchSize
-                                 |  }
-                                 |}
-                                 |}
-                                 |""".stripMargin)
+    ConfigFactory.parseString(
+      s"""
+         |daemon {
+         |executors {
+         |  default-executor {
+         |    thread-count = $defaultExecutorThreadCount
+         |    shutdown-grace-period = $defaultExecutorShutdownGracePeriod
+         |  }
+         |  database-executor {
+         |    thread-count = $databaseExecutorThreadCount
+         |    shutdown-grace-period = $databaseExecutorShutdownGracePeriod
+         |  }
+         |  io-dispatcher {
+         |    thread-count = $ioDispatcherThreadCount
+         |    shutdown-grace-period = $ioDispatcherShutdownGracePeriod
+         |  }
+         |}
+         |jobs {
+         |  spotify-access-token-refresh {
+         |${spotifyAccessTokenRefreshEnabledConfig.map(line => line.linesIterator.map(configLine => s"    $configLine").mkString("\n")).getOrElse("")}
+         |    interval = $interval
+         |    timeout = $timeout
+         |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
+         |    batch-size = $batchSize
+         |  }
+         |  followed-artists-sync-queue {
+         |    enabled = true
+         |    interval = 1h
+         |    timeout = 5m
+         |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
+         |  }
+         |  followed-artists-sync {
+         |    enabled = true
+         |    interval = 1m
+         |    timeout = 10m
+         |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
+         |    batch-size = $followedSyncBatchSize
+         |    processing-lease = $followedSyncProcessingLease
+         |  }
+         |  artist-release-sync-queue {
+         |    enabled = true
+         |    interval = 1h
+         |    timeout = 5m
+         |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
+         |  }
+         |  artist-releases-sync {
+         |    enabled = true
+         |    interval = 1m
+         |    timeout = 10m
+         |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
+         |    batch-size = $artistReleasesSyncBatchSize
+         |    processing-lease = $artistReleasesSyncProcessingLease
+         |  }
+         |  user-new-release-events-sync {
+         |    enabled = true
+         |    interval = 1m
+         |    timeout = 5m
+         |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
+         |    batch-size = $userNewReleaseEventsSyncBatchSize
+         |  }
+         |  user-new-release-notification-delivery {
+         |    enabled = true
+         |    interval = 1m
+         |    timeout = 10m
+         |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
+         |    batch-size = $userNewReleaseNotificationDeliveryBatchSize
+         |    processing-lease = $userNewReleaseNotificationDeliveryProcessingLease
+         |  }
+         |}
+         |}
+         |""".stripMargin
+    )
   }
 }

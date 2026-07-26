@@ -2,25 +2,26 @@ package io.github.stoneream.dachshund.service.spotify.client
 
 import com.google.inject.{Inject, Singleton}
 import com.neovisionaries.i18n.CountryCode
-import io.circe.Json
+import io.circe.{Decoder, Json}
 import io.github.stoneream.dachshund.config.ApplicationConfig
 import io.github.stoneream.dachshund.lib.executor.Executors.IoDispatcher
 import io.github.stoneream.dachshund.logging.TraceLogger
 import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
-import io.github.stoneream.dachshund.service.spotify.client.model.{SpotifyFollowedArtist, SpotifyFollowedArtistsPage}
 import io.github.stoneream.dachshund.service.spotify.client.SpotifyClientException as ClientException
-import io.github.stoneream.dachshund.service.spotify.client.model.{SpotifyArtistRelease, SpotifyArtistReleasePage, SpotifyReleaseTrack}
+import io.github.stoneream.dachshund.service.spotify.client.model.{SpotifyAddItemsToPlaylistResult, SpotifyArtistRelease, SpotifyArtistReleasePage, SpotifyCreatePlaylistResult, SpotifyFollowedArtist, SpotifyFollowedArtistsPage, SpotifyPlaylist, SpotifyPlaylistPage, SpotifyReleaseTrack}
 import org.apache.hc.core5.http.ParseException
 import se.michaelthelin.spotify.enums.ModelObjectType
 import se.michaelthelin.spotify.exceptions.detailed.{BadGatewayException, ForbiddenException, InternalServerErrorException, ServiceUnavailableException, TooManyRequestsException, UnauthorizedException}
 import se.michaelthelin.spotify.model_objects.miscellaneous.Restrictions
 import se.michaelthelin.spotify.model_objects.specification.{Album, AlbumSimplified, Artist, Copyright, ExternalId, ExternalUrl, Image, Paging, PagingCursorbased, TrackSimplified}
 import se.michaelthelin.spotify.{SpotifyApi, SpotifyHttpManager}
+import sttp.client3.circe.asJson
+import sttp.client3.{DeserializationException, HttpClientFutureBackend, HttpError, Response, ResponseException, SttpBackendOptions, UriContext, basicRequest}
 
 import java.io.IOException
 import java.net.{URI, URLDecoder}
 import java.nio.charset.StandardCharsets
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
@@ -32,12 +33,17 @@ class SpotifyClientImpl @Inject() (
     ioDispatcher: IoDispatcher
 ) extends SpotifyClient
     with TraceLogger {
+  private given ExecutionContext = ioDispatcher
   private val clientConfig = applicationConfig.spotify.client
   private val httpManager =
     new SpotifyHttpManager.Builder()
       .setConnectionRequestTimeout(toMillisInt(clientConfig.connectTimeout.toMillis))
       .setSocketTimeout(toMillisInt(clientConfig.requestTimeout.toMillis))
       .build()
+  private val backend = HttpClientFutureBackend(
+    options = SttpBackendOptions.connectionTimeout(clientConfig.connectTimeout)
+  )
+  private val playlistAddItemsLimit = 100
 
   override def getFollowedArtists(
       accessToken: String,
@@ -96,12 +102,126 @@ class SpotifyClientImpl @Inject() (
       Future.failed(classify(exception))
     }(using ioDispatcher)
 
+  override def addItemsToPlaylist(
+      accessToken: String,
+      spotifyPlaylistCode: String,
+      trackUris: Seq[String]
+  )(using LoggingContext): Future[SpotifyAddItemsToPlaylistResult] = {
+    val cleanedTrackUris = trackUris.map(_.trim).filter(_.nonEmpty).distinct
+
+    if (cleanedTrackUris.isEmpty) {
+      Future.failed(ClientException.InvalidResponse(new IllegalArgumentException("Spotify playlist add items requires at least one track URI")))
+    } else {
+      cleanedTrackUris
+        .grouped(playlistAddItemsLimit)
+        .foldLeft(Future.successful(Option.empty[SpotifyAddItemsToPlaylistResult])) { (futureResult, chunk) =>
+          futureResult.flatMap(_ => addItemsToPlaylistChunk(accessToken, spotifyPlaylistCode, chunk))
+        }
+        .flatMap {
+          case Some(result) => Future.successful(result)
+          case None => Future.failed(ClientException.InvalidResponse(new IllegalStateException("Spotify playlist add items did not return snapshot id")))
+        }
+    }
+  }
+
+  override def getCurrentUserPlaylistPage(
+      accessToken: String,
+      limit: Int,
+      offset: Int
+  )(using LoggingContext): Future[SpotifyPlaylistPage] = {
+    val endpointName = "api-current-user-playlists"
+    val cleanedLimit = math.max(1, math.min(limit, 50))
+    val cleanedOffset = math.max(0, offset)
+    val endpoint = currentUserPlaylistsEndpoint(cleanedLimit, cleanedOffset)
+
+    basicRequest
+      .get(uri"$endpoint")
+      .auth
+      .bearer(accessToken)
+      .readTimeout(clientConfig.requestTimeout)
+      .response(asJson[SpotifyPlaylistPageResponse])
+      .send(backend)
+      .flatMap(handleSpotifyWebApiResponse(_, endpointName))
+      .map(toSpotifyPlaylistPage)
+      .recoverWith { case NonFatal(exception) =>
+        Future.failed(classify(exception))
+      }
+  }
+
+  override def createCurrentUserPlaylist(
+      accessToken: String,
+      playlistName: String,
+      isPublic: Boolean
+  )(using LoggingContext): Future[SpotifyCreatePlaylistResult] = {
+    val endpointName = "api-current-user-playlist-create"
+    val endpoint = currentUserPlaylistsEndpoint
+    val requestBody = Json
+      .obj(
+        "name" -> Json.fromString(playlistName),
+        "public" -> Json.fromBoolean(isPublic)
+      )
+      .noSpaces
+
+    basicRequest
+      .post(uri"$endpoint")
+      .auth
+      .bearer(accessToken)
+      .contentType("application/json")
+      .readTimeout(clientConfig.requestTimeout)
+      .body(requestBody)
+      .response(asJson[SpotifyCreatePlaylistResponse])
+      .send(backend)
+      .flatMap(handleSpotifyWebApiResponse(_, endpointName))
+      .map(toSpotifyCreatePlaylistResult)
+      .recoverWith { case NonFatal(exception) =>
+        Future.failed(classify(exception))
+      }
+  }
+
   private def buildSpotifyApiClient(accessToken: String): SpotifyApi =
     SpotifyApi
       .builder()
       .setAccessToken(accessToken)
       .setHttpManager(httpManager)
       .build()
+
+  private def addItemsToPlaylistChunk(
+      accessToken: String,
+      spotifyPlaylistCode: String,
+      trackUris: Seq[String]
+  )(using LoggingContext): Future[Option[SpotifyAddItemsToPlaylistResult]] = {
+    val endpointName = "api-playlist-add-items"
+    val endpoint = playlistItemsEndpoint(spotifyPlaylistCode)
+    val requestBody = Json
+      .obj(
+        "uris" -> Json.arr(trackUris.map(Json.fromString)*)
+      )
+      .noSpaces
+
+    basicRequest
+      .post(uri"$endpoint")
+      .auth
+      .bearer(accessToken)
+      .contentType("application/json")
+      .readTimeout(clientConfig.requestTimeout)
+      .body(requestBody)
+      .response(asJson[SpotifyPlaylistSnapshotResponse])
+      .send(backend)
+      .flatMap(handleSpotifyWebApiResponse(_, endpointName))
+      .map(response => Some(SpotifyAddItemsToPlaylistResult(response.snapshotId)))
+      .recoverWith { case NonFatal(exception) =>
+        Future.failed(classify(exception))
+      }
+  }
+
+  private def playlistItemsEndpoint(spotifyPlaylistCode: String): String =
+    s"${clientConfig.apiBaseUrl.stripSuffix("/")}/playlists/$spotifyPlaylistCode/items"
+
+  private def currentUserPlaylistsEndpoint: String =
+    s"${clientConfig.apiBaseUrl.stripSuffix("/")}/me/playlists"
+
+  private def currentUserPlaylistsEndpoint(limit: Int, offset: Int): String =
+    s"$currentUserPlaylistsEndpoint?limit=$limit&offset=$offset"
 
   private def toFollowedArtistsPage(paging: PagingCursorbased[Artist]): SpotifyFollowedArtistsPage = {
     val hasNext = Option(paging.getNext).exists(_.trim.nonEmpty)
@@ -140,6 +260,33 @@ class SpotifyClientImpl @Inject() (
         followersTotal = Option(artist.getFollowers).flatMap(followers => Option(followers.getTotal).map(_.toLong)),
         popularity = Option(artist.getPopularity).map(_.toInt)
       )
+    }
+
+  private def toSpotifyPlaylistPage(response: SpotifyPlaylistPageResponse): SpotifyPlaylistPage =
+    SpotifyPlaylistPage(
+      playlists = response.items.flatMap(toSpotifyPlaylist),
+      nextOffset = response.next.map(_.trim).filter(_.nonEmpty).map(_ => response.offset + response.limit)
+    )
+
+  private def toSpotifyPlaylist(response: SpotifyPlaylistResponse): Option[SpotifyPlaylist] =
+    response.id.map(_.trim).filter(_.nonEmpty).map { spotifyPlaylistCode =>
+      SpotifyPlaylist(
+        spotifyPlaylistCode = spotifyPlaylistCode,
+        playlistName = response.name.getOrElse(""),
+        spotifyPlaylistUri = response.uri.getOrElse("")
+      )
+    }
+
+  private def toSpotifyCreatePlaylistResult(response: SpotifyCreatePlaylistResponse): SpotifyCreatePlaylistResult =
+    Option(response.id).map(_.trim).filter(_.nonEmpty) match {
+      case Some(spotifyPlaylistCode) =>
+        SpotifyCreatePlaylistResult(
+          spotifyPlaylistCode = spotifyPlaylistCode,
+          playlistName = response.name,
+          spotifyPlaylistUri = response.uri
+        )
+      case None =>
+        throw ClientException.InvalidResponse(new IllegalStateException("Spotify create playlist response did not contain playlist id"))
     }
 
   private def getAlbum(
@@ -353,6 +500,49 @@ class SpotifyClientImpl @Inject() (
   private def toMillisInt(value: Long): Integer =
     math.min(value, Int.MaxValue.toLong).toInt
 
+  private def handleSpotifyWebApiResponse[A](
+      response: Response[Either[ResponseException[String, io.circe.Error], A]],
+      endpointName: String
+  )(using LoggingContext): Future[A] =
+    response.body match {
+      case Right(value) =>
+        Future.successful(value)
+      case Left(DeserializationException(_, error)) =>
+        Future.failed(ClientException.InvalidResponse(error))
+      case Left(HttpError(_, statusCode)) =>
+        info(
+          "Spotify API リクエストが失敗しました",
+          kv("endpoint", endpointName),
+          kv("statusCode", statusCode.code)
+        )
+        Future.failed(
+          classifyStatus(
+            endpointName = endpointName,
+            statusCode = statusCode.code,
+            retryAfter = response.header("Retry-After").flatMap(parseRetryAfter)
+          )
+        )
+    }
+
+  private def classifyStatus(
+      endpointName: String,
+      statusCode: Int,
+      retryAfter: Option[FiniteDuration]
+  ): SpotifyClientException = {
+    val cause = SpotifyWebApiStatusException(endpointName, statusCode)
+    statusCode match {
+      case 401 => ClientException.Unauthorized(cause)
+      case 403 => ClientException.Forbidden(cause)
+      case 429 => ClientException.RateLimited(retryAfter, cause)
+      case status if status >= 500 => ClientException.ServerError(cause)
+      case status if status >= 400 => ClientException.ClientError(cause)
+      case _ => ClientException.Unknown(cause)
+    }
+  }
+
+  private def parseRetryAfter(value: String): Option[FiniteDuration] =
+    value.trim.toLongOption.filter(_ >= 0L).map(_.seconds)
+
   private def classify(exception: Throwable): SpotifyClientException =
     exception match {
       case e: SpotifyClientException =>
@@ -378,4 +568,52 @@ class SpotifyClientImpl @Inject() (
       case NonFatal(e) =>
         ClientException.Unknown(e)
     }
+
+  private final case class SpotifyWebApiStatusException(
+      endpointName: String,
+      statusCode: Int
+  ) extends RuntimeException(s"Spotify API request failed: endpoint=$endpointName, statusCode=$statusCode")
+
+  private final case class SpotifyPlaylistSnapshotResponse(
+      snapshotId: String
+  )
+
+  private object SpotifyPlaylistSnapshotResponse {
+    given Decoder[SpotifyPlaylistSnapshotResponse] =
+      Decoder.forProduct1("snapshot_id")(SpotifyPlaylistSnapshotResponse.apply)
+  }
+
+  private final case class SpotifyPlaylistPageResponse(
+      items: Seq[SpotifyPlaylistResponse],
+      next: Option[String],
+      limit: Int,
+      offset: Int
+  )
+
+  private object SpotifyPlaylistPageResponse {
+    given Decoder[SpotifyPlaylistPageResponse] =
+      Decoder.forProduct4("items", "next", "limit", "offset")(SpotifyPlaylistPageResponse.apply)
+  }
+
+  private final case class SpotifyPlaylistResponse(
+      id: Option[String],
+      name: Option[String],
+      uri: Option[String]
+  )
+
+  private object SpotifyPlaylistResponse {
+    given Decoder[SpotifyPlaylistResponse] =
+      Decoder.forProduct3("id", "name", "uri")(SpotifyPlaylistResponse.apply)
+  }
+
+  private final case class SpotifyCreatePlaylistResponse(
+      id: String,
+      name: String,
+      uri: String
+  )
+
+  private object SpotifyCreatePlaylistResponse {
+    given Decoder[SpotifyCreatePlaylistResponse] =
+      Decoder.forProduct3("id", "name", "uri")(SpotifyCreatePlaylistResponse.apply)
+  }
 }

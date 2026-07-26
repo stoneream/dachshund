@@ -87,7 +87,7 @@ class SpotifyAuthLoginEndpointSpec extends AnyFeatureSpec with PlayApplicationDa
             providerType = ExternalAuthProviderType.Spotify.dbValue,
             state = stateCookie.value,
             redirectUri = "http://localhost:9000/spotify/auth/callback",
-            scopes = "user-follow-read",
+            scopes = "playlist-modify-private playlist-modify-public playlist-read-private user-follow-read",
             status = ExternalAuthRequestStatus.Pending.dbValue,
             expiresAt = fixedNow.plus(600.seconds).toLocalDateTime,
             deleted = 0L,

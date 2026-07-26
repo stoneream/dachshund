@@ -34,9 +34,14 @@ class UserNewReleaseEventsSyncUseCase @Inject() (
             detectionSyncCode = DetectionSyncCode,
             detectedAt = input.now
           )
-          .map { createdCount =>
-            logOutput(input, selectedCount = targets.size, createdCount = createdCount)
-            UserNewReleaseEventsSyncUseCaseOutput(createdCount = createdCount)
+          .map { result =>
+            logOutput(
+              input,
+              selectedCount = targets.size,
+              createdCount = result.createdCount,
+              notificationQueueCreatedCount = result.notificationQueueCreatedCount
+            )
+            UserNewReleaseEventsSyncUseCaseOutput(createdCount = result.createdCount)
           }(using defaultExecutor)
       }(using defaultExecutor)
       .recoverWith { case NonFatal(exception) =>
@@ -57,13 +62,15 @@ class UserNewReleaseEventsSyncUseCase @Inject() (
   private def logOutput(
       input: UserNewReleaseEventsSyncUseCaseInput,
       selectedCount: Int,
-      createdCount: Int
+      createdCount: Int,
+      notificationQueueCreatedCount: Int
   )(using LoggingContext): Unit =
     info(
       "ユーザー別新着リリース履歴を作成しました",
       kv("userNewReleaseEventsSync.batchSize", input.batchSize),
       kv("userNewReleaseEventsSync.selectedCount", selectedCount),
       kv("userNewReleaseEventsSync.createdCount", createdCount),
+      kv("userNewReleaseEventsSync.notificationQueueCreatedCount", notificationQueueCreatedCount),
       kv("userNewReleaseEventsSync.detectedAt", input.now.toLocalDateTime)
     )
 }

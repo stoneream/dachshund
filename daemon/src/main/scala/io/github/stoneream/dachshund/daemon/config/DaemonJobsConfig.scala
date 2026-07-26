@@ -8,5 +8,6 @@ final case class DaemonJobsConfig(
     followedArtistsSync: FollowedArtistsSyncJobConfig,
     artistReleaseSyncQueue: ArtistReleaseSyncQueueJobConfig,
     artistReleasesSync: ArtistReleasesSyncJobConfig,
-    userNewReleaseEventsSync: UserNewReleaseEventsSyncJobConfig
+    userNewReleaseEventsSync: UserNewReleaseEventsSyncJobConfig,
+    userNewReleaseNotificationDelivery: UserNewReleaseNotificationDeliveryJobConfig
 ) derives ConfigReader

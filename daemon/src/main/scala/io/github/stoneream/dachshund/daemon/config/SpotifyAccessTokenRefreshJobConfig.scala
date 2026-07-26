@@ -15,6 +15,7 @@ object SpotifyAccessTokenRefreshJobConfig {
   private val ConfigPath: String = "daemon.jobs.spotify-access-token-refresh"
 
   private final case class RawSpotifyAccessTokenRefreshJobConfig(
+      enabled: Boolean,
       interval: FiniteDuration,
       timeout: FiniteDuration,
       retry: JobRetryPolicy,
@@ -22,6 +23,7 @@ object SpotifyAccessTokenRefreshJobConfig {
   ) derives ConfigReader {
     def settingConfig: JobSettingConfig =
       JobSettingConfig(
+        enabled = enabled,
         interval = interval,
         timeout = timeout,
         retry = retry

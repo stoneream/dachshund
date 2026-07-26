@@ -43,6 +43,7 @@ class SchedulerSpec extends AnyFeatureSpec {
     new Job {
       override val setting: JobSetting = JobSetting(
         name = JobName(name),
+        enabled = true,
         schedule = JobSchedule.Every(1.second),
         timeout = 1.second,
         retryPolicy = jobRetryPolicy

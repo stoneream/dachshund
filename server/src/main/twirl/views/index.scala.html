@@ -1,17 +1,8 @@
 @(result: Either[io.github.stoneream.dachshund.usecase.home.HomeUseCaseException, io.github.stoneream.dachshund.usecase.home.HomeUseCaseOutput])
 
-@siteHeader(user: Option[io.github.stoneream.dachshund.usecase.home.HomeUseCaseOutput.HomeUser]) = {
-    <header class="site-header">
-        <p class="site-brand">DACHSHUND</p>
-        @for(currentUser <- user) {
-            <p class="site-user">@currentUser.displayName</p>
-        }
-    </header>
-}
-
 @result match {
     case Right(output) => {
-        @siteHeader(output.user)
+        @views.html.common.siteHeader(output.user.map(_.displayName), "/")
         <main class="page-shell">
             <section class="home-panel">
                 <header class="home-header">
@@ -36,7 +27,7 @@
         </main>
     }
     case Left(_) => {
-        @siteHeader(None)
+        @views.html.common.siteHeader(None, "/")
         <main class="page-shell">
             <section class="home-panel error-panel">
                 <h1>Server error</h1>

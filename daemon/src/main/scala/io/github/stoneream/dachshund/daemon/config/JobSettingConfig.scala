@@ -5,6 +5,7 @@ import pureconfig.error.CannotConvert
 import scala.concurrent.duration.FiniteDuration
 
 final case class JobSettingConfig(
+    enabled: Boolean,
     interval: FiniteDuration,
     timeout: FiniteDuration,
     retry: JobRetryPolicy
@@ -16,6 +17,7 @@ final case class JobSettingConfig(
       validatedTimeout <- DaemonConfigValidation.positiveDuration(s"$path.timeout", timeout)
     } yield JobSetting(
       name = validatedName,
+      enabled = enabled,
       schedule = validatedSchedule,
       timeout = validatedTimeout,
       retryPolicy = retry

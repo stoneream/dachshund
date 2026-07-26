@@ -1,13 +1,14 @@
 package io.github.stoneream.dachshund.daemon.job
 
 import io.github.stoneream.dachshund.daemon.config.SpotifyAccessTokenRefreshJobConfig
-import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, JobName, JobRetryPolicy, JobSchedule, JobSetting, UserNewReleaseEventsSyncJobConfig}
+import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, JobName, JobRetryPolicy, JobSchedule, JobSetting, UserNewReleaseEventsSyncJobConfig, UserNewReleaseNotificationDeliveryJobConfig}
 import io.github.stoneream.dachshund.daemon.handler.spotify.{SpotifyAccessTokenRefreshJob, SpotifyAccessTokenRefreshJobHandler}
 import io.github.stoneream.dachshund.daemon.handler.spotify.artist_release_sync_queue.{ArtistReleaseSyncQueueHandler, ArtistReleaseSyncQueueJob}
 import io.github.stoneream.dachshund.daemon.handler.spotify.artist_releases_sync.{ArtistReleasesSyncHandler, ArtistReleasesSyncJob}
 import io.github.stoneream.dachshund.daemon.handler.spotify.followed_artists_sync.{FollowedArtistsSyncHandler, FollowedArtistsSyncJob}
 import io.github.stoneream.dachshund.daemon.handler.spotify.followed_artists_sync_queue.{FollowedArtistsSyncQueueHandler, FollowedArtistsSyncQueueJob}
 import io.github.stoneream.dachshund.daemon.handler.spotify.user_new_release_events_sync.{UserNewReleaseEventsSyncHandler, UserNewReleaseEventsSyncJob}
+import io.github.stoneream.dachshund.daemon.handler.spotify.user_new_release_notification_delivery.{UserNewReleaseNotificationDeliveryHandler, UserNewReleaseNotificationDeliveryJob}
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.featurespec.AnyFeatureSpec
 import zio.{Exit, Runtime, Task, Unsafe}
@@ -24,13 +25,16 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
       val artistReleasesSyncJob = new ArtistReleasesSyncJob(mock[ArtistReleasesSyncHandler], artistReleasesSyncJobConfig)
       val userNewReleaseEventsSyncJob =
         new UserNewReleaseEventsSyncJob(mock[UserNewReleaseEventsSyncHandler], userNewReleaseEventsSyncJobConfig)
+      val userNewReleaseNotificationDeliveryJob =
+        new UserNewReleaseNotificationDeliveryJob(mock[UserNewReleaseNotificationDeliveryHandler], userNewReleaseNotificationDeliveryJobConfig)
       val loader = new JobLoaderImpl(
         spotifyJob,
         followedJob,
         followedSyncJob,
         artistReleaseJob,
         artistReleasesSyncJob,
-        userNewReleaseEventsSyncJob
+        userNewReleaseEventsSyncJob,
+        userNewReleaseNotificationDeliveryJob
       )
 
       val jobs = unsafeRun(loader.load())
@@ -42,7 +46,45 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
           JobName("followed-artists-sync"),
           JobName("artist-release-sync-queue"),
           JobName("artist-releases-sync"),
-          JobName("user-new-release-events-sync")
+          JobName("user-new-release-events-sync"),
+          JobName("user-new-release-notification-delivery")
+        )
+      )
+    }
+
+    Scenario("disabled の job は返さない") {
+      val disabledSpotifyAccessTokenRefreshJobConfig = spotifyAccessTokenRefreshJobConfig.copy(
+        setting = spotifyAccessTokenRefreshJobConfig.setting.copy(enabled = false)
+      )
+      val spotifyJob = new SpotifyAccessTokenRefreshJob(mock[SpotifyAccessTokenRefreshJobHandler], disabledSpotifyAccessTokenRefreshJobConfig)
+      val followedJob = new FollowedArtistsSyncQueueJob(mock[FollowedArtistsSyncQueueHandler], followedArtistsSyncQueueJobConfig)
+      val followedSyncJob = new FollowedArtistsSyncJob(mock[FollowedArtistsSyncHandler], followedArtistsSyncJobConfig)
+      val artistReleaseJob = new ArtistReleaseSyncQueueJob(mock[ArtistReleaseSyncQueueHandler], artistReleaseSyncQueueJobConfig)
+      val artistReleasesSyncJob = new ArtistReleasesSyncJob(mock[ArtistReleasesSyncHandler], artistReleasesSyncJobConfig)
+      val userNewReleaseEventsSyncJob =
+        new UserNewReleaseEventsSyncJob(mock[UserNewReleaseEventsSyncHandler], userNewReleaseEventsSyncJobConfig)
+      val userNewReleaseNotificationDeliveryJob =
+        new UserNewReleaseNotificationDeliveryJob(mock[UserNewReleaseNotificationDeliveryHandler], userNewReleaseNotificationDeliveryJobConfig)
+      val loader = new JobLoaderImpl(
+        spotifyJob,
+        followedJob,
+        followedSyncJob,
+        artistReleaseJob,
+        artistReleasesSyncJob,
+        userNewReleaseEventsSyncJob,
+        userNewReleaseNotificationDeliveryJob
+      )
+
+      val jobs = unsafeRun(loader.load())
+
+      assert(
+        jobs.map(_.setting.name) == List(
+          JobName("followed-artists-sync-queue"),
+          JobName("followed-artists-sync"),
+          JobName("artist-release-sync-queue"),
+          JobName("artist-releases-sync"),
+          JobName("user-new-release-events-sync"),
+          JobName("user-new-release-notification-delivery")
         )
       )
     }
@@ -52,6 +94,7 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
     SpotifyAccessTokenRefreshJobConfig(
       setting = JobSetting(
         name = JobName("spotify-access-token-refresh"),
+        enabled = true,
         schedule = JobSchedule.Every(1.minute),
         timeout = 5.minutes,
         retryPolicy = jobRetryPolicy
@@ -63,6 +106,7 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
     FollowedArtistsSyncQueueJobConfig(
       setting = JobSetting(
         name = JobName("followed-artists-sync-queue"),
+        enabled = true,
         schedule = JobSchedule.Every(1.hour),
         timeout = 5.minutes,
         retryPolicy = jobRetryPolicy
@@ -73,6 +117,7 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
     FollowedArtistsSyncJobConfig(
       setting = JobSetting(
         name = JobName("followed-artists-sync"),
+        enabled = true,
         schedule = JobSchedule.Every(1.minute),
         timeout = 5.minutes,
         retryPolicy = jobRetryPolicy
@@ -85,6 +130,7 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
     ArtistReleaseSyncQueueJobConfig(
       setting = JobSetting(
         name = JobName("artist-release-sync-queue"),
+        enabled = true,
         schedule = JobSchedule.Every(1.hour),
         timeout = 5.minutes,
         retryPolicy = jobRetryPolicy
@@ -95,6 +141,7 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
     ArtistReleasesSyncJobConfig(
       setting = JobSetting(
         name = JobName("artist-releases-sync"),
+        enabled = true,
         schedule = JobSchedule.Every(1.minute),
         timeout = 10.minutes,
         retryPolicy = jobRetryPolicy
@@ -107,11 +154,25 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
     UserNewReleaseEventsSyncJobConfig(
       setting = JobSetting(
         name = JobName("user-new-release-events-sync"),
+        enabled = true,
         schedule = JobSchedule.Every(1.minute),
         timeout = 5.minutes,
         retryPolicy = jobRetryPolicy
       ),
       batchSize = 500
+    )
+
+  private def userNewReleaseNotificationDeliveryJobConfig: UserNewReleaseNotificationDeliveryJobConfig =
+    UserNewReleaseNotificationDeliveryJobConfig(
+      setting = JobSetting(
+        name = JobName("user-new-release-notification-delivery"),
+        enabled = true,
+        schedule = JobSchedule.Every(1.minute),
+        timeout = 10.minutes,
+        retryPolicy = jobRetryPolicy
+      ),
+      batchSize = 25,
+      processingLease = 1.hour
     )
 
   private def jobRetryPolicy: JobRetryPolicy =

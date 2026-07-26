@@ -305,6 +305,7 @@ class JobRunnerSpec extends AnyFeatureSpec {
     new Job {
       override val setting: JobSetting = JobSetting(
         name = JobName("test-job"),
+        enabled = true,
         schedule = JobSchedule.Every(schedule),
         timeout = timeout,
         retryPolicy = retryPolicy

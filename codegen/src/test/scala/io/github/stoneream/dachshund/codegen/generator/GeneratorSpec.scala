@@ -70,6 +70,8 @@ class GeneratorSpec extends AnyFeatureSpec with Matchers with OptionValues {
       artifacts.files.map(_.content).mkString("\n") should include("JobSettingConfig(")
       val configContent = artifacts.files.find(_.path.toString.endsWith("JobConfig.scala")).map(_.content).value
       configContent should include("""private val Name: String = "spotify-access-token-refresh"""")
+      configContent should include("enabled: Boolean")
+      configContent should include("enabled = enabled")
       configContent should include("retry: JobRetryPolicy")
       configContent should include("retry = retry")
       configContent should not include "JobName("
@@ -90,6 +92,8 @@ class GeneratorSpec extends AnyFeatureSpec with Matchers with OptionValues {
       snippetContent should not include "SpotifyAccessTokenRefreshJob.layer"
       snippetContent should not include "bind(classOf"
       snippetContent should include("daemon/src/main/resources/application.conf")
+      snippetContent should include("enabled = true")
+      snippetContent should include("enabled = ${?DAEMON_JOB_SPOTIFY_ACCESS_TOKEN_REFRESH_ENABLED}")
       snippetContent should include("interval = 1m")
       snippetContent should include("timeout = 5m")
       snippetContent should include("max-attempts = 3")
@@ -97,7 +101,6 @@ class GeneratorSpec extends AnyFeatureSpec with Matchers with OptionValues {
       snippetContent should include("max-delay = 30s")
       snippetContent should include("jitter-ratio = 0.2")
       snippetContent should not include "batch-size"
-      snippetContent should not include "enabled ="
     }
 
     Scenario("daemon handler だけを生成する") {

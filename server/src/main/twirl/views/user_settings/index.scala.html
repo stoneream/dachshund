@@ -1,0 +1,34 @@
+@(output: io.github.stoneream.dachshund.usecase.user_settings.show.UserSettingsShowUseCaseOutput)(implicit request: play.api.mvc.RequestHeader)
+
+@views.html.common.siteHeader(Some(output.user.displayName), "/user-settings")
+
+<main class="page-shell">
+    <section class="settings-panel">
+        <header class="home-header">
+            <h1>User settings</h1>
+        </header>
+
+        @for(message <- output.successMessage) {
+            <p class="flash-message">@message</p>
+        }
+
+        @for(message <- output.errorMessage) {
+            <p class="flash-message is-error">@message</p>
+        }
+
+        <form class="settings-form" method="post" action="/user-settings">
+            @helper.CSRF.formField
+
+            <fieldset class="settings-fieldset">
+                <label class="settings-check">
+                    <input type="checkbox" name="newReleasePlaylistEnabled" value="true" @if(output.newReleasePlaylistEnabled) {checked}>
+                    <span>新着リリースを自動的にプレイリストに追加する (Dachshund Radar)</span>
+                </label>
+            </fieldset>
+
+            <div class="settings-actions">
+                <button class="primary-action" type="submit">保存</button>
+            </div>
+        </form>
+    </section>
+</main>

@@ -32,7 +32,7 @@ trait ControllerBaseImpl {
     Future
       .fromTry(Try(handler.execute(request)))
       .flatten
-      .map(renderer.success)
+      .map(output => renderer.success(output, request))
       .recover {
         case ex: ControllerError if ex.isServerError =>
           Results
@@ -47,7 +47,7 @@ trait ControllerBaseImpl {
               )
             )
             .withHeaders(PageMeta.XRobotsTagHeaderName -> PageMeta.NoIndexNoFollow)
-        case ex: UseCaseException => renderer.failure(ex)
+        case ex: UseCaseException => renderer.failure(ex, request)
         case e => throw e
       }
   }

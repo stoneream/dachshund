@@ -167,12 +167,14 @@ object GenerateDaemon {
        |  private val ConfigPath: String = "daemon.jobs.$daemonName"
        |
        |  private final case class $rawConfigName(
+       |      enabled: Boolean,
        |      interval: FiniteDuration,
        |      timeout: FiniteDuration,
        |      retry: JobRetryPolicy
        |  ) derives ConfigReader {
        |    def settingConfig: JobSettingConfig =
        |      JobSettingConfig(
+       |        enabled = enabled,
        |        interval = interval,
        |        timeout = timeout,
        |        retry = retry
@@ -198,6 +200,8 @@ object GenerateDaemon {
       jobParameterName: String,
       configParameterName: String
   ): String = {
+    val enabledEnvName = daemonEnabledEnvName(daemonName)
+
     // language=scala 3
     s"""// Add to JobLoaderImpl constructor:
        |// import $packageName.$jobName
@@ -217,6 +221,8 @@ object GenerateDaemon {
        |//
        |// Add to daemon/src/main/resources/application.conf:
        |// daemon.jobs.$daemonName {
+       |//   enabled = true
+       |//   enabled = $${?$enabledEnvName}
        |//   interval = 1m
        |//   timeout = 5m
        |//   retry {
@@ -229,5 +235,14 @@ object GenerateDaemon {
        |
        |// $daemonName is loaded when JobLoaderImpl returns $jobParameterName.
        |""".stripMargin
+  }
+
+  private def daemonEnabledEnvName(daemonName: String): String = {
+    val envNameSuffix = daemonName.map {
+      case character if character.isLetterOrDigit => character.toUpper
+      case _ => '_'
+    }.mkString
+
+    s"DAEMON_JOB_${envNameSuffix}_ENABLED"
   }
 }
