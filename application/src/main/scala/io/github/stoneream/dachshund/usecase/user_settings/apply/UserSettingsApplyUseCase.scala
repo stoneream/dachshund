@@ -10,7 +10,8 @@ import io.github.stoneream.dachshund.service.spotify.auth.access_token.SpotifyAu
 import io.github.stoneream.dachshund.service.spotify.client.SpotifyClientException
 import io.github.stoneream.dachshund.usecase.UseCase
 import io.github.stoneream.dachshund.usecase.user_settings.apply.{UserSettingsApplyUseCaseException as UseCaseException, UserSettingsApplyUseCaseInput as UseCaseInput, UserSettingsApplyUseCaseOutput as UseCaseOutput}
-import io.github.stoneream.dachshund.usecase.user_settings.apply.step.{CreateSpotifyManagedPlaylistStep, FindManagedPlaylistSettingStep, ResolveManagedPlaylistNameStep, ResolveSpotifyAccessTokenStep, UpdateManagedPlaylistSettingEnabledStep, WriteManagedPlaylistSettingStep}
+import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyCreatePlaylistResult
+import io.github.stoneream.dachshund.usecase.user_settings.apply.step.{CleanupSpotifyManagedPlaylistStep, CreateSpotifyManagedPlaylistStep, FindManagedPlaylistSettingStep, ResolveManagedPlaylistNameStep, ResolveSpotifyAccessTokenStep, UpdateManagedPlaylistSettingEnabledStep, WriteManagedPlaylistSettingStep}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -22,6 +23,7 @@ class UserSettingsApplyUseCase @Inject() (
     resolveSpotifyAccessTokenStep: ResolveSpotifyAccessTokenStep,
     resolveManagedPlaylistNameStep: ResolveManagedPlaylistNameStep,
     createSpotifyManagedPlaylistStep: CreateSpotifyManagedPlaylistStep,
+    cleanupSpotifyManagedPlaylistStep: CleanupSpotifyManagedPlaylistStep,
     writeManagedPlaylistSettingStep: WriteManagedPlaylistSettingStep,
     defaultExecutor: DefaultExecutor
 ) extends UseCase[
@@ -89,8 +91,22 @@ class UserSettingsApplyUseCase @Inject() (
       accessToken <- resolveSpotifyAccessTokenStep.run(userId, now)
       playlistName <- resolveManagedPlaylistNameStep.run(accessToken)
       createdPlaylist <- createSpotifyManagedPlaylistStep.run(accessToken, playlistName)
-      _ <- writeManagedPlaylistSettingStep.run(userId, createdPlaylist, now)
+      writeCount <- writeManagedPlaylistSettingStep.run(userId, createdPlaylist, now)
+      _ <- cleanupUnusedPlaylistSetting(accessToken, createdPlaylist, writeCount)
     } yield ()
+
+  private def cleanupUnusedPlaylistSetting(
+      accessToken: String,
+      createdPlaylist: SpotifyCreatePlaylistResult,
+      writeCount: Int
+  )(using LoggingContext): Future[Unit] =
+    if (writeCount > 0) {
+      Future.unit
+    } else {
+      cleanupSpotifyManagedPlaylistStep.run(accessToken, createdPlaylist.spotifyPlaylistCode).recoverWith { case NonFatal(exception) =>
+        Future.failed(UseCaseException.PlaylistSetupFailed(exception))
+      }(using defaultExecutor)
+    }
 
   private def recoverApplyFailure(using LoggingContext): PartialFunction[Throwable, Future[UseCaseOutput]] = {
     case exception: UseCaseException =>
@@ -103,6 +119,8 @@ class UserSettingsApplyUseCase @Inject() (
       Future.failed(UseCaseException.SpotifyAuthorizationTemporarilyUnavailable(exception))
     case exception: AccessTokenProviderException =>
       Future.failed(UseCaseException.PlaylistSetupFailed(exception))
+    case exception: SpotifyClientException.Forbidden =>
+      Future.failed(UseCaseException.SpotifyAuthorizationRequired(exception))
     case exception: SpotifyClientException =>
       Future.failed(UseCaseException.PlaylistSetupFailed(exception))
     case NonFatal(exception) =>

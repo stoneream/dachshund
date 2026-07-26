@@ -34,6 +34,11 @@ trait SpotifyClient {
       isPublic: Boolean
   )(using LoggingContext): Future[SpotifyCreatePlaylistResult]
 
+  def unfollowPlaylist(
+      accessToken: String,
+      spotifyPlaylistCode: String
+  )(using LoggingContext): Future[Unit]
+
   def getArtistReleasePage(
       accessToken: String,
       spotifyArtistCode: String,

@@ -16,7 +16,7 @@ import se.michaelthelin.spotify.model_objects.miscellaneous.Restrictions
 import se.michaelthelin.spotify.model_objects.specification.{Album, AlbumSimplified, Artist, Copyright, ExternalId, ExternalUrl, Image, Paging, PagingCursorbased, TrackSimplified}
 import se.michaelthelin.spotify.{SpotifyApi, SpotifyHttpManager}
 import sttp.client3.circe.asJson
-import sttp.client3.{DeserializationException, HttpClientFutureBackend, HttpError, Response, ResponseException, SttpBackendOptions, UriContext, basicRequest}
+import sttp.client3.{DeserializationException, HttpClientFutureBackend, HttpError, Response, ResponseException, SttpBackendOptions, UriContext, asString, basicRequest}
 
 import java.io.IOException
 import java.net.{URI, URLDecoder}
@@ -178,6 +178,26 @@ class SpotifyClientImpl @Inject() (
       }
   }
 
+  override def unfollowPlaylist(
+      accessToken: String,
+      spotifyPlaylistCode: String
+  )(using LoggingContext): Future[Unit] = {
+    val endpointName = "api-playlist-unfollow"
+    val endpoint = playlistFollowersEndpoint(spotifyPlaylistCode)
+
+    basicRequest
+      .delete(uri"$endpoint")
+      .auth
+      .bearer(accessToken)
+      .readTimeout(clientConfig.requestTimeout)
+      .response(asString)
+      .send(backend)
+      .flatMap(handleSpotifyWebApiEmptyResponse(_, endpointName))
+      .recoverWith { case NonFatal(exception) =>
+        Future.failed(classify(exception))
+      }
+  }
+
   private def buildSpotifyApiClient(accessToken: String): SpotifyApi =
     SpotifyApi
       .builder()
@@ -216,6 +236,9 @@ class SpotifyClientImpl @Inject() (
 
   private def playlistItemsEndpoint(spotifyPlaylistCode: String): String =
     s"${clientConfig.apiBaseUrl.stripSuffix("/")}/playlists/$spotifyPlaylistCode/items"
+
+  private def playlistFollowersEndpoint(spotifyPlaylistCode: String): String =
+    s"${clientConfig.apiBaseUrl.stripSuffix("/")}/playlists/$spotifyPlaylistCode/followers"
 
   private def currentUserPlaylistsEndpoint: String =
     s"${clientConfig.apiBaseUrl.stripSuffix("/")}/me/playlists"
@@ -519,6 +542,28 @@ class SpotifyClientImpl @Inject() (
           classifyStatus(
             endpointName = endpointName,
             statusCode = statusCode.code,
+            retryAfter = response.header("Retry-After").flatMap(parseRetryAfter)
+          )
+        )
+    }
+
+  private def handleSpotifyWebApiEmptyResponse(
+      response: Response[Either[String, String]],
+      endpointName: String
+  )(using LoggingContext): Future[Unit] =
+    response.body match {
+      case Right(_) =>
+        Future.unit
+      case Left(_) =>
+        info(
+          "Spotify API リクエストが失敗しました",
+          kv("endpoint", endpointName),
+          kv("statusCode", response.code.code)
+        )
+        Future.failed(
+          classifyStatus(
+            endpointName = endpointName,
+            statusCode = response.code.code,
             retryAfter = response.header("Retry-After").flatMap(parseRetryAfter)
           )
         )

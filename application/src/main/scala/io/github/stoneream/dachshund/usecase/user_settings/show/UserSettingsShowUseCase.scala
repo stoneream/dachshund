@@ -39,7 +39,7 @@ class UserSettingsShowUseCase @Inject() (
     findPlaylistSetting(user.userId).map { setting =>
       UseCaseOutput(
         user = UseCaseOutput.ViewUser(user.displayName),
-        newReleasePlaylistEnabled = setting.forall(_.enabled == 1L),
+        newReleasePlaylistEnabled = setting.exists(_.enabled == 1L),
         playlistName = setting.flatMap(playlistName).getOrElse(UserSettingsManagedPlaylist.BaseName),
         successMessage = input.successMessage,
         errorMessage = input.errorMessage

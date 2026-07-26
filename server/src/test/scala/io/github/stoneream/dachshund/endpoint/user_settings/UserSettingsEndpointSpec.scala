@@ -14,7 +14,7 @@ import io.github.stoneream.dachshund.model.PlaylistUsageType
 import io.github.stoneream.dachshund.module.{ApplicationModule, DatabaseInitializer}
 import io.github.stoneream.dachshund.service.spotify.auth.access_token.SpotifyAuthorizationCodeAccessTokenProvider.ResolvedSpotifyAuthorizationCodeAccessToken
 import io.github.stoneream.dachshund.service.spotify.auth.access_token.{SpotifyAuthorizationCodeAccessTokenProvider, SpotifyAuthorizationCodeAccessTokenResolveInput}
-import io.github.stoneream.dachshund.service.spotify.client.SpotifyClient
+import io.github.stoneream.dachshund.service.spotify.client.{SpotifyClient, SpotifyClientException}
 import io.github.stoneream.dachshund.service.spotify.client.model.{SpotifyAddItemsToPlaylistResult, SpotifyArtistReleasePage, SpotifyCreatePlaylistResult, SpotifyFollowedArtistsPage, SpotifyPlaylist, SpotifyPlaylistPage}
 import io.github.stoneream.dachshund.service.spotify.oauth_client.{SpotifyOAuthClient, SpotifyOAuthClientImpl}
 import io.github.stoneream.dachshund.service.spotify.user_profile_client.{SpotifyUserProfileClient, SpotifyUserProfileClientImpl}
@@ -81,7 +81,7 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
       assert(html.contains("display user"))
       assert(html.contains("""<form class="settings-form" method="post" action="/user-settings">"""))
       assert(html.contains("""name="newReleasePlaylistEnabled""""))
-      assert(html.contains("""checked"""))
+      assert(!newReleasePlaylistCheckboxChecked(html))
       assert(html.contains("Dachshund Radar"))
       assert(!html.contains("""name="spotifyPlaylistInput""""))
       assert(!html.contains("""name="playlistName""""))
@@ -92,19 +92,13 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
     Scenario("未設定で有効保存すると Dachshund Radar playlist を作成して保存する") {
       resetFakes()
       val loggedInUser = writeLoggedInUserSession()
-      val getResult = route(app, loggedInGetRequest(loggedInUser.sessionToken)).value
-      val (csrfName, csrfValue) = csrfInput(contentAsString(getResult))
-      val csrfCookie = cookies(getResult).get("csrfToken").value
 
       val postResult = route(
         app,
-        FakeRequest(POST, "/user-settings")
-          .withHeaders(HOST -> "localhost:9000")
-          .withCookies(Cookie(testApplicationConfig.cookie.session.name, loggedInUser.sessionToken), csrfCookie)
-          .withFormUrlEncodedBody(
-            csrfName -> csrfValue,
-            "newReleasePlaylistEnabled" -> "true"
-          )
+        loggedInPostRequest(
+          loggedInUser.sessionToken,
+          "newReleasePlaylistEnabled" -> "true"
+        )
       ).value
 
       assert(status(postResult) == SEE_OTHER)
@@ -120,27 +114,60 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
       assert(setting.enabled == 1L)
     }
 
-    Scenario("本番 origin の POST を受け付ける") {
+    Scenario("未設定でチェックを外して保存しても設定行を作らない") {
       resetFakes()
       val loggedInUser = writeLoggedInUserSession()
-      val getResult = route(app, loggedInGetRequest(loggedInUser.sessionToken, host = productionHost)).value
-      val (csrfName, csrfValue) = csrfInput(contentAsString(getResult))
-      val csrfCookie = cookies(getResult).get("csrfToken").value
 
       val postResult = route(
         app,
-        FakeRequest(POST, "/user-settings")
-          .withHeaders(HOST -> productionHost, ORIGIN -> productionOrigin)
-          .withCookies(Cookie(testApplicationConfig.cookie.session.name, loggedInUser.sessionToken), csrfCookie)
-          .withFormUrlEncodedBody(
-            csrfName -> csrfValue,
-            "newReleasePlaylistEnabled" -> "true"
-          )
+        loggedInPostRequest(loggedInUser.sessionToken)
+      ).value
+
+      val showResult = route(app, loggedInGetRequest(loggedInUser.sessionToken)).value
+
+      assert(status(postResult) == SEE_OTHER)
+      assert(redirectLocation(postResult).value == "/user-settings")
+      assert(findPlaylistSetting(loggedInUser.userId).isEmpty)
+      assert(accessTokenProvider.inputs.isEmpty)
+      assert(spotifyClient.playlistPageCalls.isEmpty)
+      assert(spotifyClient.createPlaylistCalls.isEmpty)
+      assert(!newReleasePlaylistCheckboxChecked(contentAsString(showResult)))
+    }
+
+    Scenario("本番 origin の POST を受け付ける") {
+      resetFakes()
+      val loggedInUser = writeLoggedInUserSession()
+
+      val postResult = route(
+        app,
+        loggedInProductionPostRequest(
+          loggedInUser.sessionToken,
+          "newReleasePlaylistEnabled" -> "true"
+        )
       ).value
 
       assert(status(postResult) == SEE_OTHER)
       assert(redirectLocation(postResult).value == "/user-settings")
       assert(findPlaylistSetting(loggedInUser.userId).value.enabled == 1L)
+    }
+
+    Scenario("Spotify API が forbidden を返した場合は再認可へ redirect する") {
+      resetFakes()
+      spotifyClient.playlistPageFailure = Some(SpotifyClientException.Forbidden(new RuntimeException("forbidden")))
+      val loggedInUser = writeLoggedInUserSession()
+
+      val postResult = route(
+        app,
+        loggedInPostRequest(
+          loggedInUser.sessionToken,
+          "newReleasePlaylistEnabled" -> "true"
+        )
+      ).value
+
+      assert(status(postResult) == SEE_OTHER)
+      assert(redirectLocation(postResult).value == "/spotify/auth/login")
+      assert(findPlaylistSetting(loggedInUser.userId).isEmpty)
+      assert(spotifyClient.createPlaylistCalls.isEmpty)
     }
 
     Scenario("同名 playlist が存在する場合は UUID suffix 付きの playlist を作成する") {
@@ -152,19 +179,13 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
         )
       )
       val loggedInUser = writeLoggedInUserSession()
-      val getResult = route(app, loggedInGetRequest(loggedInUser.sessionToken)).value
-      val (csrfName, csrfValue) = csrfInput(contentAsString(getResult))
-      val csrfCookie = cookies(getResult).get("csrfToken").value
 
       val postResult = route(
         app,
-        FakeRequest(POST, "/user-settings")
-          .withHeaders(HOST -> "localhost:9000")
-          .withCookies(Cookie(testApplicationConfig.cookie.session.name, loggedInUser.sessionToken), csrfCookie)
-          .withFormUrlEncodedBody(
-            csrfName -> csrfValue,
-            "newReleasePlaylistEnabled" -> "true"
-          )
+        loggedInPostRequest(
+          loggedInUser.sessionToken,
+          "newReleasePlaylistEnabled" -> "true"
+        )
       ).value
 
       assert(status(postResult) == SEE_OTHER)
@@ -173,23 +194,39 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
       assert(findPlaylistSetting(loggedInUser.userId).value.playlistName == createdName)
     }
 
+    Scenario("並行作成で設定保存が競合した場合は作成済み playlist を cleanup する") {
+      resetFakes()
+      val loggedInUser = writeLoggedInUserSession()
+      spotifyClient.beforeCreatePlaylistResult = () => writePlaylistSetting(loggedInUser.userId, enabled = 1L)
+
+      val postResult = route(
+        app,
+        loggedInPostRequest(
+          loggedInUser.sessionToken,
+          "newReleasePlaylistEnabled" -> "true"
+        )
+      ).value
+
+      assert(status(postResult) == SEE_OTHER)
+      assert(redirectLocation(postResult).value == "/user-settings")
+      assert(spotifyClient.createPlaylistCalls == Vector(("current-access-token", "Dachshund Radar", false)))
+      assert(spotifyClient.unfollowPlaylistCalls == Vector(("current-access-token", "playlist-1")))
+      val setting = findPlaylistSetting(loggedInUser.userId).value
+      assert(setting.spotifyPlaylistCode == "stored-playlist")
+      assert(setting.enabled == 1L)
+    }
+
     Scenario("既に有効な設定がある場合は Spotify API を呼ばずに保存成功にする") {
       resetFakes()
       val loggedInUser = writeLoggedInUserSession()
       writePlaylistSetting(loggedInUser.userId, enabled = 1L)
-      val getResult = route(app, loggedInGetRequest(loggedInUser.sessionToken)).value
-      val (csrfName, csrfValue) = csrfInput(contentAsString(getResult))
-      val csrfCookie = cookies(getResult).get("csrfToken").value
 
       val postResult = route(
         app,
-        FakeRequest(POST, "/user-settings")
-          .withHeaders(HOST -> "localhost:9000")
-          .withCookies(Cookie(testApplicationConfig.cookie.session.name, loggedInUser.sessionToken), csrfCookie)
-          .withFormUrlEncodedBody(
-            csrfName -> csrfValue,
-            "newReleasePlaylistEnabled" -> "true"
-          )
+        loggedInPostRequest(
+          loggedInUser.sessionToken,
+          "newReleasePlaylistEnabled" -> "true"
+        )
       ).value
 
       assert(status(postResult) == SEE_OTHER)
@@ -203,36 +240,14 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
       resetFakes()
       val loggedInUser = writeLoggedInUserSession()
       writePlaylistSetting(loggedInUser.userId, enabled = 1L)
-      val getResult = route(app, loggedInGetRequest(loggedInUser.sessionToken)).value
-      val (csrfName, csrfValue) = csrfInput(contentAsString(getResult))
-      val csrfCookie = cookies(getResult).get("csrfToken").value
 
       val postResult = route(
         app,
-        FakeRequest(POST, "/user-settings")
-          .withHeaders(HOST -> "localhost:9000")
-          .withCookies(Cookie(testApplicationConfig.cookie.session.name, loggedInUser.sessionToken), csrfCookie)
-          .withFormUrlEncodedBody(csrfName -> csrfValue)
+        loggedInPostRequest(loggedInUser.sessionToken)
       ).value
 
       assert(status(postResult) == SEE_OTHER)
       assert(findPlaylistSetting(loggedInUser.userId).value.enabled == 0L)
-    }
-
-    Scenario("CSRF token がない POST は拒否する") {
-      resetFakes()
-      val loggedInUser = writeLoggedInUserSession()
-
-      val result = route(
-        app,
-        FakeRequest(POST, "/user-settings")
-          .withHeaders(HOST -> "localhost:9000")
-          .withCookies(Cookie(testApplicationConfig.cookie.session.name, loggedInUser.sessionToken))
-          .withFormUrlEncodedBody("newReleasePlaylistEnabled" -> "true")
-      ).value
-
-      assert(status(result) == FORBIDDEN)
-      assert(findPlaylistSetting(loggedInUser.userId).isEmpty)
     }
   }
 
@@ -277,10 +292,20 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
       .withHeaders(HOST -> host)
       .withCookies(Cookie(testApplicationConfig.cookie.session.name, sessionToken))
 
-  private def csrfInput(html: String): (String, String) = {
-    val Pattern = """<input type="hidden" name="([^"]+)" value="([^"]+)"\s*/?>""".r
-    Pattern.findFirstMatchIn(html).map(result => result.group(1) -> result.group(2)).get
-  }
+  private def loggedInPostRequest(sessionToken: String, formValues: (String, String)*) =
+    FakeRequest(POST, "/user-settings")
+      .withHeaders(HOST -> "localhost:9000")
+      .withCookies(Cookie(testApplicationConfig.cookie.session.name, sessionToken))
+      .withFormUrlEncodedBody(formValues*)
+
+  private def loggedInProductionPostRequest(sessionToken: String, formValues: (String, String)*) =
+    FakeRequest(POST, "/user-settings")
+      .withHeaders(HOST -> productionHost, ORIGIN -> productionOrigin)
+      .withCookies(Cookie(testApplicationConfig.cookie.session.name, sessionToken))
+      .withFormUrlEncodedBody(formValues*)
+
+  private def newReleasePlaylistCheckboxChecked(html: String): Boolean =
+    html.contains("""name="newReleasePlaylistEnabled" value="true" checked""")
 
   private def findPlaylistSetting(userId: Long): Option[PlaylistSettingRecord] =
     NamedDB(testApplicationConfig.db.master.connectionPoolName).readOnly { implicit session =>
@@ -348,13 +373,19 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
 
   private final class RecordingSpotifyClient extends SpotifyClient {
     var playlistPages: Vector[SpotifyPlaylistPage] = Vector(SpotifyPlaylistPage(Seq.empty, None))
+    var playlistPageFailure: Option[Throwable] = None
     var playlistPageCalls: Vector[(String, Int, Int)] = Vector.empty
     var createPlaylistCalls: Vector[(String, String, Boolean)] = Vector.empty
+    var unfollowPlaylistCalls: Vector[(String, String)] = Vector.empty
+    var beforeCreatePlaylistResult: () => Unit = () => ()
 
     def reset(): Unit = {
       playlistPages = Vector(SpotifyPlaylistPage(Seq.empty, None))
+      playlistPageFailure = None
       playlistPageCalls = Vector.empty
       createPlaylistCalls = Vector.empty
+      unfollowPlaylistCalls = Vector.empty
+      beforeCreatePlaylistResult = () => ()
     }
 
     override def getCurrentUserPlaylistPage(
@@ -363,7 +394,9 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
         offset: Int
     )(using LoggingContext): Future[SpotifyPlaylistPage] = {
       playlistPageCalls = playlistPageCalls :+ (accessToken, limit, offset)
-      Future.successful(playlistPages.lift(playlistPageCalls.size - 1).getOrElse(playlistPages.last))
+      playlistPageFailure
+        .map(Future.failed)
+        .getOrElse(Future.successful(playlistPages.lift(playlistPageCalls.size - 1).getOrElse(playlistPages.last)))
     }
 
     override def createCurrentUserPlaylist(
@@ -373,6 +406,7 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
     )(using LoggingContext): Future[SpotifyCreatePlaylistResult] = {
       createPlaylistCalls = createPlaylistCalls :+ (accessToken, playlistName, isPublic)
       val playlistNumber = createPlaylistCalls.size
+      beforeCreatePlaylistResult()
       Future.successful(
         SpotifyCreatePlaylistResult(
           spotifyPlaylistCode = s"playlist-$playlistNumber",
@@ -380,6 +414,14 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
           spotifyPlaylistUri = s"spotify:playlist:playlist-$playlistNumber"
         )
       )
+    }
+
+    override def unfollowPlaylist(
+        accessToken: String,
+        spotifyPlaylistCode: String
+    )(using LoggingContext): Future[Unit] = {
+      unfollowPlaylistCalls = unfollowPlaylistCalls :+ (accessToken, spotifyPlaylistCode)
+      Future.unit
     }
 
     override def getFollowedArtists(
