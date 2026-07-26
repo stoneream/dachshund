@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   changes:
-    name: Detect Test Target
+    name: Detect changed areas
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
@@ -28,7 +28,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect Test Target
+      - name: Detect changed areas
         id: filter
         uses: dorny/paths-filter@v3
         with:
@@ -62,8 +62,8 @@ jobs:
               - 'db/**'
               - 'tbls/**'
 
-  application-static-check:
-    name: application static checks
+  backend-static:
+    name: Backend static checks
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.backend == 'true'
