@@ -33,6 +33,9 @@ import scalikejdbc.*
 import scala.concurrent.Future
 
 class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseSupport with OptionValues with IdiomaticMockito {
+  private val productionHost = "dachshund.yap-yap-dog.net"
+  private val productionOrigin = s"https://$productionHost"
+
   private val dateTimeService = mock[DateTimeService]
   dateTimeService.now() returns fixedNow
 
@@ -115,6 +118,29 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
       assert(setting.spotifyPlaylistUri == "spotify:playlist:playlist-1")
       assert(setting.playlistName == "Dachshund Radar")
       assert(setting.enabled == 1L)
+    }
+
+    Scenario("本番 origin の POST を受け付ける") {
+      resetFakes()
+      val loggedInUser = writeLoggedInUserSession()
+      val getResult = route(app, loggedInGetRequest(loggedInUser.sessionToken, host = productionHost)).value
+      val (csrfName, csrfValue) = csrfInput(contentAsString(getResult))
+      val csrfCookie = cookies(getResult).get("csrfToken").value
+
+      val postResult = route(
+        app,
+        FakeRequest(POST, "/user-settings")
+          .withHeaders(HOST -> productionHost, ORIGIN -> productionOrigin)
+          .withCookies(Cookie(testApplicationConfig.cookie.session.name, loggedInUser.sessionToken), csrfCookie)
+          .withFormUrlEncodedBody(
+            csrfName -> csrfValue,
+            "newReleasePlaylistEnabled" -> "true"
+          )
+      ).value
+
+      assert(status(postResult) == SEE_OTHER)
+      assert(redirectLocation(postResult).value == "/user-settings")
+      assert(findPlaylistSetting(loggedInUser.userId).value.enabled == 1L)
     }
 
     Scenario("同名 playlist が存在する場合は UUID suffix 付きの playlist を作成する") {
@@ -246,9 +272,9 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
       )
     }
 
-  private def loggedInGetRequest(sessionToken: String) =
+  private def loggedInGetRequest(sessionToken: String, host: String = "localhost:9000") =
     FakeRequest(GET, "/user-settings")
-      .withHeaders(HOST -> "localhost:9000")
+      .withHeaders(HOST -> host)
       .withCookies(Cookie(testApplicationConfig.cookie.session.name, sessionToken))
 
   private def csrfInput(html: String): (String, String) = {
