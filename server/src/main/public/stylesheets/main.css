@@ -133,6 +133,12 @@ h1 {
   font-weight: 700;
 }
 
+.flash-message.is-error {
+  border-left-color: #b3261e;
+  background: #fdecea;
+  color: #8c1d18;
+}
+
 .settings-form {
   margin-top: 28px;
 }
@@ -166,24 +172,14 @@ h1 {
   accent-color: #1a7f64;
 }
 
-.settings-field {
-  display: grid;
-  gap: 6px;
-  color: #3f4d58;
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.settings-field input {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 42px;
-  border: 1px solid #cfd6dc;
+.settings-static-value {
+  margin: 0;
   border-radius: 6px;
-  background: #fff;
-  color: #17202a;
-  font: inherit;
-  padding: 8px 10px;
+  background: #edf0f2;
+  color: #3f4d58;
+  padding: 12px 14px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .settings-actions {
@@ -310,7 +306,6 @@ h1 {
   .lead,
   .site-user,
   .site-nav-link,
-  .settings-field,
   .release-table th,
   .release-artist,
   .release-label {
@@ -344,20 +339,23 @@ h1 {
   }
   .site-nav-link.is-active,
   .settings-fieldset legend,
-  .settings-check,
-  .settings-field input {
+  .settings-check {
     color: #edf2f7;
   }
-  .settings-fieldset,
-  .settings-field input {
+  .settings-fieldset {
     border-color: #303943;
   }
-  .settings-field input {
+  .settings-static-value {
     background: #171d22;
+    color: #edf2f7;
   }
   .flash-message {
     background: #17372f;
     color: #bfe4d8;
+  }
+  .flash-message.is-error {
+    background: #3f1f1f;
+    color: #f3c7c3;
   }
 }
 @media (width <= 640px) {
