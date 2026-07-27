@@ -6,6 +6,11 @@ Dachshund は、Spotify でフォローしているアーティストの新着�
 
 <img width="50%" alt="image" src="https://github.com/user-attachments/assets/28380438-228b-4e29-adb9-ad82be68efe7" />
 
+その他の機能としては以下のとおりです。
+
+- 新着リリースをプレイリストに自動的に追加する
+- ジョブの処理状態を確認できる
+
 ## ドキュメント
 
 `docs` 以下の各ディレクトリの責務は次の通り。
