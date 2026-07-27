@@ -1,6 +1,6 @@
 services:
   dachshund-mysql:
-    image: mysql:8.4.9
+    image: mysql:9.7.1
     env_file: ./docker/dev.env
     environment:
       - TZ=Asia/Tokyo
