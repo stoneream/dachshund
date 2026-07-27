@@ -18,7 +18,7 @@ inThisBuild(
 
 inThisBuild(
   Seq(
-    scalaVersion := "3.8.4",
+    scalaVersion := "3.3.7",
     scalafmtOnCompile := true,
     scalacOptions ++= Seq(
       "-no-indent",
