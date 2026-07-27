@@ -7,6 +7,6 @@ import com.google.inject.{Inject, Singleton}
 class DateTimeService @Inject() () {
   def now(): BusinessDateTime =
     BusinessDateTime.from(
-      OffsetDateTime.now()
+      OffsetDateTime.now(BusinessDateTime.BusinessZoneId)
     )
 }

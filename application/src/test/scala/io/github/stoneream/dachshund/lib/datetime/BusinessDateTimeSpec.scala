@@ -2,7 +2,7 @@ package io.github.stoneream.dachshund.lib.datetime
 
 import org.scalatest.featurespec.AnyFeatureSpec
 
-import java.time.{LocalDate, LocalDateTime, OffsetDateTime, ZoneId}
+import java.time.{LocalDate, LocalDateTime, OffsetDateTime}
 import scala.concurrent.duration.*
 
 class BusinessDateTimeSpec extends AnyFeatureSpec {
@@ -37,13 +37,13 @@ class BusinessDateTimeSpec extends AnyFeatureSpec {
       assert(left != other)
     }
 
-    Scenario("LocalDateTime をシステムデフォルトの offset 付き日時として扱う") {
+    Scenario("LocalDateTime を business timezone の offset 付き日時として扱う") {
       val localDateTime = LocalDateTime.parse("2026-06-21T12:00:00")
 
       val result = BusinessDateTime.fromLocalDateTime(localDateTime)
 
       assert(result.toLocalDateTime == localDateTime)
-      assert(result.asOffsetDateTime == localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime)
+      assert(result.asOffsetDateTime == OffsetDateTime.parse("2026-06-21T12:00:00+09:00"))
     }
 
     Scenario("保持している offset 付き日時の文字列表現を返す") {

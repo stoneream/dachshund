@@ -34,6 +34,8 @@ final class BusinessDateTime(private val value: OffsetDateTime) {
 }
 
 object BusinessDateTime {
+  val BusinessZoneId: ZoneId = ZoneId.of("Asia/Tokyo")
+
   def from(value: OffsetDateTime): BusinessDateTime =
     new BusinessDateTime(value)
 
@@ -41,7 +43,7 @@ object BusinessDateTime {
     BusinessDateTime.from(OffsetDateTime.parse(value))
 
   def fromLocalDateTime(value: LocalDateTime): BusinessDateTime =
-    BusinessDateTime.from(value.atZone(ZoneId.systemDefault()).toOffsetDateTime)
+    BusinessDateTime.from(value.atZone(BusinessZoneId).toOffsetDateTime)
 
   final val MAX: BusinessDateTime =
     BusinessDateTime.from("9999-12-31T23:59:59.999999+09:00")
