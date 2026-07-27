@@ -1,4 +1,4 @@
-package io.github.stoneream.dachshund.handler.job_status
+package io.github.stoneream.dachshund.handler.job_status.lib
 
 import io.github.stoneream.dachshund.model.QueueJobStatus
 import play.api.mvc.RequestHeader

@@ -141,6 +141,8 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(summaryCount(html, "SCHEDULED") == 1L)
       assert(summaryCount(html, "FAILED") == 1L)
       assert(summaryCount(html, "BLOCKED") == 0L)
+      assertStatusBadge(html, label = "実行待ち", status = "SCHEDULED")
+      assertStatusBadge(html, label = "失敗", status = "FAILED")
       assert(html.contains(s"user_id=${loggedInUser.userId}, sync_date=2026-07-08"))
       assert(html.contains(s"user_id=${loggedInUser.userId}, sync_date=2026-07-07"))
       assert(html.contains("RateLimited"))
@@ -269,15 +271,18 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(refreshHtml.contains("""<h1>Spotify access token refresh</h1>"""))
       assert(refreshHtml.contains(s"authorization_id=${written.authorizationId}"))
       assert(summaryCount(refreshHtml, "PROCESSING") == 1L)
+      assertStatusBadge(refreshHtml, label = "処理中", status = "PROCESSING")
 
       assert(artistHtml.contains("""<h1>Artist releases sync</h1>"""))
       assert(artistHtml.contains("spotify_artist_code=spotify-artist-code, sync_scope=INCREMENTAL"))
       assert(summaryCount(artistHtml, "BLOCKED") == 1L)
+      assertStatusBadge(artistHtml, label = "要対応", status = "BLOCKED")
 
       assert(notificationHtml.contains("""<h1>User new release notification delivery</h1>"""))
       assert(notificationHtml.contains(s"user_new_release_event_id=${written.notificationTarget.userNewReleaseEventId}"))
       assert(notificationHtml.contains(s"playlist_setting_id=${written.notificationTarget.playlistSettingId}"))
       assert(summaryCount(notificationHtml, "SUCCEEDED") == 1L)
+      assertStatusBadge(notificationHtml, label = "完了", status = "SUCCEEDED")
     }
 
     Scenario("followed-artists-sync は削除済みまたは無効ユーザーに紐づく queue を表示・集計しない") {
@@ -501,7 +506,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(html.contains("""<li><a href="/job/status">Job status</a></li>"""))
       assert(html.contains("""<li aria-current="page">User new release events sync</li>"""))
       assert(!html.contains("""<form class="job-status-filter""""))
-      assert(!html.contains("""<div class="job-status-summary""""))
+      assert(summaryCount(html, "EVENT") == 1L)
       assert(html.contains(s"""<td class="job-status-number">${activeTarget.eventId}</td>"""))
       assert(html.contains(s"""<td class="job-status-number">${activeTarget.userId}</td>"""))
       assert(html.contains(s"""<td class="job-status-number">${activeTarget.artistReleaseId}</td>"""))
@@ -903,6 +908,13 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
     val matched = pattern.findFirstMatchIn(html)
     assert(matched.nonEmpty, s"summary count for $status was not found")
     matched.value.group(1).toLong
+  }
+
+  private def assertStatusBadge(html: String, label: String, status: String): Unit = {
+    val pattern =
+      s"""(?s)<span class="job-status-badge">\\s*<span>$label</span>\\s*<span class="job-status-code">$status</span>\\s*</span>""".r
+
+    assert(pattern.findFirstIn(html).nonEmpty, s"status badge for $label / $status was not found")
   }
 
   private def targetLabelCell(targetLabel: String): String =

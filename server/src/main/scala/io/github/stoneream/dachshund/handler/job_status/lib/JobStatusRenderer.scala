@@ -1,4 +1,4 @@
-package io.github.stoneream.dachshund.handler.job_status
+package io.github.stoneream.dachshund.handler.job_status.lib
 
 import io.github.stoneream.dachshund.handler.lib.{HtmlRendererBase, PageMeta}
 import io.github.stoneream.dachshund.usecase.job_status.detail.{JobStatusDetailUseCaseException, JobStatusDetailUseCaseOutput}

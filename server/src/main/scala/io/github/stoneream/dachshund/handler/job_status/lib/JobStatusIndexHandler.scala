@@ -1,4 +1,4 @@
-package io.github.stoneream.dachshund.handler.job_status
+package io.github.stoneream.dachshund.handler.job_status.lib
 
 import com.google.inject.{Inject, Singleton}
 import io.github.stoneream.dachshund.action.TraceAction.TraceRequest

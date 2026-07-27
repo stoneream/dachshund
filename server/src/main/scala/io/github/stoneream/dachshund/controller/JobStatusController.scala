@@ -4,9 +4,9 @@ import com.google.inject.{Inject, Singleton}
 import io.github.stoneream.dachshund.action.TraceAction
 import io.github.stoneream.dachshund.action.TraceAction.TraceRequest
 import io.github.stoneream.dachshund.controller.lib.ControllerBaseImpl
-import io.github.stoneream.dachshund.handler.job_status.JobStatusIndexHandler
 import io.github.stoneream.dachshund.handler.job_status.artist_releases_sync.ArtistReleasesSyncJobStatusHandler
 import io.github.stoneream.dachshund.handler.job_status.followed_artists_sync.FollowedArtistsSyncJobStatusHandler
+import io.github.stoneream.dachshund.handler.job_status.lib.JobStatusIndexHandler
 import io.github.stoneream.dachshund.handler.job_status.spotify_access_token_refresh.SpotifyAccessTokenRefreshJobStatusHandler
 import io.github.stoneream.dachshund.handler.job_status.user_new_release_events_sync.UserNewReleaseEventsSyncJobStatusHandler
 import io.github.stoneream.dachshund.handler.job_status.user_new_release_notification_delivery.UserNewReleaseNotificationDeliveryJobStatusHandler
