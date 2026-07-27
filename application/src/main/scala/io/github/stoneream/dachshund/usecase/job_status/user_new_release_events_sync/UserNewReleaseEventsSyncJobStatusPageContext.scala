@@ -1,6 +1,7 @@
 package io.github.stoneream.dachshund.usecase.job_status.user_new_release_events_sync
 
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
+import io.github.stoneream.dachshund.model.QueueJobStatus
 import io.github.stoneream.dachshund.usecase.job_status.context.{JobStatusJob, JobStatusJobOption}
 
 final case class UserNewReleaseEventsSyncJobStatusPageContext(
@@ -22,6 +23,15 @@ object UserNewReleaseEventsSyncJobStatusPageContext {
       artistReleaseId: Long,
       spotifyReleaseCode: String,
       sourceSpotifyArtistCode: String,
+      notificationQueueId: Option[Long],
+      notificationStatus: Option[QueueJobStatus],
+      notificationAttemptCount: Option[Int],
+      notificationNextAttemptAt: Option[BusinessDateTime],
+      notificationLastAttemptedAt: Option[BusinessDateTime],
+      notificationCompletedAt: Option[BusinessDateTime],
+      notificationLastFailedAt: Option[BusinessDateTime],
+      notificationLastErrorType: Option[String],
+      notificationLockedUntil: Option[BusinessDateTime],
       detectedAt: BusinessDateTime,
       createdAt: BusinessDateTime,
       updatedAt: BusinessDateTime

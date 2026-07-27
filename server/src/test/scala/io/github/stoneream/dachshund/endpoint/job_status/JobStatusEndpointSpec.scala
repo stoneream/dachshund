@@ -138,9 +138,11 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(html.contains("""<li aria-current="page">Followed artists sync</li>"""))
       assert(!html.contains("Other jobs"))
       assert(!html.contains("""<ul class="job-status-list">"""))
-      assert(summaryCount(html, "SCHEDULED") == 1L)
-      assert(summaryCount(html, "FAILED") == 1L)
-      assert(summaryCount(html, "BLOCKED") == 0L)
+      assert(html.contains("""<table class="job-status-summary-table" aria-label="Status summary">"""))
+      assertSummaryHasNoCountColumn(html)
+      assertStatusSummary(html, "SCHEDULED", "実行待ち")
+      assertStatusSummary(html, "FAILED", "失敗")
+      assertStatusSummary(html, "BLOCKED", "要対応")
       assertStatusBadge(html, label = "実行待ち", status = "SCHEDULED")
       assertStatusBadge(html, label = "失敗", status = "FAILED")
       assert(html.contains(s"user_id=${loggedInUser.userId}, sync_date=2026-07-08"))
@@ -172,8 +174,9 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       val html = contentAsString(result)
 
       assert(status(result) == OK)
-      assert(summaryCount(html, "SCHEDULED") == 1L)
-      assert(summaryCount(html, "FAILED") == 1L)
+      assertSummaryHasNoCountColumn(html)
+      assertStatusSummary(html, "SCHEDULED", "実行待ち")
+      assertStatusSummary(html, "FAILED", "失敗")
       assert(html.contains("""value="FAILED" checked"""))
       assert(html.contains("""value="BLOCKED" checked"""))
       assert(!html.contains("""value="SCHEDULED" checked"""))
@@ -270,18 +273,18 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
 
       assert(refreshHtml.contains("""<h1>Spotify access token refresh</h1>"""))
       assert(refreshHtml.contains(s"authorization_id=${written.authorizationId}"))
-      assert(summaryCount(refreshHtml, "PROCESSING") == 1L)
+      assertStatusSummary(refreshHtml, "PROCESSING", "処理中")
       assertStatusBadge(refreshHtml, label = "処理中", status = "PROCESSING")
 
       assert(artistHtml.contains("""<h1>Artist releases sync</h1>"""))
       assert(artistHtml.contains("spotify_artist_code=spotify-artist-code, sync_scope=INCREMENTAL"))
-      assert(summaryCount(artistHtml, "BLOCKED") == 1L)
+      assertStatusSummary(artistHtml, "BLOCKED", "要対応")
       assertStatusBadge(artistHtml, label = "要対応", status = "BLOCKED")
 
       assert(notificationHtml.contains("""<h1>User new release notification delivery</h1>"""))
       assert(notificationHtml.contains(s"user_new_release_event_id=${written.notificationTarget.userNewReleaseEventId}"))
       assert(notificationHtml.contains(s"playlist_setting_id=${written.notificationTarget.playlistSettingId}"))
-      assert(summaryCount(notificationHtml, "SUCCEEDED") == 1L)
+      assertStatusSummary(notificationHtml, "SUCCEEDED", "完了")
       assertStatusBadge(notificationHtml, label = "完了", status = "SUCCEEDED")
     }
 
@@ -307,9 +310,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       val html = contentAsString(result)
 
       assert(status(result) == OK)
-      assert(summaryCount(html, "SCHEDULED") == 1L)
-      assert(summaryCount(html, "FAILED") == 0L)
-      assert(summaryCount(html, "BLOCKED") == 0L)
+      assertSummaryHasNoCountColumn(html)
       assert(html.contains(targetLabelCell(s"user_id=${loggedInUser.userId}, sync_date=$activeSyncDate")))
       assert(!html.contains(targetLabelCell(s"user_id=$disabledUserId, sync_date=$disabledSyncDate")))
       assert(!html.contains(targetLabelCell(s"user_id=$deletedUserId, sync_date=$deletedSyncDate")))
@@ -347,10 +348,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       val html = contentAsString(result)
 
       assert(status(result) == OK)
-      assert(summaryCount(html, "SCHEDULED") == 1L)
-      assert(summaryCount(html, "FAILED") == 0L)
-      assert(summaryCount(html, "BLOCKED") == 0L)
-      assert(summaryCount(html, "PROCESSING") == 0L)
+      assertSummaryHasNoCountColumn(html)
       assert(html.contains(targetLabelCell(s"authorization_id=$activeAuthorizationId")))
       assert(!html.contains(targetLabelCell(s"authorization_id=$deletedAuthorizationId")))
       assert(!html.contains(targetLabelCell(s"authorization_id=$deletedUserAuthorizationId")))
@@ -415,12 +413,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       val html = contentAsString(result)
 
       assert(status(result) == OK)
-      assert(summaryCount(html, "SUCCEEDED") == 1L)
-      assert(summaryCount(html, "SCHEDULED") == 0L)
-      assert(summaryCount(html, "FAILED") == 0L)
-      assert(summaryCount(html, "BLOCKED") == 0L)
-      assert(summaryCount(html, "PROCESSING") == 0L)
-      assert(summaryCount(html, "SKIPPED") == 0L)
+      assertSummaryHasNoCountColumn(html)
       assert(html.contains(targetLabelCell(notificationTargetLabel(activeTarget))))
       excludedTargets.foreach { target =>
         assert(!html.contains(targetLabelCell(notificationTargetLabel(target))))
@@ -458,10 +451,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       val html = contentAsString(result)
 
       assert(status(result) == OK)
-      assert(summaryCount(html, "SCHEDULED") == 1L)
-      assert(summaryCount(html, "FAILED") == 0L)
-      assert(summaryCount(html, "BLOCKED") == 0L)
-      assert(summaryCount(html, "PROCESSING") == 0L)
+      assertSummaryHasNoCountColumn(html)
       assert(html.contains(targetLabelCell(s"spotify_artist_code=$activeArtistCode, sync_scope=INCREMENTAL")))
       assert(!html.contains(targetLabelCell(s"spotify_artist_code=$orphanArtistCode, sync_scope=INCREMENTAL")))
       assert(!html.contains(targetLabelCell(s"spotify_artist_code=$disabledUserArtistCode, sync_scope=INCREMENTAL")))
@@ -473,8 +463,18 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
 
     Scenario("user-new-release-events-sync はイベント履歴を表示し、無効な親データを除外する") {
       val loggedInUser = writeLoggedInUserSession()
-      val (activeTarget, excludedTargets) = databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
+      val (activeTarget, eventWithoutNotificationTarget, excludedTargets) = databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
         val activeTarget = writeUserNewReleaseEventTarget(loggedInUser.userId, suffix = "event-active")
+        val playlistSettingId = writePlaylistSetting(loggedInUser.userId, suffix = "event-active")
+        notificationQueueWriter.write(
+          notificationQueueRow(
+            activeTarget.eventId,
+            playlistSettingId,
+            QueueJobStatus.Failed,
+            lastErrorType = "RateLimited"
+          )
+        )
+        val eventWithoutNotificationTarget = writeUserNewReleaseEventTarget(loggedInUser.userId, suffix = "event-without-notification")
         val otherSyncTarget = writeUserNewReleaseEventTarget(
           loggedInUser.userId,
           suffix = "event-other-sync",
@@ -493,6 +493,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
 
         (
           activeTarget,
+          eventWithoutNotificationTarget,
           Seq(otherSyncTarget, deletedEventTarget, deletedUserTarget, disabledUserTarget, deletedArtistReleaseTarget)
         )
       }
@@ -506,13 +507,23 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(html.contains("""<li><a href="/job/status">Job status</a></li>"""))
       assert(html.contains("""<li aria-current="page">User new release events sync</li>"""))
       assert(!html.contains("""<form class="job-status-filter""""))
-      assert(summaryCount(html, "EVENT") == 1L)
+      assert(html.contains("""<table class="job-status-summary-table" aria-label="Event summary">"""))
+      assertSummaryHasNoCountColumn(html)
+      assertStatusSummary(html, "EVENT", "作成済み")
       assert(html.contains(s"""<td class="job-status-number">${activeTarget.eventId}</td>"""))
       assert(html.contains(s"""<td class="job-status-number">${activeTarget.userId}</td>"""))
       assert(html.contains(s"""<td class="job-status-number">${activeTarget.artistReleaseId}</td>"""))
       assert(html.contains(s"""<td class="job-status-target">${activeTarget.spotifyReleaseCode}</td>"""))
       assert(html.contains(s"""<td class="job-status-target">${activeTarget.sourceSpotifyArtistCode}</td>"""))
-      assert(html.contains("全 1 件 / Page 1 / 1"))
+      assert(html.contains("""<th scope="col">notification queue</th>"""))
+      assert(html.contains("""<th scope="col">next attempt</th>"""))
+      assert(html.contains("""<th scope="col">error</th>"""))
+      assertStatusBadge(html, label = "失敗", status = "FAILED")
+      assert(html.contains("RateLimited"))
+      assert(html.contains(fixedNow.toString))
+      assert(html.contains(s"""<td class="job-status-target">${eventWithoutNotificationTarget.spotifyReleaseCode}</td>"""))
+      assertEventNotificationQueueIsEmpty(html, eventWithoutNotificationTarget)
+      assert(html.contains("全 2 件 / Page 1 / 1"))
       excludedTargets.foreach { target =>
         assert(!html.contains(target.spotifyReleaseCode))
         assert(!html.contains(target.sourceSpotifyArtistCode))
@@ -715,27 +726,36 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
         )
       )
       .value
+    val playlistSettingId = writePlaylistSetting(userId, suffix, playlistEnabled, playlistDeleted)
+    NotificationTarget(userNewReleaseEventId, playlistSettingId)
+  }
+
+  private def writePlaylistSetting(
+      userId: Long,
+      suffix: String,
+      enabled: Long = 1L,
+      deleted: Long = 0L
+  )(using DBSession): Long = {
     val playlistCode =
       if (suffix == "default") "playlist-code" else s"playlist-code-$suffix"
-    val playlistSettingId = playlistSettingWriter.write(
+    playlistSettingWriter.write(
       UserPlaylistSettingSource(
         userId = userId,
         playlistUsageType = PlaylistUsageType.NewReleaseNotification,
         spotifyPlaylistCode = playlistCode,
         spotifyPlaylistUri = s"spotify:playlist:$playlistCode",
         playlistName = if (suffix == "default") "Dachshund Radar" else s"Dachshund Radar $suffix",
-        enabled = playlistEnabled,
+        enabled = enabled,
         createdAt = fixedNow,
         updatedAt = fixedNow,
-        deletedAt = sourceDeletedAt(playlistDeleted),
+        deletedAt = sourceDeletedAt(deleted),
         createdUser = AuditUser.User(userId),
         updatedUser = AuditUser.User(userId),
-        deletedUser = sourceDeletedUser(playlistDeleted),
-        deleted = playlistDeleted,
+        deletedUser = sourceDeletedUser(deleted),
+        deleted = deleted,
         lockVersion = 0L
       ).toUserPlaylistSettingDbRow
     )
-    NotificationTarget(userNewReleaseEventId, playlistSettingId)
   }
 
   private def writeUserNewReleaseEventTarget(
@@ -871,7 +891,8 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
   private def notificationQueueRow(
       userNewReleaseEventId: Long,
       playlistSettingId: Long,
-      status: QueueJobStatus
+      status: QueueJobStatus,
+      lastErrorType: String = ""
   ) =
     UserNewReleaseNotificationQueueSource(
       userNewReleaseEventId = userNewReleaseEventId,
@@ -880,8 +901,8 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       status = status,
       nextAttemptAt = Some(fixedNow),
       attemptCount = 1,
-      lastFailedAt = None,
-      lastErrorType = "",
+      lastFailedAt = if (lastErrorType.nonEmpty) Some(fixedNow) else None,
+      lastErrorType = lastErrorType,
       lockToken = "",
       lockedUntil = None,
       lastAttemptedAt = Some(fixedNow),
@@ -902,12 +923,16 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       .withHeaders(HOST -> "localhost:9000")
       .withCookies(Cookie(testApplicationConfig.cookie.session.name, sessionToken))
 
-  private def summaryCount(html: String, status: String): Long = {
+  private def assertStatusSummary(html: String, status: String, label: String): Unit = {
     val pattern =
-      s"""(?s)<span class="job-status-summary-label">.*?</span>\\s*<span class="job-status-summary-code">$status</span>\\s*<span class="job-status-summary-count">(\\d+)</span>""".r
-    val matched = pattern.findFirstMatchIn(html)
-    assert(matched.nonEmpty, s"summary count for $status was not found")
-    matched.value.group(1).toLong
+      s"""(?s)<td class="job-status-summary-code">$status</td>\\s*<td class="job-status-summary-label">$label</td>""".r
+
+    assert(pattern.findFirstIn(html).nonEmpty, s"summary row for $status / $label was not found")
+  }
+
+  private def assertSummaryHasNoCountColumn(html: String): Unit = {
+    assert(!html.contains("""<th scope="col">count</th>"""))
+    assert(!html.contains("job-status-summary-count"))
   }
 
   private def assertStatusBadge(html: String, label: String, status: String): Unit = {
@@ -915,6 +940,13 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       s"""(?s)<span class="job-status-badge">\\s*<span>$label</span>\\s*<span class="job-status-code">$status</span>\\s*</span>""".r
 
     assert(pattern.findFirstIn(html).nonEmpty, s"status badge for $label / $status was not found")
+  }
+
+  private def assertEventNotificationQueueIsEmpty(html: String, target: UserNewReleaseEventTarget): Unit = {
+    val pattern =
+      s"""(?s)<td class="job-status-number">${target.eventId}</td>.*?<td class="job-status-target">${target.sourceSpotifyArtistCode}</td>\\s*<td class="job-status-number">-</td>\\s*<td>\\s*-\\s*</td>\\s*<td class="job-status-number">-</td>""".r
+
+    assert(pattern.findFirstIn(html).nonEmpty, s"empty notification queue cells for event ${target.eventId} were not found")
   }
 
   private def targetLabelCell(targetLabel: String): String =

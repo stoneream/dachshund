@@ -28,8 +28,7 @@ object JobStatusDetailPageContext {
 
   final case class StatusSummary(
       status: QueueJobStatus,
-      label: String,
-      count: Long
+      label: String
   )
 
   final case class Pagination(
@@ -91,8 +90,7 @@ object JobStatusDetailPageContext {
       statusSummaries = QueueJobStatus.values.toSeq.map { status =>
         StatusSummary(
           status = status,
-          label = statusLabel(status),
-          count = countsByStatus.getOrElse(status, 0L)
+          label = statusLabel(status)
         )
       },
       queueRows = queueRows,

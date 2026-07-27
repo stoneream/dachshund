@@ -2,7 +2,7 @@ package io.github.stoneream.dachshund.handler.job_status.artist_releases_sync
 
 import com.google.inject.{Inject, Singleton}
 import io.github.stoneream.dachshund.action.TraceAction.TraceRequest
-import io.github.stoneream.dachshund.handler.job_status.{JobStatusFilterParser, JobStatusRenderer}
+import io.github.stoneream.dachshund.handler.job_status.lib.{JobStatusFilterParser, JobStatusRenderer}
 import io.github.stoneream.dachshund.handler.lib.{HandlerAuthPolicy, HandlerBase, HtmlRendererBase}
 import io.github.stoneream.dachshund.lib.datetime.DateTimeService
 import io.github.stoneream.dachshund.usecase.job_status.detail.{JobStatusDetailUseCaseException, JobStatusDetailUseCaseInput}

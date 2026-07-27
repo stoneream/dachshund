@@ -29,5 +29,5 @@ DB 値と表示名は `docs/job/README.md` のキュー状態に従う。
 | `spotify-access-token-refresh` | `user_spotify_authorization_refresh_queue` |
 | `followed-artists-sync` | `followed_artist_sync_queue` |
 | `artist-releases-sync` | `artist_release_sync_queue` |
-| `user-new-release-events-sync` | `user_new_release_event` |
+| `user-new-release-events-sync` | `user_new_release_event`, `user_new_release_notification_queue` |
 | `user-new-release-notification-delivery` | `user_new_release_notification_queue` |

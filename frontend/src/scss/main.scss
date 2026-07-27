@@ -470,32 +470,44 @@ h1 {
   margin-top: 14px;
 }
 
-.job-status-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
+.job-status-summary-wrap {
   margin-top: 28px;
+  overflow-x: auto;
 }
 
-.job-status-summary-item {
-  display: grid;
-  gap: 4px;
+.job-status-summary-table {
+  width: 100%;
+  min-width: 320px;
   border: 1px solid #d9dee3;
-  border-radius: 6px;
+  border-collapse: collapse;
   background: #fff;
-  padding: 12px;
+  font-size: 0.86rem;
+}
+
+.job-status-summary-table th,
+.job-status-summary-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e9ed;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.job-status-summary-table th {
+  background: #f8fafb;
+  color: #596772;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.job-status-summary-table tr:last-child td {
+  border-bottom: 0;
 }
 
 .job-status-summary-label {
   color: #17202a;
   font-weight: 800;
-}
-
-.job-status-summary-count {
-  color: #1a7f64;
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1;
 }
 
 .job-status-table-wrap {
@@ -545,6 +557,7 @@ h1 {
   display: inline-flex;
   min-height: 26px;
   align-items: center;
+  gap: 6px;
   border-radius: 6px;
   background: #e7f4ef;
   color: #1c5f4d;
@@ -689,7 +702,7 @@ h1 {
 
   .job-status-list,
   .job-status-check,
-  .job-status-summary-item,
+  .job-status-summary-table,
   .job-status-page-link {
     border-color: #303943;
     background: #171d22;
@@ -735,8 +748,26 @@ h1 {
   .job-status-code,
   .job-status-list-name,
   .job-status-summary-code,
+  .job-status-summary-table th,
   .job-status-table th {
     color: #adbac7;
+  }
+
+  .job-status-summary-table th,
+  .job-status-summary-table td {
+    border-color: #303943;
+  }
+
+  .job-status-summary-table th {
+    background: #26313a;
+  }
+
+  .job-status-summary-table tbody tr:nth-child(even) {
+    background: #171d22;
+  }
+
+  .job-status-summary-table tbody tr:nth-child(odd) {
+    background: #242a31;
   }
 
   .job-status-table th,

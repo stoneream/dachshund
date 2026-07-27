@@ -1,10 +1,19 @@
 @import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
+@import io.github.stoneream.dachshund.usecase.job_status.detail.JobStatusDetailPageContext
 @import io.github.stoneream.dachshund.usecase.job_status.user_new_release_events_sync.UserNewReleaseEventsSyncJobStatusPageContext
 
 @(output: UserNewReleaseEventsSyncJobStatusPageContext)(implicit request: play.api.mvc.RequestHeader)
 
+@datetime(value: Option[BusinessDateTime]) = @{
+    value.map(_.toString).getOrElse("-")
+}
+
 @requiredDatetime(value: BusinessDateTime) = @{
     value.toString
+}
+
+@errorType(value: Option[String]) = @{
+    value.map(_.trim).filter(_.nonEmpty).getOrElse("-")
 }
 
 @views.html.common.siteHeader(Some(output.user.displayName), "/job/status")
@@ -25,6 +34,23 @@
             </div>
         </header>
 
+        <div class="job-status-summary-wrap">
+            <table class="job-status-summary-table" aria-label="Event summary">
+                <thead>
+                    <tr>
+                        <th scope="col">status</th>
+                        <th scope="col">label</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="job-status-summary-code">EVENT</td>
+                        <td class="job-status-summary-label">作成済み</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <div class="job-status-table-wrap">
             @if(output.eventRows.isEmpty) {
                 <p class="lead">該当する event はありません。</p>
@@ -37,6 +63,15 @@
                             <th scope="col">artist release</th>
                             <th scope="col">spotify release</th>
                             <th scope="col">source artist</th>
+                            <th scope="col">notification queue</th>
+                            <th scope="col">notification status</th>
+                            <th scope="col">attempt</th>
+                            <th scope="col">next attempt</th>
+                            <th scope="col">last attempted</th>
+                            <th scope="col">completed</th>
+                            <th scope="col">last failed</th>
+                            <th scope="col">error</th>
+                            <th scope="col">locked until</th>
                             <th scope="col">detected</th>
                             <th scope="col">created</th>
                             <th scope="col">updated</th>
@@ -50,6 +85,27 @@
                                 <td class="job-status-number">@row.artistReleaseId</td>
                                 <td class="job-status-target">@row.spotifyReleaseCode</td>
                                 <td class="job-status-target">@row.sourceSpotifyArtistCode</td>
+                                <td class="job-status-number">@row.notificationQueueId.map(_.toString).getOrElse("-")</td>
+                                <td>
+                                    @row.notificationStatus match {
+                                        case Some(status) => {
+                                            <span class="job-status-badge">
+                                                <span>@JobStatusDetailPageContext.statusLabel(status)</span>
+                                                <span class="job-status-code">@status.dbValue</span>
+                                            </span>
+                                        }
+                                        case None => {
+                                            -
+                                        }
+                                    }
+                                </td>
+                                <td class="job-status-number">@row.notificationAttemptCount.map(_.toString).getOrElse("-")</td>
+                                <td>@datetime(row.notificationNextAttemptAt)</td>
+                                <td>@datetime(row.notificationLastAttemptedAt)</td>
+                                <td>@datetime(row.notificationCompletedAt)</td>
+                                <td>@datetime(row.notificationLastFailedAt)</td>
+                                <td class="job-status-error">@errorType(row.notificationLastErrorType)</td>
+                                <td>@datetime(row.notificationLockedUntil)</td>
                                 <td>@requiredDatetime(row.detectedAt)</td>
                                 <td>@requiredDatetime(row.createdAt)</td>
                                 <td>@requiredDatetime(row.updatedAt)</td>

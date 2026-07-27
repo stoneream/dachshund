@@ -51,14 +51,23 @@
             </div>
         </form>
 
-        <div class="job-status-summary" aria-label="Status summary">
-            @for(summary <- output.statusSummaries) {
-                <div class="job-status-summary-item">
-                    <span class="job-status-summary-label">@summary.label</span>
-                    <span class="job-status-summary-code">@summary.status.dbValue</span>
-                    <span class="job-status-summary-count">@summary.count</span>
-                </div>
-            }
+        <div class="job-status-summary-wrap">
+            <table class="job-status-summary-table" aria-label="Status summary">
+                <thead>
+                    <tr>
+                        <th scope="col">status</th>
+                        <th scope="col">label</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(summary <- output.statusSummaries) {
+                        <tr>
+                            <td class="job-status-summary-code">@summary.status.dbValue</td>
+                            <td class="job-status-summary-label">@summary.label</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
 
         <div class="job-status-table-wrap">
@@ -86,7 +95,12 @@
                         @for(row <- output.queueRows) {
                             <tr>
                                 <td class="job-status-number">@row.queueId</td>
-                                <td><span class="job-status-badge">@row.status.dbValue</span></td>
+                                <td>
+                                    <span class="job-status-badge">
+                                        <span>@JobStatusDetailPageContext.statusLabel(row.status)</span>
+                                        <span class="job-status-code">@row.status.dbValue</span>
+                                    </span>
+                                </td>
                                 <td class="job-status-target">@row.targetLabel</td>
                                 <td class="job-status-number">@row.attemptCount</td>
                                 <td>@datetime(row.nextAttemptAt)</td>
