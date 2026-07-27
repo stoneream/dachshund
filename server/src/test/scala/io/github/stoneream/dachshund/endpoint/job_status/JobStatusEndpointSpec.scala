@@ -500,9 +500,8 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(html.contains("""<li><a href="/job/status">Job status</a></li>"""))
       assert(html.contains("""<li aria-current="page">User new release events sync</li>"""))
       assert(!html.contains("""<form class="job-status-filter""""))
-      assert(html.contains("""<table class="job-status-summary-table" aria-label="Event summary">"""))
+      assert(!html.contains("""<table class="job-status-summary-table" aria-label="Event summary">"""))
       assertSummaryHasNoCountColumn(html)
-      assertStatusSummary(html, "EVENT", "作成済み")
       assert(html.contains(s"""<td class="job-status-number">${activeTarget.eventId}</td>"""))
       assert(html.contains(s"""<td class="job-status-number">${activeTarget.userId}</td>"""))
       assert(html.contains(s"""<td class="job-status-number">${activeTarget.artistReleaseId}</td>"""))
@@ -915,13 +914,6 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
     FakeRequest(GET, path)
       .withHeaders(HOST -> "localhost:9000")
       .withCookies(Cookie(testApplicationConfig.cookie.session.name, sessionToken))
-
-  private def assertStatusSummary(html: String, status: String, label: String): Unit = {
-    val pattern =
-      s"""(?s)<td class="job-status-summary-code">$status</td>\\s*<td class="job-status-summary-label">$label</td>""".r
-
-    assert(pattern.findFirstIn(html).nonEmpty, s"summary row for $status / $label was not found")
-  }
 
   private def assertSummaryHasNoCountColumn(html: String): Unit = {
     assert(!html.contains("""<th scope="col">count</th>"""))
