@@ -5,6 +5,6 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 
 final case class UserSettingsApplyUseCaseInput(
     now: BusinessDateTime,
-    userSessionContext: UserSessionContext,
+    user: UserSessionContext.NormalUser,
     newReleasePlaylistEnabled: Boolean
 )

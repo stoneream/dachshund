@@ -4,6 +4,7 @@ import io.github.stoneream.dachshund.infra.db.AuditUser
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 
 final case class UserSessionTokenSource(
+    id: Long = 0L,
     userId: Long,
     hashedToken: String,
     issuedAt: BusinessDateTime,

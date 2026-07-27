@@ -10,7 +10,6 @@ import io.github.stoneream.dachshund.infra.db.writer.ArtistReleaseSyncQueueWrite
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.lib.executor.Executors.DatabaseExecutor
 import io.github.stoneream.dachshund.model.QueueJobStatus
-import io.github.stoneream.dachshund.service.application.artist_release_sync_queue.model.ArtistReleaseSyncQueueTarget
 
 import scala.concurrent.Future
 
@@ -75,12 +74,12 @@ private[artist_release_sync_queue] class CreateArtistReleaseSyncQueuesStep @Inje
           .filter(reusableQueue(_, rescheduleSucceededBefore))
           .count { queue =>
             queueWriter.update(
-              queueId = queue.queueId,
+              queueId = queue.id,
               spotifyArtistCode = queue.spotifyArtistCode,
               syncScope = queue.syncScope,
               expectedStatus = queue.status,
               expectedLockToken = queue.lockToken,
-              expectedQueueLockVersion = queue.queueLockVersion,
+              expectedQueueLockVersion = queue.lockVersion,
               expectedDeleted = queue.deleted,
               status = QueueJobStatus.Scheduled,
               includeGroups = IncludeGroupsAlbumSingle,
@@ -100,7 +99,7 @@ private[artist_release_sync_queue] class CreateArtistReleaseSyncQueuesStep @Inje
               updatedUser = AuditUser.System,
               deletedUser = AuditUser.Empty,
               deleted = 0L,
-              lockVersion = queue.queueLockVersion + 1L
+              lockVersion = queue.lockVersion + 1L
             )
           }
 
@@ -110,7 +109,7 @@ private[artist_release_sync_queue] class CreateArtistReleaseSyncQueuesStep @Inje
   }
 
   private def reusableQueue(
-      queue: ArtistReleaseSyncQueueTarget,
+      queue: ArtistReleaseSyncQueueSource,
       rescheduleSucceededBefore: BusinessDateTime
   ): Boolean =
     queue.deleted != 0 ||

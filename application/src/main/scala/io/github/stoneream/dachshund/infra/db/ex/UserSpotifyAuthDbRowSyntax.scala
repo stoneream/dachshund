@@ -12,7 +12,7 @@ object UserSpotifyAuthDbRowSyntax {
       import DbRowValues.*
 
       UserSpotifyAuthDbRow(
-        id = 0L,
+        id = source.id,
         userId = source.userId,
         spotifyUserId = source.spotifyUserId,
         createdAt = source.createdAt.dbDateTime,

@@ -12,7 +12,7 @@ object UserDbRowSyntax {
       import DbRowValues.*
 
       UserDbRow(
-        id = 0L,
+        id = source.id,
         userName = source.userName,
         displayName = source.displayName,
         timeZone = source.timeZone,

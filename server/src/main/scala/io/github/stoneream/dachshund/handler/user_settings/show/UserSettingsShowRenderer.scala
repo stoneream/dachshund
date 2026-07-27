@@ -2,7 +2,7 @@ package io.github.stoneream.dachshund.handler.user_settings.show
 
 import io.github.stoneream.dachshund.handler.lib.{HtmlRendererBase, PageMeta}
 import io.github.stoneream.dachshund.usecase.user_settings.show.{UserSettingsShowUseCaseException as UseCaseException, UserSettingsShowUseCaseOutput as UseCaseOutput}
-import play.api.mvc.{RequestHeader, Result, Results}
+import play.api.mvc.{RequestHeader, Result}
 
 object UserSettingsShowRenderer extends HtmlRendererBase[UseCaseOutput, UseCaseException, Result] {
   override def success(output: UseCaseOutput): Result =
@@ -16,9 +16,5 @@ object UserSettingsShowRenderer extends HtmlRendererBase[UseCaseOutput, UseCaseE
     )
   }
 
-  override def failure(exception: UseCaseException): Result =
-    exception match {
-      case UseCaseException.NotLoggedIn =>
-        Results.SeeOther("/spotify/auth/login")
-    }
+  override def failure(exception: UseCaseException): Result = throw exception
 }

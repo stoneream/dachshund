@@ -1,0 +1,16 @@
+@import io.github.stoneream.dachshund.usecase.job_status.context.JobStatusJobOption
+
+@(jobOptions: Seq[JobStatusJobOption], currentJobName: Option[String])
+
+<nav class="job-status-navigation" aria-label="Job status navigation">
+    <ul class="job-status-list">
+        @for(job <- jobOptions) {
+            <li class="job-status-list-item">
+                <a class="job-status-list-link @if(currentJobName.contains(job.name)) {is-active}" href="@job.path" @if(currentJobName.contains(job.name)) {aria-current="page"}>
+                    <span class="job-status-list-title">@job.title</span>
+                    <span class="job-status-list-name">@job.name</span>
+                </a>
+            </li>
+        }
+    </ul>
+</nav>

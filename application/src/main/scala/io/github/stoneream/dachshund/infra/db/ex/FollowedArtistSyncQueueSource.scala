@@ -7,6 +7,7 @@ import io.github.stoneream.dachshund.model.QueueJobStatus
 import java.time.LocalDate
 
 final case class FollowedArtistSyncQueueSource(
+    id: Long = 0L,
     userId: Long,
     syncDate: LocalDate,
     status: QueueJobStatus,

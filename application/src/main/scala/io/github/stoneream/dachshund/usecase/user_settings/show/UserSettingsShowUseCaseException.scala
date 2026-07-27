@@ -5,6 +5,4 @@ abstract sealed class UserSettingsShowUseCaseException(
     cause: Throwable = null
 ) extends Exception(getMessage, cause)
 
-object UserSettingsShowUseCaseException {
-  case object NotLoggedIn extends UserSettingsShowUseCaseException("ログインが必要です")
-}
+object UserSettingsShowUseCaseException

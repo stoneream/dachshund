@@ -1,0 +1,18 @@
+@import io.github.stoneream.dachshund.usecase.job_status.list.JobStatusListUseCaseOutput
+
+@(output: JobStatusListUseCaseOutput)(implicit request: play.api.mvc.RequestHeader)
+
+@views.html.common.siteHeader(Some(output.user.displayName), "/job/status")
+
+<main class="page-shell">
+    <section class="job-status-panel">
+        <header class="home-header">
+            <div>
+                <p class="eyebrow">Job status</p>
+                <h1>Job status</h1>
+            </div>
+        </header>
+
+        @views.html.job_status.jobNavigation(output.jobOptions, Option.empty[String])
+    </section>
+</main>

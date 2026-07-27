@@ -35,12 +35,7 @@ class UserSettingsApplyUseCase @Inject() (
   private given DefaultExecutor = defaultExecutor
 
   override def run(input: UseCaseInput)(using LoggingContext): Future[UseCaseOutput] =
-    input.userSessionContext match {
-      case UserSessionContext.NotLoggedIn =>
-        Future.failed(UseCaseException.NotLoggedIn)
-      case user: UserSessionContext.NormalUser =>
-        applySettings(user, input.newReleasePlaylistEnabled, input.now)
-    }
+    applySettings(input.user, input.newReleasePlaylistEnabled, input.now)
 
   private def applySettings(
       user: UserSessionContext.NormalUser,

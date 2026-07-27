@@ -9,7 +9,7 @@ object UserPlaylistSettingDbRowSyntax {
       import DbRowValues.*
 
       UserPlaylistSettingDbRow(
-        id = 0L,
+        id = source.id,
         userId = source.userId,
         playlistUsageType = source.playlistUsageType.dbValue,
         spotifyPlaylistCode = source.spotifyPlaylistCode,

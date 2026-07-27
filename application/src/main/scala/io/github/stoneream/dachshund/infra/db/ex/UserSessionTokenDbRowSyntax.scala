@@ -12,7 +12,7 @@ object UserSessionTokenDbRowSyntax {
       import DbRowValues.*
 
       UserSessionTokenDbRow(
-        id = 0L,
+        id = source.id,
         userId = source.userId,
         hashedToken = source.hashedToken,
         issuedAt = source.issuedAt.dbDateTime,

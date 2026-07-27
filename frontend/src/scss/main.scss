@@ -125,6 +125,20 @@ h1 {
   text-decoration: none;
 }
 
+.secondary-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  border: 1px solid #c9d1d8;
+  border-radius: 6px;
+  background: transparent;
+  color: #17202a;
+  font: inherit;
+  padding: 0 16px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
 .settings-panel {
   width: 100%;
   max-width: 760px;
@@ -305,6 +319,295 @@ h1 {
   white-space: nowrap;
 }
 
+.job-status-panel {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.job-status-breadcrumb {
+  margin-bottom: 18px;
+  color: #596772;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.job-status-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.job-status-breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.job-status-breadcrumb li + li::before {
+  color: #8a96a0;
+  content: "/";
+}
+
+.job-status-breadcrumb a {
+  color: #1c5f4d;
+  text-decoration: none;
+}
+
+.job-status-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.job-status-navigation {
+  margin-top: 24px;
+}
+
+.job-status-list {
+  display: grid;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid #d9dee3;
+  border-radius: 6px;
+  background: #fff;
+  padding: 0;
+  list-style: none;
+}
+
+.job-status-list-item + .job-status-list-item {
+  border-top: 1px solid #e5e9ed;
+}
+
+.job-status-list-link {
+  display: grid;
+  gap: 4px;
+  color: #3f4d58;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.job-status-list-link:hover {
+  background: #f8fafb;
+}
+
+.job-status-list-link.is-active {
+  border-left: 4px solid #1a7f64;
+  background: #f4fbf8;
+  color: #17202a;
+  padding-left: 12px;
+}
+
+.job-status-list-title {
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.job-status-list-name {
+  color: #596772;
+  font-size: 0.78rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.job-status-filter {
+  margin-top: 24px;
+}
+
+.job-status-filter-set {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  border: 1px solid #d9dee3;
+  border-radius: 6px;
+  padding: 18px;
+}
+
+.job-status-filter-set legend {
+  padding: 0 8px;
+  color: #17202a;
+  font-weight: 800;
+}
+
+.job-status-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.job-status-check {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d9dee3;
+  border-radius: 6px;
+  background: #fff;
+  color: #17202a;
+  padding: 0 10px;
+  font-weight: 800;
+}
+
+.job-status-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: #1a7f64;
+}
+
+.job-status-code,
+.job-status-summary-code {
+  color: #596772;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.job-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.job-status-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.job-status-summary-item {
+  display: grid;
+  gap: 4px;
+  border: 1px solid #d9dee3;
+  border-radius: 6px;
+  background: #fff;
+  padding: 12px;
+}
+
+.job-status-summary-label {
+  color: #17202a;
+  font-weight: 800;
+}
+
+.job-status-summary-count {
+  color: #1a7f64;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.job-status-table-wrap {
+  margin-top: 28px;
+  overflow-x: auto;
+}
+
+.job-status-table {
+  width: 100%;
+  min-width: 1280px;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.job-status-table th,
+.job-status-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e9ed;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.job-status-table th {
+  background: #f8fafb;
+  color: #596772;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.job-status-table tbody tr:nth-child(even) {
+  background: #fff;
+}
+
+.job-status-table tbody tr:nth-child(odd) {
+  background: #edf0f2;
+}
+
+.job-status-number {
+  color: #3f4d58;
+  font-weight: 800;
+  text-align: right;
+}
+
+.job-status-badge {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  border-radius: 6px;
+  background: #e7f4ef;
+  color: #1c5f4d;
+  padding: 0 8px;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.job-status-target,
+.job-status-error {
+  max-width: 340px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.job-status-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.job-status-pagination-summary {
+  margin: 0;
+  color: #596772;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.job-status-pagination-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.job-status-page-link {
+  display: inline-flex;
+  min-width: 38px;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d9dee3;
+  border-radius: 6px;
+  background: #fff;
+  color: #3f4d58;
+  padding: 0 10px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.job-status-page-link.is-current {
+  border-color: #1a7f64;
+  background: #1a7f64;
+  color: #fff;
+}
+
+.job-status-page-link.is-disabled {
+  color: #8a96a0;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color: #edf2f7;
@@ -378,6 +681,104 @@ h1 {
     background: #3f1f1f;
     color: #f3c7c3;
   }
+
+  .secondary-action {
+    border-color: #303943;
+    color: #edf2f7;
+  }
+
+  .job-status-list,
+  .job-status-check,
+  .job-status-summary-item,
+  .job-status-page-link {
+    border-color: #303943;
+    background: #171d22;
+  }
+
+  .job-status-list-item + .job-status-list-item {
+    border-color: #303943;
+  }
+
+  .job-status-list-link,
+  .job-status-check,
+  .job-status-summary-label {
+    color: #edf2f7;
+  }
+
+  .job-status-breadcrumb,
+  .job-status-breadcrumb li + li::before {
+    color: #adbac7;
+  }
+
+  .job-status-breadcrumb a {
+    color: #bfe4d8;
+  }
+
+  .job-status-list-link:hover {
+    background: #242a31;
+  }
+
+  .job-status-list-link.is-active {
+    border-left-color: #1a7f64;
+    background: #17372f;
+    color: #f5f7f8;
+  }
+
+  .job-status-filter-set {
+    border-color: #303943;
+  }
+
+  .job-status-filter-set legend {
+    color: #edf2f7;
+  }
+
+  .job-status-code,
+  .job-status-list-name,
+  .job-status-summary-code,
+  .job-status-table th {
+    color: #adbac7;
+  }
+
+  .job-status-table th,
+  .job-status-table td {
+    border-color: #303943;
+  }
+
+  .job-status-table th {
+    background: #26313a;
+  }
+
+  .job-status-table tbody tr:nth-child(even) {
+    background: #171d22;
+  }
+
+  .job-status-table tbody tr:nth-child(odd) {
+    background: #242a31;
+  }
+
+  .job-status-number {
+    color: #c7d0d8;
+  }
+
+  .job-status-badge {
+    background: #17372f;
+    color: #bfe4d8;
+  }
+
+  .job-status-pagination-summary,
+  .job-status-page-link {
+    color: #adbac7;
+  }
+
+  .job-status-page-link.is-current {
+    border-color: #1a7f64;
+    background: #1a7f64;
+    color: #fff;
+  }
+
+  .job-status-page-link.is-disabled {
+    color: #6f7b86;
+  }
 }
 
 @media (width <= 640px) {
@@ -407,5 +808,21 @@ h1 {
 
   .release-table {
     min-width: 700px;
+  }
+
+  .job-status-checks,
+  .job-status-actions {
+    display: grid;
+  }
+
+  .job-status-check,
+  .primary-action,
+  .secondary-action,
+  .job-status-page-link {
+    justify-content: center;
+  }
+
+  .job-status-pagination {
+    display: grid;
   }
 }

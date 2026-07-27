@@ -6,8 +6,6 @@ abstract sealed class UserSettingsApplyUseCaseException(
 ) extends Exception(getMessage, cause)
 
 object UserSettingsApplyUseCaseException {
-  case object NotLoggedIn extends UserSettingsApplyUseCaseException("ログインが必要です")
-
   final case class SpotifyAuthorizationRequired(causeException: Throwable) extends UserSettingsApplyUseCaseException("Spotify の再認可が必要です", causeException)
 
   final case class SpotifyAuthorizationTemporarilyUnavailable(causeException: Throwable)

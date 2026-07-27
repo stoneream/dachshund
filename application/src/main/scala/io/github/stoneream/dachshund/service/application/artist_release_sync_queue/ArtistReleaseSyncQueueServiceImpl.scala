@@ -1,6 +1,7 @@
 package io.github.stoneream.dachshund.service.application.artist_release_sync_queue
 
 import io.github.stoneream.dachshund.infra.db.AuditUser
+import io.github.stoneream.dachshund.infra.db.ex.ArtistReleaseSyncQueueSource
 import io.github.stoneream.dachshund.infra.db.reader.artist_release_sync_queue.ArtistReleaseSyncQueueReader
 import io.github.stoneream.dachshund.infra.db.transaction.{DatabaseRole, DatabaseTransaction}
 import io.github.stoneream.dachshund.infra.db.writer.ArtistReleaseSyncQueueWriter
@@ -42,10 +43,10 @@ class ArtistReleaseSyncQueueServiceImpl @Inject() (
           lockedUntil = lockedUntil
         )
         claimResults.find(!_.claimed).foreach { result =>
-          throw ServiceException.TargetClaimFailed(result.target.queueId)
+          throw ServiceException.TargetClaimFailed(result.target.id)
         }
 
-        claimResults.map(_.target)
+        claimResults.map(result => toTarget(result.target))
       }
     }(using databaseExecutor)
 
@@ -209,4 +210,28 @@ class ArtistReleaseSyncQueueServiceImpl @Inject() (
         if (update) Updated else StaleLockSkipped
       }
     }(using databaseExecutor)
+
+  private def toTarget(source: ArtistReleaseSyncQueueSource): ArtistReleaseSyncQueueTarget =
+    ArtistReleaseSyncQueueTarget(
+      queueId = source.id,
+      spotifyArtistCode = source.spotifyArtistCode,
+      syncScope = source.syncScope,
+      includeGroups = source.includeGroups,
+      market = source.market,
+      requestedLimit = source.requestedLimit,
+      nextOffset = source.nextOffset,
+      attemptCount = source.attemptCount,
+      lockToken = source.lockToken,
+      queueLockVersion = source.lockVersion,
+      status = source.status,
+      nextAttemptAt = source.nextAttemptAt,
+      lastAttemptedAt = source.lastAttemptedAt,
+      completedAt = source.completedAt,
+      lastFailedAt = source.lastFailedAt,
+      lastErrorType = source.lastErrorType,
+      lockedUntil = source.lockedUntil,
+      deletedAt = source.deletedAt,
+      deletedUser = source.deletedUser,
+      deleted = source.deleted
+    )
 }

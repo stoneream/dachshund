@@ -1,15 +1,32 @@
 package io.github.stoneream.dachshund.infra.db.reader.user_new_release_notification_queue
 
 import io.github.stoneream.dachshund.infra.db.AuditUser
+import io.github.stoneream.dachshund.infra.db.ex.UserNewReleaseNotificationQueueSource
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.model.{QueueJobStatus, ReleaseNotificationType}
 
 import com.google.inject.{Inject, Singleton}
-import io.github.stoneream.dachshund.service.application.user_new_release_notification_queue.model.{UserNewReleaseNotificationQueueClaimResult, UserNewReleaseNotificationQueueTarget}
 import scalikejdbc.*
+
+object UserNewReleaseNotificationQueueReader {
+  final case class QueueTarget(
+      queue: UserNewReleaseNotificationQueueSource,
+      userId: Long,
+      artistReleaseId: Long,
+      spotifyReleaseCode: String,
+      spotifyPlaylistCode: String
+  )
+
+  final case class ClaimResult(
+      target: QueueTarget,
+      claimed: Boolean
+  )
+}
 
 @Singleton
 class UserNewReleaseNotificationQueueReader @Inject() () {
+  import UserNewReleaseNotificationQueueReader.{ClaimResult, QueueTarget}
+
   def recoverStaleProcessingTargets(
       now: BusinessDateTime,
       releaseNotificationType: ReleaseNotificationType
@@ -48,20 +65,24 @@ class UserNewReleaseNotificationQueueReader @Inject() () {
       batchSize: Int,
       lockToken: String,
       lockedUntil: BusinessDateTime
-  )(using DBSession): Seq[UserNewReleaseNotificationQueueClaimResult] = {
+  )(using DBSession): Seq[ClaimResult] = {
     val targets = findClaimableTargets(now, releaseNotificationType, batchSize)
     targets.map { target =>
-      val claimed = markProcessing(target.queueId, target.queueLockVersion, now, lockToken, lockedUntil)
-      UserNewReleaseNotificationQueueClaimResult(
+      val claimed = markProcessing(target.queue.id, target.queue.lockVersion, now, lockToken, lockedUntil)
+      ClaimResult(
         target =
           if (claimed) {
             target.copy(
-              attemptCount = target.attemptCount + 1,
-              lockToken = lockToken,
-              queueLockVersion = target.queueLockVersion + 1L,
-              status = QueueJobStatus.Processing,
-              lastAttemptedAt = Some(now),
-              lockedUntil = Some(lockedUntil)
+              queue = target.queue.copy(
+                attemptCount = target.queue.attemptCount + 1,
+                lockToken = lockToken,
+                lockVersion = target.queue.lockVersion + 1L,
+                status = QueueJobStatus.Processing,
+                lastAttemptedAt = Some(now),
+                lockedUntil = Some(lockedUntil),
+                updatedAt = now,
+                updatedUser = AuditUser.System
+              )
             )
           } else {
             target
@@ -75,7 +96,7 @@ class UserNewReleaseNotificationQueueReader @Inject() () {
       now: BusinessDateTime,
       releaseNotificationType: ReleaseNotificationType,
       batchSize: Int
-  )(using DBSession): Seq[UserNewReleaseNotificationQueueTarget] =
+  )(using DBSession): Seq[QueueTarget] =
     sql"""
       select
         q.id as queue_id,
@@ -96,10 +117,14 @@ class UserNewReleaseNotificationQueueReader @Inject() () {
         q.last_attempted_at,
         q.completed_at,
         q.spotify_snapshot_id,
+        q.created_at,
+        q.updated_at,
         q.deleted_at,
+        q.created_user,
+        q.updated_user,
         q.deleted_user,
         q.deleted,
-        q.lock_version as queue_lock_version
+        q.lock_version
       from
         user_new_release_notification_queue q
         inner join user_new_release_event une
@@ -173,29 +198,35 @@ class UserNewReleaseNotificationQueueReader @Inject() () {
       .update
       .apply() == 1
 
-  private def queueTarget(rs: WrappedResultSet): UserNewReleaseNotificationQueueTarget =
-    UserNewReleaseNotificationQueueTarget(
-      queueId = rs.long("queue_id"),
-      userNewReleaseEventId = rs.long("user_new_release_event_id"),
+  private def queueTarget(rs: WrappedResultSet): QueueTarget =
+    QueueTarget(
+      queue = UserNewReleaseNotificationQueueSource(
+        id = rs.long("queue_id"),
+        userNewReleaseEventId = rs.long("user_new_release_event_id"),
+        releaseNotificationType = ReleaseNotificationType.fromDbValue(rs.string("release_notification_type")),
+        playlistSettingId = rs.long("playlist_setting_id"),
+        status = QueueJobStatus.fromDbValue(rs.string("status")),
+        nextAttemptAt = rs.localDateTimeOpt("next_attempt_at").map(BusinessDateTime.fromLocalDateTime),
+        attemptCount = rs.int("attempt_count"),
+        lastFailedAt = rs.localDateTimeOpt("last_failed_at").map(BusinessDateTime.fromLocalDateTime),
+        lastErrorType = rs.string("last_error_type"),
+        lockToken = rs.string("lock_token"),
+        lockedUntil = rs.localDateTimeOpt("locked_until").map(BusinessDateTime.fromLocalDateTime),
+        lastAttemptedAt = rs.localDateTimeOpt("last_attempted_at").map(BusinessDateTime.fromLocalDateTime),
+        completedAt = rs.localDateTimeOpt("completed_at").map(BusinessDateTime.fromLocalDateTime),
+        spotifySnapshotId = rs.string("spotify_snapshot_id"),
+        createdAt = BusinessDateTime.fromLocalDateTime(rs.localDateTime("created_at")),
+        updatedAt = BusinessDateTime.fromLocalDateTime(rs.localDateTime("updated_at")),
+        deletedAt = rs.localDateTimeOpt("deleted_at").map(BusinessDateTime.fromLocalDateTime),
+        createdUser = AuditUser.fromDbValue(rs.string("created_user")),
+        updatedUser = AuditUser.fromDbValue(rs.string("updated_user")),
+        deletedUser = AuditUser.fromDbValue(rs.string("deleted_user")),
+        deleted = rs.long("deleted"),
+        lockVersion = rs.long("lock_version")
+      ),
       userId = rs.long("user_id"),
       artistReleaseId = rs.long("artist_release_id"),
       spotifyReleaseCode = rs.string("spotify_release_code"),
-      releaseNotificationType = ReleaseNotificationType.fromDbValue(rs.string("release_notification_type")),
-      playlistSettingId = rs.long("playlist_setting_id"),
-      spotifyPlaylistCode = rs.string("spotify_playlist_code"),
-      status = QueueJobStatus.fromDbValue(rs.string("status")),
-      nextAttemptAt = rs.localDateTimeOpt("next_attempt_at").map(BusinessDateTime.fromLocalDateTime),
-      attemptCount = rs.int("attempt_count"),
-      lastFailedAt = rs.localDateTimeOpt("last_failed_at").map(BusinessDateTime.fromLocalDateTime),
-      lastErrorType = rs.string("last_error_type"),
-      lockToken = rs.string("lock_token"),
-      lockedUntil = rs.localDateTimeOpt("locked_until").map(BusinessDateTime.fromLocalDateTime),
-      lastAttemptedAt = rs.localDateTimeOpt("last_attempted_at").map(BusinessDateTime.fromLocalDateTime),
-      completedAt = rs.localDateTimeOpt("completed_at").map(BusinessDateTime.fromLocalDateTime),
-      spotifySnapshotId = rs.string("spotify_snapshot_id"),
-      deletedAt = rs.localDateTimeOpt("deleted_at").map(BusinessDateTime.fromLocalDateTime),
-      deletedUser = AuditUser.Empty,
-      deleted = rs.long("deleted"),
-      queueLockVersion = rs.long("queue_lock_version")
+      spotifyPlaylistCode = rs.string("spotify_playlist_code")
     )
 }

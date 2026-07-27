@@ -9,7 +9,7 @@ object UserNewReleaseNotificationQueueDbRowSyntax {
       import DbRowValues.*
 
       UserNewReleaseNotificationQueueDbRow(
-        id = 0L,
+        id = source.id,
         userNewReleaseEventId = source.userNewReleaseEventId,
         releaseNotificationType = source.releaseNotificationType.dbValue,
         playlistSettingId = source.playlistSettingId,

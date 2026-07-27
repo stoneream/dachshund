@@ -1,0 +1,146 @@
+@import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
+@import io.github.stoneream.dachshund.usecase.job_status.detail.JobStatusDetailPageContext
+
+@(output: JobStatusDetailPageContext)(implicit request: play.api.mvc.RequestHeader)
+
+@datetime(value: Option[BusinessDateTime]) = @{
+    value.map(_.toString).getOrElse("-")
+}
+
+@requiredDatetime(value: BusinessDateTime) = @{
+    value.toString
+}
+
+@errorType(value: String) = @{
+    Option(value).map(_.trim).filter(_.nonEmpty).getOrElse("-")
+}
+
+@views.html.common.siteHeader(Some(output.user.displayName), "/job/status")
+
+<main class="page-shell">
+    <section class="job-status-panel">
+        <nav class="job-status-breadcrumb" aria-label="Breadcrumb">
+            <ol>
+                <li><a href="/job/status">Job status</a></li>
+                <li aria-current="page">@output.currentJob.title</li>
+            </ol>
+        </nav>
+
+        <header class="home-header">
+            <div>
+                <p class="eyebrow">Job status</p>
+                <h1>@output.currentJob.title</h1>
+            </div>
+        </header>
+        <form class="job-status-filter" method="get" action="@output.currentJob.path">
+            <fieldset class="job-status-filter-set">
+                <legend>Status</legend>
+                <div class="job-status-checks">
+                    @for(filter <- output.statusFilters) {
+                        <label class="job-status-check">
+                            <input type="checkbox" name="status" value="@filter.status.dbValue" @if(filter.selected) {checked}>
+                            <span>@filter.label</span>
+                            <span class="job-status-code">@filter.status.dbValue</span>
+                        </label>
+                    }
+                </div>
+            </fieldset>
+            <div class="job-status-actions">
+                <button class="primary-action" type="submit">Filter</button>
+                <a class="secondary-action" href="@output.currentJob.path">Clear</a>
+            </div>
+        </form>
+
+        <div class="job-status-summary" aria-label="Status summary">
+            @for(summary <- output.statusSummaries) {
+                <div class="job-status-summary-item">
+                    <span class="job-status-summary-label">@summary.label</span>
+                    <span class="job-status-summary-code">@summary.status.dbValue</span>
+                    <span class="job-status-summary-count">@summary.count</span>
+                </div>
+            }
+        </div>
+
+        <div class="job-status-table-wrap">
+            @if(output.queueRows.isEmpty) {
+                <p class="lead">該当する queue はありません。</p>
+            } else {
+                <table class="job-status-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">queue</th>
+                            <th scope="col">status</th>
+                            <th scope="col">target</th>
+                            <th scope="col">attempt</th>
+                            <th scope="col">next attempt</th>
+                            <th scope="col">last attempted</th>
+                            <th scope="col">completed</th>
+                            <th scope="col">last failed</th>
+                            <th scope="col">error</th>
+                            <th scope="col">locked until</th>
+                            <th scope="col">created</th>
+                            <th scope="col">updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(row <- output.queueRows) {
+                            <tr>
+                                <td class="job-status-number">@row.queueId</td>
+                                <td><span class="job-status-badge">@row.status.dbValue</span></td>
+                                <td class="job-status-target">@row.targetLabel</td>
+                                <td class="job-status-number">@row.attemptCount</td>
+                                <td>@datetime(row.nextAttemptAt)</td>
+                                <td>@datetime(row.lastAttemptedAt)</td>
+                                <td>@datetime(row.completedAt)</td>
+                                <td>@datetime(row.lastFailedAt)</td>
+                                <td class="job-status-error">@errorType(row.lastErrorType)</td>
+                                <td>@datetime(row.lockedUntil)</td>
+                                <td>@requiredDatetime(row.createdAt)</td>
+                                <td>@requiredDatetime(row.updatedAt)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        @if(output.pagination.totalRows > 0) {
+            <nav class="job-status-pagination" aria-label="Queue pagination">
+                <p class="job-status-pagination-summary">
+                    全 @output.pagination.totalRows 件 / Page @output.pagination.currentPage / @output.pagination.totalPages
+                </p>
+                <div class="job-status-pagination-links">
+                    @output.pagination.previousPath match {
+                        case Some(path) => {
+                            <a class="job-status-page-link" href="@path">Previous</a>
+                        }
+                        case None => {
+                            <span class="job-status-page-link is-disabled">Previous</span>
+                        }
+                    }
+                    @for(item <- output.pagination.pageItems) {
+                        @item.path match {
+                            case Some(path) => {
+                                <a class="job-status-page-link" href="@path">@item.label</a>
+                            }
+                            case None if item.current => {
+                                <span class="job-status-page-link is-current">@item.label</span>
+                            }
+                            case None => {
+                                <span class="job-status-page-link is-disabled">@item.label</span>
+                            }
+                        }
+                    }
+                    @output.pagination.nextPath match {
+                        case Some(path) => {
+                            <a class="job-status-page-link" href="@path">Next</a>
+                        }
+                        case None => {
+                            <span class="job-status-page-link is-disabled">Next</span>
+                        }
+                    }
+                </div>
+            </nav>
+        }
+    </section>
+</main>

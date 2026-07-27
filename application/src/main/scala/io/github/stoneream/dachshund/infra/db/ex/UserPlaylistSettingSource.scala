@@ -5,6 +5,7 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.model.PlaylistUsageType
 
 final case class UserPlaylistSettingSource(
+    id: Long = 0L,
     userId: Long,
     playlistUsageType: PlaylistUsageType,
     spotifyPlaylistCode: String,

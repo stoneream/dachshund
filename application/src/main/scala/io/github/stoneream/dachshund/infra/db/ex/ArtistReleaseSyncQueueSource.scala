@@ -5,6 +5,7 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.model.QueueJobStatus
 
 final case class ArtistReleaseSyncQueueSource(
+    id: Long = 0L,
     spotifyArtistCode: String,
     syncScope: String,
     status: QueueJobStatus,

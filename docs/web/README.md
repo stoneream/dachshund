@@ -28,11 +28,15 @@ flowchart TD
 
 ## endpoint 一覧
 
-| method | path | 概要 |
-| --- | --- | --- |
-| `GET` | `/` | トップページを表示する。 |
-| `GET` | `/spotify/auth/login` | Spotify 認可を開始する。 |
-| `GET` | `/spotify/auth/callback` | Spotify 認可 callback を処理する。 |
+| method | path | 概要                                 |
+| --- | --- |--------------------------------------|
+| `GET` | `/` | トップページを表示する。             |
+| `GET` | `/job/status` | 対象ジョブ一覧を表示する。           |
+| `GET` | `/job/status/<job-name>` | 指定したジョブの処理状態を表示する。 |
+| `GET` | `/spotify/auth/login` | Spotify 認可を開始する。             |
+| `GET` | `/spotify/auth/callback` | Spotify 認可 callback を処理する。   |
+| `GET` | `/user-settings` | ユーザー設定を表示する。             |
+| `POST` | `/user-settings` | ユーザー設定を保存する。             |
 
 ## Cookie
 

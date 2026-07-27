@@ -5,6 +5,7 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.model.QueueJobStatus
 
 final case class UserSpotifyAuthorizationRefreshQueueSource(
+    id: Long = 0L,
     authorizationId: Long,
     status: QueueJobStatus,
     nextAttemptAt: Option[BusinessDateTime],

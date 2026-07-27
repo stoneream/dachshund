@@ -1,7 +1,6 @@
 package io.github.stoneream.dachshund.usecase.user_settings.show
 
 import com.google.inject.{Inject, Singleton}
-import io.github.stoneream.dachshund.auth.UserSessionContext
 import io.github.stoneream.dachshund.infra.db.generated.UserPlaylistSettingDbRow
 import io.github.stoneream.dachshund.infra.db.reader.user_playlist_setting.UserPlaylistSettingReader
 import io.github.stoneream.dachshund.infra.db.transaction.{DatabaseRole, DatabaseTransaction}
@@ -25,20 +24,9 @@ class UserSettingsShowUseCase @Inject() (
       UseCaseException
     ] {
   override def run(input: UseCaseInput)(using LoggingContext): Future[UseCaseOutput] =
-    input.userSessionContext match {
-      case UserSessionContext.NotLoggedIn =>
-        Future.failed(UseCaseException.NotLoggedIn)
-      case user: UserSessionContext.NormalUser =>
-        show(user, input)
-    }
-
-  private def show(
-      user: UserSessionContext.NormalUser,
-      input: UseCaseInput
-  ): Future[UseCaseOutput] =
-    findPlaylistSetting(user.userId).map { setting =>
+    findPlaylistSetting(input.user.userId).map { setting =>
       UseCaseOutput(
-        user = UseCaseOutput.ViewUser(user.displayName),
+        user = UseCaseOutput.ViewUser(input.user.displayName),
         newReleasePlaylistEnabled = setting.exists(_.enabled == 1L),
         playlistName = setting.flatMap(playlistName).getOrElse(UserSettingsManagedPlaylist.BaseName),
         successMessage = input.successMessage,

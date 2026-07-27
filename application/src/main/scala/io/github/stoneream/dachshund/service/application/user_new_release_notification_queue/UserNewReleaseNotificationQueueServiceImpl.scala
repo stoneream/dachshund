@@ -2,6 +2,7 @@ package io.github.stoneream.dachshund.service.application.user_new_release_notif
 
 import io.github.stoneream.dachshund.infra.db.AuditUser
 import io.github.stoneream.dachshund.infra.db.reader.user_new_release_notification_queue.UserNewReleaseNotificationQueueReader
+import io.github.stoneream.dachshund.infra.db.reader.user_new_release_notification_queue.UserNewReleaseNotificationQueueReader.QueueTarget
 import io.github.stoneream.dachshund.infra.db.transaction.{DatabaseRole, DatabaseTransaction}
 import io.github.stoneream.dachshund.infra.db.writer.UserNewReleaseNotificationQueueWriter
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
@@ -47,10 +48,10 @@ class UserNewReleaseNotificationQueueServiceImpl @Inject() (
           lockedUntil = lockedUntil
         )
         claimResults.find(!_.claimed).foreach { result =>
-          throw ServiceException.TargetClaimFailed(result.target.queueId)
+          throw ServiceException.TargetClaimFailed(result.target.queue.id)
         }
 
-        claimResults.map(_.target)
+        claimResults.map(result => toTarget(result.target))
       }
     }(using databaseExecutor)
 
@@ -202,4 +203,33 @@ class UserNewReleaseNotificationQueueServiceImpl @Inject() (
         if (update) Updated else StaleLockSkipped
       }
     }(using databaseExecutor)
+
+  private def toTarget(target: QueueTarget): UserNewReleaseNotificationQueueTarget = {
+    val queue = target.queue
+
+    UserNewReleaseNotificationQueueTarget(
+      queueId = queue.id,
+      userNewReleaseEventId = queue.userNewReleaseEventId,
+      userId = target.userId,
+      artistReleaseId = target.artistReleaseId,
+      spotifyReleaseCode = target.spotifyReleaseCode,
+      releaseNotificationType = queue.releaseNotificationType,
+      playlistSettingId = queue.playlistSettingId,
+      spotifyPlaylistCode = target.spotifyPlaylistCode,
+      status = queue.status,
+      nextAttemptAt = queue.nextAttemptAt,
+      attemptCount = queue.attemptCount,
+      lastFailedAt = queue.lastFailedAt,
+      lastErrorType = queue.lastErrorType,
+      lockToken = queue.lockToken,
+      lockedUntil = queue.lockedUntil,
+      lastAttemptedAt = queue.lastAttemptedAt,
+      completedAt = queue.completedAt,
+      spotifySnapshotId = queue.spotifySnapshotId,
+      deletedAt = queue.deletedAt,
+      deletedUser = queue.deletedUser,
+      deleted = queue.deleted,
+      queueLockVersion = queue.lockVersion
+    )
+  }
 }

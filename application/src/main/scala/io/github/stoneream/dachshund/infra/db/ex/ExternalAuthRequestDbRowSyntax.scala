@@ -9,7 +9,7 @@ object ExternalAuthRequestDbRowSyntax {
       import DbRowValues.*
 
       ExternalAuthRequestDbRow(
-        id = 0L,
+        id = source.id,
         flowType = source.flowType.dbValue,
         providerType = source.providerType.dbValue,
         state = source.state,

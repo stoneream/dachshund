@@ -9,7 +9,7 @@ object UserSpotifyAuthorizationRefreshQueueDbRowSyntax {
       import DbRowValues.*
 
       UserSpotifyAuthorizationRefreshQueueDbRow(
-        id = 0L,
+        id = source.id,
         authorizationId = source.authorizationId,
         status = source.status.dbValue,
         nextAttemptAt = source.nextAttemptAt.dbDateTime,

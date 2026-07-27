@@ -5,6 +5,7 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.model.{QueueJobStatus, ReleaseNotificationType}
 
 final case class UserNewReleaseNotificationQueueSource(
+    id: Long = 0L,
     userNewReleaseEventId: Long,
     releaseNotificationType: ReleaseNotificationType,
     playlistSettingId: Long,

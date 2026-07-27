@@ -5,7 +5,7 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 
 final case class UserSettingsShowUseCaseInput(
     now: BusinessDateTime,
-    userSessionContext: UserSessionContext,
+    user: UserSessionContext.NormalUser,
     successMessage: Option[String],
     errorMessage: Option[String]
 )

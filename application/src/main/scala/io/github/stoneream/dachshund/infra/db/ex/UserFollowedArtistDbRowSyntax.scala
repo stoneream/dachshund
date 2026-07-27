@@ -12,7 +12,7 @@ object UserFollowedArtistDbRowSyntax {
       import DbRowValues.*
 
       UserFollowedArtistDbRow(
-        id = 0L,
+        id = source.id,
         userId = source.userId,
         spotifyArtistCode = source.spotifyArtistCode,
         artistName = source.artistName,

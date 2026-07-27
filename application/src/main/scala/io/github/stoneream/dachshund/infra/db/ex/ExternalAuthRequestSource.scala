@@ -5,6 +5,7 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.model.{ExternalAuthFlowType, ExternalAuthProviderType, ExternalAuthRequestStatus}
 
 final case class ExternalAuthRequestSource(
+    id: Long = 0L,
     flowType: ExternalAuthFlowType,
     providerType: ExternalAuthProviderType,
     state: String,

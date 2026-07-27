@@ -10,8 +10,6 @@ object UserSettingsApplyRenderer extends HtmlRendererBase[UseCaseOutput, UseCase
 
   override def failure(exception: UseCaseException): Result =
     exception match {
-      case UseCaseException.NotLoggedIn =>
-        Results.SeeOther("/spotify/auth/login")
       case UseCaseException.SpotifyAuthorizationRequired(_) =>
         Results.SeeOther("/spotify/auth/login").flashing("error" -> "Spotify の再認可が必要です。")
       case UseCaseException.SpotifyAuthorizationTemporarilyUnavailable(_) =>

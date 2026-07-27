@@ -11,6 +11,13 @@ sealed abstract class ControllerError(
 }
 
 object ControllerError {
+  case object LoginRequired extends ControllerError {
+    override val statusCode: Int = 303
+    override val title: String = "ログインが必要です"
+    override val detail: Option[String] = Some("ログインが必要です")
+    override val cause: Option[String] = None
+  }
+
   final case class InvalidParameter(
       param: String,
       e: Throwable

@@ -8,6 +8,7 @@ import io.github.stoneream.dachshund.lib.auth.SessionTokenService
 import io.github.stoneream.dachshund.lib.datetime.DateTimeService
 import io.github.stoneream.dachshund.module.{ApplicationModule, DatabaseInitializer}
 import io.github.stoneream.dachshund.service.spotify.auth.access_token.{SpotifyAuthorizationCodeAccessTokenProvider, SpotifyAuthorizationCodeAccessTokenProviderImpl}
+import io.github.stoneream.dachshund.service.spotify.client.{SpotifyClient, SpotifyClientImpl}
 import io.github.stoneream.dachshund.service.spotify.oauth_client.{SpotifyOAuthClient, SpotifyOAuthClientImpl}
 import io.github.stoneream.dachshund.service.spotify.user_profile_client.{SpotifyUserProfileClient, SpotifyUserProfileClientImpl}
 import io.github.stoneream.dachshund.test.lib.PlayApplicationDatabaseSupport
@@ -33,6 +34,7 @@ class HomeEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseSuppor
       bind[SpotifyOAuthClient].to[SpotifyOAuthClientImpl],
       bind[SpotifyUserProfileClient].to[SpotifyUserProfileClientImpl],
       bind[SpotifyAuthorizationCodeAccessTokenProvider].to[SpotifyAuthorizationCodeAccessTokenProviderImpl],
+      bind[SpotifyClient].to[SpotifyClientImpl],
       bind[DatabaseInitializer].toSelf.eagerly()
     )
     .build()

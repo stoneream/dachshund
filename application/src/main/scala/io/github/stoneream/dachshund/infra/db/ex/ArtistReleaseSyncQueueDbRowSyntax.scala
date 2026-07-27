@@ -9,7 +9,7 @@ object ArtistReleaseSyncQueueDbRowSyntax {
       import DbRowValues.*
 
       ArtistReleaseSyncQueueDbRow(
-        id = 0L,
+        id = source.id,
         spotifyArtistCode = source.spotifyArtistCode,
         syncScope = source.syncScope,
         status = source.status.dbValue,

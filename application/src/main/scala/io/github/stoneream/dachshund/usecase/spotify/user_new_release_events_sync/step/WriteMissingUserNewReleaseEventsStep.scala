@@ -11,7 +11,6 @@ import io.github.stoneream.dachshund.infra.db.writer.{UserNewReleaseEventsWriter
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.lib.executor.Executors.DatabaseExecutor
 import io.github.stoneream.dachshund.model.{PlaylistUsageType, QueueJobStatus, ReleaseNotificationType}
-import io.github.stoneream.dachshund.usecase.spotify.user_new_release_events_sync.context.MissingUserNewReleaseEvent
 import io.github.stoneream.dachshund.usecase.spotify.user_new_release_events_sync.step.WriteMissingUserNewReleaseEventsStep.Result
 
 import scala.concurrent.Future
@@ -32,7 +31,7 @@ private[user_new_release_events_sync] class WriteMissingUserNewReleaseEventsStep
     databaseExecutor: DatabaseExecutor
 ) {
   def run(
-      targets: Seq[MissingUserNewReleaseEvent],
+      targets: Seq[UserNewReleaseEventSource],
       detectionSyncCode: String,
       detectedAt: BusinessDateTime
   ): Future[Result] =
@@ -40,22 +39,16 @@ private[user_new_release_events_sync] class WriteMissingUserNewReleaseEventsStep
       databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
         targets.foldLeft(Result(createdCount = 0, notificationQueueCreatedCount = 0)) { (result, target) =>
           val eventId = userNewReleaseEventsWriter.writeIfAbsentReturningId(
-            UserNewReleaseEventSource(
-              userId = target.userId,
-              artistReleaseId = target.artistReleaseId,
-              spotifyReleaseCode = target.spotifyReleaseCode,
-              sourceSpotifyArtistCode = target.sourceSpotifyArtistCode,
-              detectedAt = detectedAt,
-              detectionSyncCode = detectionSyncCode,
-              createdAt = detectedAt,
-              updatedAt = detectedAt,
-              deletedAt = Option.empty,
-              createdUser = AuditUser.System,
-              updatedUser = AuditUser.System,
-              deletedUser = AuditUser.Empty,
-              deleted = 0L,
-              lockVersion = 0L
-            ).toUserNewReleaseEventDbRow
+            target
+              .copy(
+                detectedAt = detectedAt,
+                detectionSyncCode = detectionSyncCode,
+                createdAt = detectedAt,
+                updatedAt = detectedAt,
+                createdUser = AuditUser.System,
+                updatedUser = AuditUser.System
+              )
+              .toUserNewReleaseEventDbRow
           )
           val notificationQueueCreatedCount = eventId
             .map { id =>
@@ -72,7 +65,7 @@ private[user_new_release_events_sync] class WriteMissingUserNewReleaseEventsStep
     }(using databaseExecutor)
 
   private def createPlaylistNotificationQueue(
-      target: MissingUserNewReleaseEvent,
+      target: UserNewReleaseEventSource,
       userNewReleaseEventId: Long,
       now: BusinessDateTime
   )(using scalikejdbc.DBSession): Int =

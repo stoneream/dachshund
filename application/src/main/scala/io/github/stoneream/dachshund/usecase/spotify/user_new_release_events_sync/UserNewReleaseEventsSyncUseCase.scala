@@ -25,7 +25,7 @@ class UserNewReleaseEventsSyncUseCase @Inject() (
 
   override def run(input: UserNewReleaseEventsSyncUseCaseInput)(using LoggingContext): Future[UserNewReleaseEventsSyncUseCaseOutput] = {
     findMissingUserNewReleaseEventsStep
-      .run(input.now, input.batchSize)
+      .run(input.now, input.batchSize, DetectionSyncCode)
       .flatMap { targets =>
         logMissingSelected(input.batchSize, targets.size)
         writeMissingUserNewReleaseEventsStep

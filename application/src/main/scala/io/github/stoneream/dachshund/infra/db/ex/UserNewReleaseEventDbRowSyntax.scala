@@ -9,7 +9,7 @@ object UserNewReleaseEventDbRowSyntax {
       import DbRowValues.*
 
       UserNewReleaseEventDbRow(
-        id = 0L,
+        id = source.id,
         userId = source.userId,
         artistReleaseId = source.artistReleaseId,
         spotifyReleaseCode = source.spotifyReleaseCode,

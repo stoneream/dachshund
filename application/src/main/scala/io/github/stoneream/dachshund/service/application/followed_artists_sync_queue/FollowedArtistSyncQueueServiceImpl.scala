@@ -1,6 +1,7 @@
 package io.github.stoneream.dachshund.service.application.followed_artists_sync_queue
 
 import io.github.stoneream.dachshund.infra.db.AuditUser
+import io.github.stoneream.dachshund.infra.db.ex.FollowedArtistSyncQueueSource
 import io.github.stoneream.dachshund.infra.db.transaction.{DatabaseRole, DatabaseTransaction}
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.lib.executor.Executors.DatabaseExecutor
@@ -43,10 +44,10 @@ class FollowedArtistSyncQueueServiceImpl @Inject() (
           lockedUntil = lockedUntil
         )
         claimResults.find(!_.claimed).foreach { result =>
-          throw ServiceException.TargetClaimFailed(result.target.queueId)
+          throw ServiceException.TargetClaimFailed(result.target.id)
         }
 
-        claimResults.map(_.target)
+        claimResults.map(result => toTarget(result.target))
       }
     }(using databaseExecutor)
 
@@ -250,4 +251,26 @@ class FollowedArtistSyncQueueServiceImpl @Inject() (
         if (update) Updated else StaleLockSkipped
       }
     }(using databaseExecutor)
+
+  private def toTarget(source: FollowedArtistSyncQueueSource): FollowedArtistSyncQueueTarget =
+    FollowedArtistSyncQueueTarget(
+      queueId = source.id,
+      userId = source.userId,
+      syncDate = source.syncDate,
+      requestedLimit = source.requestedLimit,
+      afterCursor = source.afterCursor,
+      attemptCount = source.attemptCount,
+      lockToken = source.lockToken,
+      queueLockVersion = source.lockVersion,
+      status = source.status,
+      nextAttemptAt = source.nextAttemptAt,
+      lastAttemptedAt = source.lastAttemptedAt,
+      completedAt = source.completedAt,
+      lastFailedAt = source.lastFailedAt,
+      lastErrorType = source.lastErrorType,
+      lockedUntil = source.lockedUntil,
+      deletedAt = source.deletedAt,
+      deletedUser = source.deletedUser,
+      deleted = source.deleted
+    )
 }

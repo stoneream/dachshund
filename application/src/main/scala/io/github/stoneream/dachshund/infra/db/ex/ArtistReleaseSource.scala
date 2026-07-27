@@ -6,6 +6,7 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import java.time.LocalDateTime
 
 final case class ArtistReleaseSource(
+    id: Long = 0L,
     spotifyReleaseCode: String,
     sourceSpotifyArtistCode: String,
     releaseName: String,

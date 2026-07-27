@@ -1,4 +1,4 @@
-package io.github.stoneream.dachshund.handler.lib
+package io.github.stoneream.dachshund.action
 
 import com.google.inject.{Inject, Singleton}
 import io.github.stoneream.dachshund.auth.{UserSessionContext, UserSessionContextResolver as ApplicationUserSessionContextResolver}

@@ -34,6 +34,10 @@ trait ControllerBaseImpl {
       .flatten
       .map(output => renderer.success(output, request))
       .recover {
+        case ControllerError.LoginRequired =>
+          Results
+            .SeeOther("/spotify/auth/login")
+            .withHeaders(PageMeta.XRobotsTagHeaderName -> PageMeta.NoIndexNoFollow)
         case ex: ControllerError if ex.isServerError =>
           Results
             .InternalServerError(views.html.global_http_error.internal_server_error(request.path))

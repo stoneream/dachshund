@@ -9,7 +9,7 @@ object FollowedArtistSyncQueueDbRowSyntax {
       import DbRowValues.*
 
       FollowedArtistSyncQueueDbRow(
-        id = 0L,
+        id = source.id,
         userId = source.userId,
         syncDate = source.syncDate,
         status = source.status.dbValue,

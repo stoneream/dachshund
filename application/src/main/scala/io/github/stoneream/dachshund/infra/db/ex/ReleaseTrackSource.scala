@@ -4,6 +4,7 @@ import io.github.stoneream.dachshund.infra.db.AuditUser
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 
 final case class ReleaseTrackSource(
+    id: Long = 0L,
     artistReleaseId: Long,
     spotifyTrackCode: String,
     trackName: String,

@@ -1,28 +1,22 @@
 package io.github.stoneream.dachshund.infra.db.reader.user_new_release_events_sync
 
 import com.google.inject.{Inject, Singleton}
+import io.github.stoneream.dachshund.infra.db.AuditUser
+import io.github.stoneream.dachshund.infra.db.ex.UserNewReleaseEventSource
+import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import scalikejdbc.*
 
 import java.time.LocalDateTime
 
-object UserNewReleaseEventsReader {
-  final case class MissingEventRow(
-      userId: Long,
-      artistReleaseId: Long,
-      spotifyReleaseCode: String,
-      sourceSpotifyArtistCode: String
-  )
-}
-
 @Singleton
 class UserNewReleaseEventsReader @Inject() () {
-  import UserNewReleaseEventsReader.MissingEventRow
-
   def read(
       releasedFrom: LocalDateTime,
       releasedTo: LocalDateTime,
-      batchSize: Int
-  )(using DBSession): Seq[MissingEventRow] = {
+      batchSize: Int,
+      detectedAt: BusinessDateTime,
+      detectionSyncCode: String
+  )(using DBSession): Seq[UserNewReleaseEventSource] = {
     val query = sql"""
       select
         ufa.user_id,
@@ -63,11 +57,21 @@ class UserNewReleaseEventsReader @Inject() () {
 
     query
       .map { rs =>
-        MissingEventRow(
+        UserNewReleaseEventSource(
           userId = rs.long("user_id"),
           artistReleaseId = rs.long("artist_release_id"),
           spotifyReleaseCode = rs.string("spotify_release_code"),
-          sourceSpotifyArtistCode = rs.string("source_spotify_artist_code")
+          sourceSpotifyArtistCode = rs.string("source_spotify_artist_code"),
+          detectedAt = detectedAt,
+          detectionSyncCode = detectionSyncCode,
+          createdAt = detectedAt,
+          updatedAt = detectedAt,
+          deletedAt = Option.empty,
+          createdUser = AuditUser.System,
+          updatedUser = AuditUser.System,
+          deletedUser = AuditUser.Empty,
+          deleted = 0L,
+          lockVersion = 0L
         )
       }
       .list

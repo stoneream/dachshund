@@ -9,7 +9,7 @@ object UserSpotifyAuthorizationDbRowSyntax {
       import DbRowValues.*
 
       UserSpotifyAuthorizationDbRow(
-        id = 0L,
+        id = source.id,
         userId = source.userId,
         scopeText = source.scopeText,
         accessTokenCipher = source.accessTokenCipher,

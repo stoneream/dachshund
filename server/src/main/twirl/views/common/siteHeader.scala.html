@@ -5,7 +5,9 @@
     @for(name <- displayName) {
         <nav class="site-nav" aria-label="User navigation">
             <a class="site-nav-link @if(currentPath == "/") {is-active}" href="/">New releases</a>
+            <a class="site-nav-link @if(currentPath.startsWith("/job/status")) {is-active}" href="/job/status">Job status</a>
             <a class="site-nav-link @if(currentPath == "/user-settings") {is-active}" href="/user-settings">Settings</a>
         </nav>
+        <p class="site-user">@name</p>
     }
 </header>
