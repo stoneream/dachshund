@@ -8,6 +8,7 @@ import io.github.stoneream.dachshund.handler.job_status.JobStatusIndexHandler
 import io.github.stoneream.dachshund.handler.job_status.artist_releases_sync.ArtistReleasesSyncJobStatusHandler
 import io.github.stoneream.dachshund.handler.job_status.followed_artists_sync.FollowedArtistsSyncJobStatusHandler
 import io.github.stoneream.dachshund.handler.job_status.spotify_access_token_refresh.SpotifyAccessTokenRefreshJobStatusHandler
+import io.github.stoneream.dachshund.handler.job_status.user_new_release_events_sync.UserNewReleaseEventsSyncJobStatusHandler
 import io.github.stoneream.dachshund.handler.job_status.user_new_release_notification_delivery.UserNewReleaseNotificationDeliveryJobStatusHandler
 import io.github.stoneream.dachshund.handler.lib.PageMeta
 import io.github.stoneream.dachshund.usecase.job_status.context.JobStatusJob
@@ -23,6 +24,7 @@ class JobStatusController @Inject() (
     spotifyAccessTokenRefreshHandler: SpotifyAccessTokenRefreshJobStatusHandler,
     followedArtistsSyncHandler: FollowedArtistsSyncJobStatusHandler,
     artistReleasesSyncHandler: ArtistReleasesSyncJobStatusHandler,
+    userNewReleaseEventsSyncHandler: UserNewReleaseEventsSyncJobStatusHandler,
     userNewReleaseNotificationDeliveryHandler: UserNewReleaseNotificationDeliveryJobStatusHandler
 ) extends AbstractController(cc)
     with ControllerBaseImpl {
@@ -40,6 +42,8 @@ class JobStatusController @Inject() (
         handle(followedArtistsSyncHandler)(request)
       case Some(JobStatusJob.ArtistReleasesSync) =>
         handle(artistReleasesSyncHandler)(request)
+      case Some(JobStatusJob.UserNewReleaseEventsSync) =>
+        handle(userNewReleaseEventsSyncHandler)(request)
       case Some(JobStatusJob.UserNewReleaseNotificationDelivery) =>
         handle(userNewReleaseNotificationDeliveryHandler)(request)
       case None =>

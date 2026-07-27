@@ -1,0 +1,102 @@
+@import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
+@import io.github.stoneream.dachshund.usecase.job_status.user_new_release_events_sync.UserNewReleaseEventsSyncJobStatusPageContext
+
+@(output: UserNewReleaseEventsSyncJobStatusPageContext)(implicit request: play.api.mvc.RequestHeader)
+
+@requiredDatetime(value: BusinessDateTime) = @{
+    value.toString
+}
+
+@views.html.common.siteHeader(Some(output.user.displayName), "/job/status")
+
+<main class="page-shell">
+    <section class="job-status-panel">
+        <nav class="job-status-breadcrumb" aria-label="Breadcrumb">
+            <ol>
+                <li><a href="/job/status">Job status</a></li>
+                <li aria-current="page">@output.currentJob.title</li>
+            </ol>
+        </nav>
+
+        <header class="home-header">
+            <div>
+                <p class="eyebrow">Job status</p>
+                <h1>@output.currentJob.title</h1>
+            </div>
+        </header>
+
+        <div class="job-status-table-wrap">
+            @if(output.eventRows.isEmpty) {
+                <p class="lead">該当する event はありません。</p>
+            } else {
+                <table class="job-status-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">event</th>
+                            <th scope="col">user</th>
+                            <th scope="col">artist release</th>
+                            <th scope="col">spotify release</th>
+                            <th scope="col">source artist</th>
+                            <th scope="col">detected</th>
+                            <th scope="col">created</th>
+                            <th scope="col">updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(row <- output.eventRows) {
+                            <tr>
+                                <td class="job-status-number">@row.eventId</td>
+                                <td class="job-status-number">@row.userId</td>
+                                <td class="job-status-number">@row.artistReleaseId</td>
+                                <td class="job-status-target">@row.spotifyReleaseCode</td>
+                                <td class="job-status-target">@row.sourceSpotifyArtistCode</td>
+                                <td>@requiredDatetime(row.detectedAt)</td>
+                                <td>@requiredDatetime(row.createdAt)</td>
+                                <td>@requiredDatetime(row.updatedAt)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        @if(output.pagination.totalRows > 0) {
+            <nav class="job-status-pagination" aria-label="Event pagination">
+                <p class="job-status-pagination-summary">
+                    全 @output.pagination.totalRows 件 / Page @output.pagination.currentPage / @output.pagination.totalPages
+                </p>
+                <div class="job-status-pagination-links">
+                    @output.pagination.previousPath match {
+                        case Some(path) => {
+                            <a class="job-status-page-link" href="@path">Previous</a>
+                        }
+                        case None => {
+                            <span class="job-status-page-link is-disabled">Previous</span>
+                        }
+                    }
+                    @for(item <- output.pagination.pageItems) {
+                        @item.path match {
+                            case Some(path) => {
+                                <a class="job-status-page-link" href="@path">@item.label</a>
+                            }
+                            case None if item.current => {
+                                <span class="job-status-page-link is-current">@item.label</span>
+                            }
+                            case None => {
+                                <span class="job-status-page-link is-disabled">@item.label</span>
+                            }
+                        }
+                    }
+                    @output.pagination.nextPath match {
+                        case Some(path) => {
+                            <a class="job-status-page-link" href="@path">Next</a>
+                        }
+                        case None => {
+                            <span class="job-status-page-link is-disabled">Next</span>
+                        }
+                    }
+                </div>
+            </nav>
+        }
+    </section>
+</main>

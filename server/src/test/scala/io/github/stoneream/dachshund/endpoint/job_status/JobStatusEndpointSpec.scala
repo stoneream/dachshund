@@ -33,7 +33,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import scalikejdbc.*
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.duration.*
 
 class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseSupport with OptionValues with IdiomaticMockito {
@@ -64,6 +64,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
   private val userNewReleaseEventsWriter = new UserNewReleaseEventsWriter
   private val playlistSettingWriter = new UserPlaylistSettingWriter
   private val notificationQueueWriter = new UserNewReleaseNotificationQueueWriter
+  private val UserNewReleaseEventsSyncDetectionSyncCode = "user-new-release-events-sync"
 
   Feature("Job status endpoint") {
     Scenario("未ログインの場合は Spotify ログインへ redirect する") {
@@ -465,10 +466,104 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(!html.contains("DeletedFollower"))
     }
 
+    Scenario("user-new-release-events-sync はイベント履歴を表示し、無効な親データを除外する") {
+      val loggedInUser = writeLoggedInUserSession()
+      val (activeTarget, excludedTargets) = databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
+        val activeTarget = writeUserNewReleaseEventTarget(loggedInUser.userId, suffix = "event-active")
+        val otherSyncTarget = writeUserNewReleaseEventTarget(
+          loggedInUser.userId,
+          suffix = "event-other-sync",
+          detectionSyncCode = "other-sync"
+        )
+        val deletedEventTarget = writeUserNewReleaseEventTarget(loggedInUser.userId, suffix = "event-deleted", eventDeleted = 1L)
+        val deletedUserId = writeUser("deleted-events-sync-user", deleted = 1L)
+        val deletedUserTarget = writeUserNewReleaseEventTarget(deletedUserId, suffix = "event-deleted-user")
+        val disabledUserId = writeUser("disabled-events-sync-user", enabled = 0L)
+        val disabledUserTarget = writeUserNewReleaseEventTarget(disabledUserId, suffix = "event-disabled-user")
+        val deletedArtistReleaseTarget = writeUserNewReleaseEventTarget(
+          loggedInUser.userId,
+          suffix = "event-deleted-artist-release",
+          artistReleaseDeleted = 1L
+        )
+
+        (
+          activeTarget,
+          Seq(otherSyncTarget, deletedEventTarget, deletedUserTarget, disabledUserTarget, deletedArtistReleaseTarget)
+        )
+      }
+
+      val result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-events-sync")).value
+      val html = contentAsString(result)
+
+      assert(status(result) == OK)
+      assert(html.contains("""<h1>User new release events sync</h1>"""))
+      assert(html.contains("""<nav class="job-status-breadcrumb" aria-label="Breadcrumb">"""))
+      assert(html.contains("""<li><a href="/job/status">Job status</a></li>"""))
+      assert(html.contains("""<li aria-current="page">User new release events sync</li>"""))
+      assert(!html.contains("""<form class="job-status-filter""""))
+      assert(!html.contains("""<div class="job-status-summary""""))
+      assert(html.contains(s"""<td class="job-status-number">${activeTarget.eventId}</td>"""))
+      assert(html.contains(s"""<td class="job-status-number">${activeTarget.userId}</td>"""))
+      assert(html.contains(s"""<td class="job-status-number">${activeTarget.artistReleaseId}</td>"""))
+      assert(html.contains(s"""<td class="job-status-target">${activeTarget.spotifyReleaseCode}</td>"""))
+      assert(html.contains(s"""<td class="job-status-target">${activeTarget.sourceSpotifyArtistCode}</td>"""))
+      assert(html.contains("全 1 件 / Page 1 / 1"))
+      excludedTargets.foreach { target =>
+        assert(!html.contains(target.spotifyReleaseCode))
+        assert(!html.contains(target.sourceSpotifyArtistCode))
+      }
+    }
+
+    Scenario("user-new-release-events-sync は event 詳細をページングする") {
+      val loggedInUser = writeLoggedInUserSession()
+      val targets = databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
+        (0L to 100L).map { dayOffset =>
+          writeUserNewReleaseEventTarget(
+            userId = loggedInUser.userId,
+            suffix = s"event-page-$dayOffset",
+            detectedAt = fixedNow.toLocalDateTime.plusDays(dayOffset)
+          )
+        }
+      }
+      val oldestTarget = targets.head
+      val newestTarget = targets.last
+
+      val page1Result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-events-sync")).value
+      val page2Result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-events-sync?page=2")).value
+      val page1Html = contentAsString(page1Result)
+      val page2Html = contentAsString(page2Result)
+
+      assert(status(page1Result) == OK)
+      assert(page1Html.contains("全 101 件 / Page 1 / 2"))
+      assert(page1Html.contains(newestTarget.spotifyReleaseCode))
+      assert(!page1Html.contains(oldestTarget.spotifyReleaseCode))
+      assert(page1Html.contains("""href="/job/status/user-new-release-events-sync?page=2">Next</a>"""))
+
+      assert(status(page2Result) == OK)
+      assert(page2Html.contains("全 101 件 / Page 2 / 2"))
+      assert(page2Html.contains(oldestTarget.spotifyReleaseCode))
+      assert(!page2Html.contains(newestTarget.spotifyReleaseCode))
+      assert(page2Html.contains("""href="/job/status/user-new-release-events-sync?page=1">Previous</a>"""))
+      assert(page2Html.contains("""<span class="job-status-page-link is-current">2</span>"""))
+    }
+
     Scenario("未知の status は Bad Request を返す") {
       val loggedInUser = writeLoggedInUserSession()
 
       val result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/followed-artists-sync?status=UNKNOWN")).value
+      val html = contentAsString(result)
+
+      assert(status(result) == BAD_REQUEST)
+      assert(html.contains("パラメーター status が不正です"))
+    }
+
+    Scenario("user-new-release-events-sync は status query を受け付けない") {
+      val loggedInUser = writeLoggedInUserSession()
+
+      val result = route(
+        app,
+        loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-events-sync?status=SUCCEEDED")
+      ).value
       val html = contentAsString(result)
 
       assert(status(result) == BAD_REQUEST)
@@ -638,6 +733,49 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
     NotificationTarget(userNewReleaseEventId, playlistSettingId)
   }
 
+  private def writeUserNewReleaseEventTarget(
+      userId: Long,
+      suffix: String,
+      detectionSyncCode: String = UserNewReleaseEventsSyncDetectionSyncCode,
+      detectedAt: LocalDateTime = fixedNow.toLocalDateTime,
+      eventDeleted: Long = 0L,
+      artistReleaseDeleted: Long = 0L
+  )(using DBSession): UserNewReleaseEventTarget = {
+    val releaseCode = s"${JulySecondReleaseRow.spotifyReleaseCode}-$suffix"
+    val sourceArtistCode = s"${JulySecondReleaseRow.sourceSpotifyArtistCode}-$suffix"
+    val artistReleaseId = artistReleasesWriter.write(
+      JulySecondReleaseRow.copy(
+        spotifyReleaseCode = releaseCode,
+        sourceSpotifyArtistCode = sourceArtistCode,
+        releaseName = s"${JulySecondReleaseRow.releaseName} $suffix",
+        deletedAt = dbDeletedAt(artistReleaseDeleted),
+        deletedUser = dbDeletedUser(artistReleaseDeleted),
+        deleted = artistReleaseDeleted
+      )
+    )
+    val userNewReleaseEventId = userNewReleaseEventsWriter
+      .writeIfAbsentReturningId(
+        julySecondEventRow(userId, artistReleaseId).copy(
+          spotifyReleaseCode = releaseCode,
+          sourceSpotifyArtistCode = sourceArtistCode,
+          detectedAt = detectedAt,
+          detectionSyncCode = detectionSyncCode,
+          deletedAt = dbDeletedAt(eventDeleted),
+          deletedUser = dbDeletedUser(eventDeleted),
+          deleted = eventDeleted
+        )
+      )
+      .value
+
+    UserNewReleaseEventTarget(
+      eventId = userNewReleaseEventId,
+      userId = userId,
+      artistReleaseId = artistReleaseId,
+      spotifyReleaseCode = releaseCode,
+      sourceSpotifyArtistCode = sourceArtistCode
+    )
+  }
+
   private def authorizationRefreshQueueRow(
       authorizationId: Long,
       status: QueueJobStatus
@@ -795,6 +933,14 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
   private final case class NotificationTarget(
       userNewReleaseEventId: Long,
       playlistSettingId: Long
+  )
+
+  private final case class UserNewReleaseEventTarget(
+      eventId: Long,
+      userId: Long,
+      artistReleaseId: Long,
+      spotifyReleaseCode: String,
+      sourceSpotifyArtistCode: String
   )
 
   private final case class WrittenJobTargets(

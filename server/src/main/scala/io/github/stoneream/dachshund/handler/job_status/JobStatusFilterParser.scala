@@ -18,6 +18,14 @@ object JobStatusFilterParser {
     }
   }
 
+  def rejectStatuses(request: RequestHeader): Unit = {
+    val rawValues = request.queryString.get(StatusParamName).toSeq.flatten
+
+    if (rawValues.nonEmpty) {
+      throw new IllegalArgumentException("status は指定できません")
+    }
+  }
+
   def selectedPage(request: RequestHeader): Int = {
     val rawValues = request.queryString.get(PageParamName).toSeq.flatten
 
