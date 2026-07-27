@@ -24,13 +24,13 @@ jobs:
       db_schema: ${{ steps.filter.outputs.db_schema }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Detect changed areas
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             backend:
@@ -69,7 +69,7 @@ jobs:
     if: needs.changes.outputs.backend == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up toolchain
         uses: jdx/mise-action@v4
@@ -111,7 +111,7 @@ jobs:
             requires_db: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up toolchain
         uses: jdx/mise-action@v4
@@ -141,7 +141,7 @@ jobs:
     if: needs.changes.outputs.frontend == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up toolchain
         uses: jdx/mise-action@v4
@@ -171,7 +171,7 @@ jobs:
     if: needs.changes.outputs.db_schema == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up mise
         uses: jdx/mise-action@v4
