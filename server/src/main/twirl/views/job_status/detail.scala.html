@@ -51,25 +51,6 @@
             </div>
         </form>
 
-        <div class="job-status-summary-wrap">
-            <table class="job-status-summary-table" aria-label="Status summary">
-                <thead>
-                    <tr>
-                        <th scope="col">status</th>
-                        <th scope="col">label</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for(summary <- output.statusSummaries) {
-                        <tr>
-                            <td class="job-status-summary-code">@summary.status.dbValue</td>
-                            <td class="job-status-summary-label">@summary.label</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-
         <div class="job-status-table-wrap">
             @if(output.queueRows.isEmpty) {
                 <p class="lead">該当する queue はありません。</p>
