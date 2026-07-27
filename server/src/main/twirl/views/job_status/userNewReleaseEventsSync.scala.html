@@ -33,23 +33,6 @@
             </div>
         </header>
 
-        <div class="job-status-summary-wrap">
-            <table class="job-status-summary-table" aria-label="Event summary">
-                <thead>
-                    <tr>
-                        <th scope="col">status</th>
-                        <th scope="col">label</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="job-status-summary-code">EVENT</td>
-                        <td class="job-status-summary-label">作成済み</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
         <div class="job-status-table-wrap">
             @if(output.eventRows.isEmpty) {
                 <p class="lead">該当する event はありません。</p>
