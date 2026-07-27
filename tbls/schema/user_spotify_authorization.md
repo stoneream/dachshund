@@ -37,7 +37,7 @@ CREATE TABLE `user_spotify_authorization` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `uq_user_spotify_authorization_user_id` (`user_id`),
   CONSTRAINT `fk_user_spotify_authorization_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザーSpotify認可情報'
+) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザーSpotify認可情報'
 ```
 
 </details>

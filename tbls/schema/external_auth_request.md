@@ -37,7 +37,7 @@ CREATE TABLE `external_auth_request` (
   KEY `idx_external_auth_request_status` (`status`),
   KEY `idx_external_auth_request_expires_at` (`expires_at`),
   KEY `idx_external_auth_request_completed_at` (`completed_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='外部認証要求'
+) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='外部認証要求'
 ```
 
 </details>

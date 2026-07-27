@@ -26,7 +26,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `uq_user_user_name` (`user_name`),
   KEY `idx_user_enabled` (`deleted`,`enabled`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='アプリケーションユーザー'
+) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='アプリケーションユーザー'
 ```
 
 </details>

@@ -34,8 +34,8 @@ CREATE TABLE `user_new_release_notification_queue` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `uq_user_new_release_notification_queue_event_type_playlist` (`user_new_release_event_id`,`release_notification_type`,`playlist_setting_id`),
-  KEY `idx_user_new_release_notification_queue_target` (`deleted`,`status`,`next_attempt_at`,`locked_until`,`id`),
   KEY `idx_user_new_release_notification_queue_playlist_setting` (`playlist_setting_id`,`deleted`,`status`),
+  KEY `idx_user_new_release_notification_queue_target` (`deleted`,`status`,`next_attempt_at`,`locked_until`,`id`),
   CONSTRAINT `fk_user_new_release_notification_queue_event_id` FOREIGN KEY (`user_new_release_event_id`) REFERENCES `user_new_release_event` (`id`),
   CONSTRAINT `fk_user_new_release_notification_queue_playlist_setting_id` FOREIGN KEY (`playlist_setting_id`) REFERENCES `user_playlist_setting` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザー別新着リリース通知キュー'

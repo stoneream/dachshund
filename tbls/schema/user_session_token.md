@@ -31,7 +31,7 @@ CREATE TABLE `user_session_token` (
   KEY `idx_user_session_token_idle_expires_at` (`idle_expires_at`),
   KEY `idx_user_session_token_expires_at` (`expires_at`),
   CONSTRAINT `fk_user_session_token_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザーセッション'
+) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザーセッション'
 ```
 
 </details>
