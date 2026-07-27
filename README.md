@@ -1,7 +1,5 @@
 # dachshund
 
-![DAX](docs/DAX.png)
-
 ## 概要
 
 Dachshund は、Spotify でフォローしているアーティストの新着リリース情報をWebで閲覧できます。
@@ -18,3 +16,7 @@ Dachshund は、Spotify でフォローしているアーティストの新着�
 | `discussion` | 新規機能開発や改修に関する方針、検討中の論点、意思決定前の議論を置く。 |
 | `job` | daemon で実行されるジョブの概要や実行方式を置く。 |
 | `web` | server で公開される Web endpoint の概要を置く。 |
+
+## DAXくん
+
+<img width="50%" alt="image" src="docs/DAX.png" />
