@@ -44,6 +44,21 @@ lazy val ensureTaggedReleaseForDocker = taskKey[Unit](
 def dockerCompatibleTag(value: String): String =
   value.replaceAll("[^A-Za-z0-9_.-]", "-")
 
+def releaseIdentifier(fallback: String): String =
+  sys.env.getOrElse("DOCKER_IMAGE_TAG", fallback)
+
+lazy val buildMetadataResourceName = "dachshund-build.properties"
+lazy val assetVersionPropertyName = "asset.version"
+
+lazy val serverBuildMetadataSettings = Seq(
+  Compile / resourceGenerators += Def.task {
+    val file = (Compile / resourceManaged).value / buildMetadataResourceName
+    val assetVersion = releaseIdentifier(version.value)
+    IO.write(file, s"$assetVersionPropertyName=$assetVersion\n")
+    Seq(file)
+  }.taskValue
+)
+
 lazy val dockerImageSettings = Seq(
   dockerBaseImage := "azul/zulu-openjdk:21-latest",
   dockerRepository := Some("ghcr.io"),
@@ -108,6 +123,7 @@ lazy val server = (project in file("server"))
     Docker / packageName := s"${name.value}"
   )
   .settings(dockerImageSettings)
+  .settings(serverBuildMetadataSettings)
   .dependsOn(application % "compile->compile; test->test")
   .dependsOn(logging % "compile->compile; test->test")
 

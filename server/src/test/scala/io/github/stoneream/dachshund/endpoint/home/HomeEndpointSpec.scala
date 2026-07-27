@@ -73,6 +73,8 @@ class HomeEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseSuppor
       val html = contentAsString(result)
 
       assert(status(result) == OK)
+      assert(html.contains("""href="/assets/stylesheets/main.css?v="""))
+      assert(html.contains("""src="/assets/javascripts/main.js?v="""))
       assert(html.contains("""<header class="site-header">"""))
       assert(html.contains("DACHSHUND"))
       assert(html.contains("display user"))

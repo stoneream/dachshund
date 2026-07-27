@@ -138,13 +138,10 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(html.contains("""<li aria-current="page">Followed artists sync</li>"""))
       assert(!html.contains("Other jobs"))
       assert(!html.contains("""<ul class="job-status-list">"""))
-      assert(html.contains("""<table class="job-status-summary-table" aria-label="Status summary">"""))
+      assertQueueStatusSummaryIsHidden(html)
       assertSummaryHasNoCountColumn(html)
-      assertStatusSummary(html, "SCHEDULED", "実行待ち")
-      assertStatusSummary(html, "FAILED", "失敗")
-      assertStatusSummary(html, "BLOCKED", "要対応")
-      assertStatusBadge(html, label = "実行待ち", status = "SCHEDULED")
-      assertStatusBadge(html, label = "失敗", status = "FAILED")
+      assertStatusBadge(html, "SCHEDULED")
+      assertStatusBadge(html, "FAILED")
       assert(html.contains(s"user_id=${loggedInUser.userId}, sync_date=2026-07-08"))
       assert(html.contains(s"user_id=${loggedInUser.userId}, sync_date=2026-07-07"))
       assert(html.contains("RateLimited"))
@@ -174,9 +171,8 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       val html = contentAsString(result)
 
       assert(status(result) == OK)
+      assertQueueStatusSummaryIsHidden(html)
       assertSummaryHasNoCountColumn(html)
-      assertStatusSummary(html, "SCHEDULED", "実行待ち")
-      assertStatusSummary(html, "FAILED", "失敗")
       assert(html.contains("""value="FAILED" checked"""))
       assert(html.contains("""value="BLOCKED" checked"""))
       assert(!html.contains("""value="SCHEDULED" checked"""))
@@ -273,19 +269,16 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
 
       assert(refreshHtml.contains("""<h1>Spotify access token refresh</h1>"""))
       assert(refreshHtml.contains(s"authorization_id=${written.authorizationId}"))
-      assertStatusSummary(refreshHtml, "PROCESSING", "処理中")
-      assertStatusBadge(refreshHtml, label = "処理中", status = "PROCESSING")
+      assertStatusBadge(refreshHtml, "PROCESSING")
 
       assert(artistHtml.contains("""<h1>Artist releases sync</h1>"""))
       assert(artistHtml.contains("spotify_artist_code=spotify-artist-code, sync_scope=INCREMENTAL"))
-      assertStatusSummary(artistHtml, "BLOCKED", "要対応")
-      assertStatusBadge(artistHtml, label = "要対応", status = "BLOCKED")
+      assertStatusBadge(artistHtml, "BLOCKED")
 
       assert(notificationHtml.contains("""<h1>User new release notification delivery</h1>"""))
       assert(notificationHtml.contains(s"user_new_release_event_id=${written.notificationTarget.userNewReleaseEventId}"))
       assert(notificationHtml.contains(s"playlist_setting_id=${written.notificationTarget.playlistSettingId}"))
-      assertStatusSummary(notificationHtml, "SUCCEEDED", "完了")
-      assertStatusBadge(notificationHtml, label = "完了", status = "SUCCEEDED")
+      assertStatusBadge(notificationHtml, "SUCCEEDED")
     }
 
     Scenario("followed-artists-sync は削除済みまたは無効ユーザーに紐づく queue を表示・集計しない") {
@@ -518,7 +511,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(html.contains("""<th scope="col">notification queue</th>"""))
       assert(html.contains("""<th scope="col">next attempt</th>"""))
       assert(html.contains("""<th scope="col">error</th>"""))
-      assertStatusBadge(html, label = "失敗", status = "FAILED")
+      assertStatusBadge(html, "FAILED")
       assert(html.contains("RateLimited"))
       assert(html.contains(fixedNow.toString))
       assert(html.contains(s"""<td class="job-status-target">${eventWithoutNotificationTarget.spotifyReleaseCode}</td>"""))
@@ -935,11 +928,14 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
     assert(!html.contains("job-status-summary-count"))
   }
 
-  private def assertStatusBadge(html: String, label: String, status: String): Unit = {
-    val pattern =
-      s"""(?s)<span class="job-status-badge">\\s*<span>$label</span>\\s*<span class="job-status-code">$status</span>\\s*</span>""".r
+  private def assertQueueStatusSummaryIsHidden(html: String): Unit =
+    assert(!html.contains("""<table class="job-status-summary-table" aria-label="Status summary">"""))
 
-    assert(pattern.findFirstIn(html).nonEmpty, s"status badge for $label / $status was not found")
+  private def assertStatusBadge(html: String, status: String): Unit = {
+    val pattern =
+      s"""(?s)<span class="job-status-badge">\\s*<span>$status</span>\\s*</span>""".r
+
+    assert(pattern.findFirstIn(html).nonEmpty, s"status badge for $status was not found")
   }
 
   private def assertEventNotificationQueueIsEmpty(html: String, target: UserNewReleaseEventTarget): Unit = {

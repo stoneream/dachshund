@@ -1,5 +1,4 @@
 @import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
-@import io.github.stoneream.dachshund.usecase.job_status.detail.JobStatusDetailPageContext
 @import io.github.stoneream.dachshund.usecase.job_status.user_new_release_events_sync.UserNewReleaseEventsSyncJobStatusPageContext
 
 @(output: UserNewReleaseEventsSyncJobStatusPageContext)(implicit request: play.api.mvc.RequestHeader)
@@ -90,8 +89,7 @@
                                     @row.notificationStatus match {
                                         case Some(status) => {
                                             <span class="job-status-badge">
-                                                <span>@JobStatusDetailPageContext.statusLabel(status)</span>
-                                                <span class="job-status-code">@status.dbValue</span>
+                                                <span>@status.dbValue</span>
                                             </span>
                                         }
                                         case None => {
