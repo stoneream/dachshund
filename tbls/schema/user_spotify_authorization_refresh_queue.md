@@ -33,7 +33,7 @@ CREATE TABLE `user_spotify_authorization_refresh_queue` (
   UNIQUE KEY `uq_user_spotify_authorization_refresh_queue_authorization_id` (`authorization_id`),
   KEY `idx_user_spotify_authorization_refresh_queue_target` (`deleted`,`status`,`next_attempt_at`,`locked_until`,`id`),
   CONSTRAINT `fk_user_spotify_authorization_refresh_queue_authorization_id` FOREIGN KEY (`authorization_id`) REFERENCES `user_spotify_authorization` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザーSpotify認可更新キュー'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザーSpotify認可更新キュー'
 ```
 
 </details>
