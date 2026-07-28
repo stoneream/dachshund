@@ -10,6 +10,7 @@ import io.github.stoneream.dachshund.service.application.user_new_release_notifi
 import io.github.stoneream.dachshund.service.application.user_new_release_notification_delivery_queue.{UserNewReleaseNotificationDeliveryQueueService, UserNewReleaseNotificationDeliveryQueueServiceException as QueueServiceException}
 import io.github.stoneream.dachshund.usecase.UseCase
 import io.github.stoneream.dachshund.usecase.spotify.user_new_release_notification_delivery_queue.context.{UserNewReleaseNotificationDeliveryQueueFailure, UserNewReleaseNotificationDeliveryQueueFailureType, UserNewReleaseNotificationDeliveryQueueResult}
+import io.github.stoneream.dachshund.usecase.spotify.user_new_release_notification_delivery_queue.context.UserNewReleaseNotificationDeliveryQueueResult.TemporaryFailure
 import io.github.stoneream.dachshund.usecase.spotify.user_new_release_notification_delivery_queue.step.{DeliverUserNewReleaseNotificationTargetStep, FindReleaseTrackUrisStep, HandleUserNewReleaseNotificationDeliveryQueueFailureStep, ReleaseUserNewReleaseNotificationDeliveryQueueTargetsStep}
 
 import scala.concurrent.Future
@@ -79,13 +80,49 @@ class UserNewReleaseNotificationDeliveryQueueUseCase @Inject() (
       targets: Seq[UserNewReleaseNotificationDeliveryQueueTarget],
       now: BusinessDateTime
   )(using LoggingContext, DefaultExecutor): Future[Seq[UserNewReleaseNotificationDeliveryQueueResult]] =
-    targets.foldLeft(Future.successful(List.empty[UserNewReleaseNotificationDeliveryQueueResult])) { (futureResults, target) =>
-      for {
-        results <- futureResults
-        result <- syncTarget(target, now)
-        loggedResult <- logProgress(target, result, targets.size)
-      } yield results :+ loggedResult
+    syncNext(targets.toList, targets.size, now, Vector.empty)
+
+  private def syncNext(
+      remainingTargets: List[UserNewReleaseNotificationDeliveryQueueTarget],
+      selectedCount: Int,
+      now: BusinessDateTime,
+      results: Vector[UserNewReleaseNotificationDeliveryQueueResult]
+  )(using LoggingContext, DefaultExecutor): Future[Seq[UserNewReleaseNotificationDeliveryQueueResult]] =
+    remainingTargets match {
+      case Nil =>
+        Future.successful(results)
+      case target :: tail =>
+        syncTarget(target, now).flatMap { result =>
+          logProgress(target, result, selectedCount).flatMap { loggedResult =>
+            result match {
+              case TemporaryFailure(failureType, nextAttemptAt) if shouldStopBatch(failureType) =>
+                deferRemainingTargets(tail, failureType, nextAttemptAt, now).map(_ => results :+ loggedResult)
+              case _ =>
+                syncNext(tail, selectedCount, now, results :+ loggedResult)
+            }
+          }
+        }
     }
+
+  private def deferRemainingTargets(
+      targets: List[UserNewReleaseNotificationDeliveryQueueTarget],
+      failureType: UserNewReleaseNotificationDeliveryQueueFailureType,
+      nextAttemptAt: BusinessDateTime,
+      now: BusinessDateTime
+  )(using LoggingContext, DefaultExecutor): Future[Unit] = {
+    warn(
+      "Spotify のリクエスト制限によりユーザー別新着リリース通知配信バッチの残りを延期します",
+      kv("userNewReleaseNotificationDeliveryQueue.failureType", failureType.dbValue),
+      kv("userNewReleaseNotificationDeliveryQueue.deferredCount", targets.size),
+      kv("userNewReleaseNotificationDeliveryQueue.nextAttemptAt", nextAttemptAt)
+    )
+    targets.foldLeft(Future.successful(())) { (futureDone, target) =>
+      futureDone.flatMap(_ => queueService.markTemporaryFailure(target, failureType.dbValue, nextAttemptAt, now).map(_ => ()))
+    }
+  }
+
+  private def shouldStopBatch(failureType: UserNewReleaseNotificationDeliveryQueueFailureType): Boolean =
+    failureType == UserNewReleaseNotificationDeliveryQueueFailureType.RateLimited
 
   private def syncTarget(
       target: UserNewReleaseNotificationDeliveryQueueTarget,

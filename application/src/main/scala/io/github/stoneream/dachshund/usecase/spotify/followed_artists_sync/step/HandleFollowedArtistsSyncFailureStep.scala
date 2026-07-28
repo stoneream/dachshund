@@ -39,7 +39,7 @@ private[followed_artists_sync] class HandleFollowedArtistsSyncFailureStep @Injec
       )
       queueService
         .markTemporaryFailure(target, failure.failureType, nextAttemptAt, now)
-        .map(queueUpdateResult(_, TemporaryFailure))
+        .map(queueUpdateResult(_, TemporaryFailure(failure.failureType, nextAttemptAt)))
     }
 
   private def requiresUserAction(failureType: String): Boolean =

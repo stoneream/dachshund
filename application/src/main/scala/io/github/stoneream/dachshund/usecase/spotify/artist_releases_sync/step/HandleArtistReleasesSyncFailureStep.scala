@@ -34,7 +34,7 @@ private[artist_releases_sync] class HandleArtistReleasesSyncFailureStep @Inject(
       )
       queueService
         .markTemporaryFailure(target, failure.failureType, nextAttemptAt, now)
-        .map(queueUpdateResult(_, TemporaryFailure))
+        .map(queueUpdateResult(_, TemporaryFailure(failure.failureType, nextAttemptAt)))
     }
 
   private def requiresOperationAction(failureType: String): Boolean =

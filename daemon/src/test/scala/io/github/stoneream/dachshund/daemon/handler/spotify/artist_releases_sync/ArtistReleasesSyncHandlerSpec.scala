@@ -40,8 +40,11 @@ class ArtistReleasesSyncHandlerSpec extends AnyFeatureSpec with DaemonHandlerDat
       val spotifyOAuthClient = clientCredentialsTokenClient()
       val spotifyClient = mock[SpotifyClient]
       spotifyClient
-        .getArtistReleasePage("artist-page-token", "artist-page", "album,single", Some("JP"), 10, 10)(using *[LoggingContext]) returns
+        .getArtistReleaseSummaryPage("artist-page-token", "artist-page", "album,single", Some("JP"), 10, 10)(using *[LoggingContext]) returns
         Future.successful(PageWithNextOffset)
+      spotifyClient
+        .getArtistRelease("artist-page-token", "artist-page", PageWithNextOffset.releases.head, Some("JP"))(using *[LoggingContext]) returns
+        Future.successful(PageRelease)
       val handler = createHandler(spotifyOAuthClient, spotifyClient)
 
       unsafeRun(handler.handle())
@@ -77,8 +80,11 @@ class ArtistReleasesSyncHandlerSpec extends AnyFeatureSpec with DaemonHandlerDat
       val spotifyOAuthClient = clientCredentialsTokenClient()
       val spotifyClient = mock[SpotifyClient]
       spotifyClient
-        .getArtistReleasePage("artist-page-token", "artist-final", "album,single", Some("JP"), 10, 20)(using *[LoggingContext]) returns
+        .getArtistReleaseSummaryPage("artist-page-token", "artist-final", "album,single", Some("JP"), 10, 20)(using *[LoggingContext]) returns
         Future.successful(FinalPage)
+      spotifyClient
+        .getArtistRelease("artist-page-token", "artist-final", FinalPage.releases.head, Some("JP"))(using *[LoggingContext]) returns
+        Future.successful(FinalRelease)
       val handler = createHandler(spotifyOAuthClient, spotifyClient)
 
       unsafeRun(handler.handle())
@@ -114,7 +120,7 @@ class ArtistReleasesSyncHandlerSpec extends AnyFeatureSpec with DaemonHandlerDat
       val spotifyOAuthClient = clientCredentialsTokenClient()
       val spotifyClient = mock[SpotifyClient]
       spotifyClient
-        .getArtistReleasePage("artist-page-token", "artist-existing", "album,single", Some("JP"), 10, 10)(using *[LoggingContext]) returns
+        .getArtistReleaseSummaryPage("artist-page-token", "artist-existing", "album,single", Some("JP"), 10, 10)(using *[LoggingContext]) returns
         Future.successful(ExistingReleasePage)
       val handler = createHandler(spotifyOAuthClient, spotifyClient)
 
@@ -141,11 +147,14 @@ class ArtistReleasesSyncHandlerSpec extends AnyFeatureSpec with DaemonHandlerDat
       ).andThen(Future.successful(TokenResponse("refreshed-token", "Bearer", 3600, None, None)))
       val spotifyClient = mock[SpotifyClient]
       spotifyClient
-        .getArtistReleasePage("first-token", "artist-unauthorized", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
+        .getArtistReleaseSummaryPage("first-token", "artist-unauthorized", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
         Future.failed(SpotifyClientException.Unauthorized(new RuntimeException("unauthorized")))
       spotifyClient
-        .getArtistReleasePage("refreshed-token", "artist-unauthorized", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
+        .getArtistReleaseSummaryPage("refreshed-token", "artist-unauthorized", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
         Future.successful(UnauthorizedRetryPage)
+      spotifyClient
+        .getArtistRelease("refreshed-token", "artist-unauthorized", UnauthorizedRetryPage.releases.head, Some("JP"))(using *[LoggingContext]) returns
+        Future.successful(UnauthorizedRetryRelease)
       val handler = createHandler(spotifyOAuthClient, spotifyClient)
 
       unsafeRun(handler.handle())
@@ -186,25 +195,34 @@ class ArtistReleasesSyncHandlerSpec extends AnyFeatureSpec with DaemonHandlerDat
       )
     }
 
-    Scenario("rate limit は一時失敗として retry 時刻を保存する") {
+    Scenario("rate limit は一時失敗として retry 時刻を保存し、同じ batch の後続 target も延期する") {
       databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
         val userId = userWriter.write(ActiveUserRow)
         followedArtistWriter.write(rateLimitedArtistFollowedArtistRow(userId))
+        followedArtistWriter.write(rateLimitedTailArtistFollowedArtistRow(userId))
         queueWriter.write(RateLimitedQueueRow)
+        queueWriter.write(RateLimitedTailQueueRow)
       }
       val spotifyOAuthClient = clientCredentialsTokenClient()
       val spotifyClient = mock[SpotifyClient]
       spotifyClient
-        .getArtistReleasePage("artist-page-token", "artist-rate-limited", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
+        .getArtistReleaseSummaryPage("artist-page-token", "artist-rate-limited", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
         Future.failed(SpotifyClientException.RateLimited(Some(10.seconds), new RuntimeException("rate limited")))
-      val handler = createHandler(spotifyOAuthClient, spotifyClient)
+      val handler = createHandler(
+        spotifyOAuthClient,
+        spotifyClient,
+        Some(testDaemonConfig.jobs.artistReleasesSync.copy(batchSize = 2))
+      )
 
       unsafeRun(handler.handle())
 
       assert(artistReleaseRows().isEmpty)
       assert(
         artistReleaseQueueRows().map(row => (row.spotifyArtistCode, row.status, row.nextAttemptAt, row.lastFailedAt, row.lastErrorType, row.attemptCount)) ==
-          Seq(("artist-rate-limited", QueueJobStatus.Scheduled.dbValue, Some(fixedNow.plus(10.seconds)), Some(fixedNow), "rate_limited", 3))
+          Seq(
+            ("artist-rate-limited", QueueJobStatus.Scheduled.dbValue, Some(fixedNow.plus(10.seconds)), Some(fixedNow), "rate_limited", 3),
+            ("artist-rate-limited-tail", QueueJobStatus.Scheduled.dbValue, Some(fixedNow.plus(10.seconds)), Some(fixedNow), "rate_limited", 1)
+          )
       )
     }
 
@@ -219,11 +237,19 @@ class ArtistReleasesSyncHandlerSpec extends AnyFeatureSpec with DaemonHandlerDat
       val spotifyOAuthClient = clientCredentialsTokenClient()
       val spotifyClient = mock[SpotifyClient]
       spotifyClient
-        .getArtistReleasePage("artist-page-token", "artist-unexpected-first", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
+        .getArtistReleaseSummaryPage("artist-page-token", "artist-unexpected-first", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
         Future.successful(PageWithDuplicateTracks)
       spotifyClient
-        .getArtistReleasePage("artist-page-token", "artist-unexpected-second", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
+        .getArtistRelease("artist-page-token", "artist-unexpected-first", PageWithDuplicateTracks.releases.head, Some("JP"))(using *[LoggingContext]) returns
+        Future.successful(ReleaseWithDuplicateTracks)
+      spotifyClient
+        .getArtistReleaseSummaryPage("artist-page-token", "artist-unexpected-second", "album,single", Some("JP"), 10, 0)(using *[LoggingContext]) returns
         Future.successful(UnexpectedFailureSecondPage)
+      spotifyClient
+        .getArtistRelease("artist-page-token", "artist-unexpected-second", UnexpectedFailureSecondPage.releases.head, Some("JP"))(using
+          *[LoggingContext]
+        ) returns
+        Future.successful(UnexpectedFailureSecondRelease)
       val handler = createHandler(
         spotifyOAuthClient,
         spotifyClient,

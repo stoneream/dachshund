@@ -17,18 +17,13 @@ private[auth] object CalculateNextSpotifyAccessTokenRefreshAttemptAt {
   ): BusinessDateTime = {
     val delay =
       if (failure.reason == SpotifyAccessTokenRefreshFailureReason.RateLimited) {
-        failure.retryAfter.map(capRateLimitDelay(_, retryConfig)).getOrElse(exponentialDelay(failureCount, retryConfig))
+        failure.retryAfter.getOrElse(exponentialDelay(failureCount, retryConfig))
       } else {
         exponentialDelay(failureCount, retryConfig)
       }
 
     now.plus(ceilSeconds(delay).seconds)
   }
-
-  private def capRateLimitDelay(delay: FiniteDuration, retryConfig: RetryConfig): FiniteDuration =
-    retryConfig.rateLimitMaxDelay
-      .map(maxDelay => if (delay > maxDelay) maxDelay else delay)
-      .getOrElse(delay)
 
   private def exponentialDelay(failureCount: Int, retryConfig: RetryConfig): FiniteDuration = {
     val exponent = math.min(math.max(failureCount - 1, 0), 30)

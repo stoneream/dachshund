@@ -5,6 +5,7 @@ import io.github.stoneream.dachshund.config.ApplicationConfig
 import io.github.stoneream.dachshund.lib.executor.Executors.IoDispatcher
 import io.github.stoneream.dachshund.logging.TraceLogger
 import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
+import io.github.stoneream.dachshund.service.spotify.client.lib.SpotifyRequestThrottler
 import io.github.stoneream.dachshund.service.spotify.user_profile_client.SpotifyUserProfileClient.{CurrentUserProfile, ErrorResponse}
 import io.github.stoneream.dachshund.service.spotify.user_profile_client.SpotifyUserProfileClientException.SpotifyApiClientError
 import sttp.client3.circe.asJson
@@ -12,11 +13,13 @@ import sttp.client3.{DeserializationException, HttpClientFutureBackend, HttpErro
 
 import com.google.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.*
 
 @Singleton
 class SpotifyUserProfileClientImpl @Inject() (
     applicationConfig: ApplicationConfig,
-    ioDispatcher: IoDispatcher
+    ioDispatcher: IoDispatcher,
+    requestThrottler: SpotifyRequestThrottler
 ) extends SpotifyUserProfileClient
     with TraceLogger {
   private given ExecutionContext = ioDispatcher
@@ -30,14 +33,19 @@ class SpotifyUserProfileClientImpl @Inject() (
   override def getCurrentUserProfile(accessToken: String)(using LoggingContext): Future[CurrentUserProfile] = {
     val endpoint = s"${clientConfig.apiBaseUrl.stripSuffix("/")}/me"
 
-    basicRequest
-      .get(uri"$endpoint")
-      .auth
-      .bearer(accessToken)
-      .readTimeout(clientConfig.requestTimeout)
-      .response(asJson[CurrentUserProfile])
-      .send(backend)
-      .flatMap(handleResponse)
+    requestThrottler.acquirePermit().flatMap {
+      case Left(_) =>
+        Future.failed(throttledException)
+      case Right(_) =>
+        basicRequest
+          .get(uri"$endpoint")
+          .auth
+          .bearer(accessToken)
+          .readTimeout(clientConfig.requestTimeout)
+          .response(asJson[CurrentUserProfile])
+          .send(backend)
+          .flatMap(handleResponse)
+    }
   }
 
   private def handleResponse(
@@ -60,6 +68,13 @@ class SpotifyUserProfileClientImpl @Inject() (
       case Left(HttpError(body, statusCode)) =>
         val parsedError = decode[ErrorResponse](body).toOption.flatMap(_.error)
         val errorDescription = parsedError.flatMap(_.message)
+        if (statusCode.code == 429) {
+          val retryAfter = response
+            .header("Retry-After")
+            .flatMap(parseRetryAfter)
+            .getOrElse(clientConfig.requestPolicy.rateLimitFallbackDelay)
+          requestThrottler.registerRateLimit(retryAfter)
+        }
         info(
           "Spotify ユーザープロフィールリクエストが失敗しました",
           kv("endpoint", endpointName),
@@ -77,4 +92,17 @@ class SpotifyUserProfileClientImpl @Inject() (
           )
         )
     }
+
+  private def throttledException: SpotifyUserProfileClientException.ProfileFetchFailed =
+    SpotifyUserProfileClientException.ProfileFetchFailed(
+      SpotifyApiClientError(
+        endpoint = endpointName,
+        statusCode = 429,
+        errorCode = Some("rate_limited"),
+        errorDescription = None
+      )
+    )
+
+  private def parseRetryAfter(value: String): Option[FiniteDuration] =
+    value.trim.toLongOption.filter(_ >= 0L).map(_.seconds)
 }

@@ -11,7 +11,7 @@ import io.github.stoneream.dachshund.infra.db.generated.{FollowedArtistSyncQueue
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.lib.encrypt.spotify.EncryptedSpotifyToken
 import io.github.stoneream.dachshund.model.QueueJobStatus
-import io.github.stoneream.dachshund.service.spotify.client.model.{SpotifyFollowedArtist, SpotifyFollowedArtistsPage}
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_followed_artist.model.{SpotifyFollowedArtist, SpotifyFollowedArtistsPage}
 
 import scala.concurrent.duration.*
 

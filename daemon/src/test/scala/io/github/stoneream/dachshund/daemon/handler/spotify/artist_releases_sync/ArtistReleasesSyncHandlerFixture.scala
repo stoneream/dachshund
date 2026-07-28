@@ -9,7 +9,7 @@ import io.github.stoneream.dachshund.infra.db.ex.{ArtistReleaseSource, ArtistRel
 import io.github.stoneream.dachshund.infra.db.generated.UserFollowedArtistDbRow
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.model.QueueJobStatus
-import io.github.stoneream.dachshund.service.spotify.client.model.{SpotifyArtistRelease, SpotifyArtistReleasePage, SpotifyReleaseTrack}
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyArtistReleaseSummaryPage, SpotifyImage, SpotifyReleaseTrack}
 
 import java.time.LocalDate
 
@@ -49,6 +49,9 @@ object ArtistReleasesSyncHandlerFixture {
 
   def rateLimitedArtistFollowedArtistRow(userId: Long): UserFollowedArtistDbRow =
     followedArtistRow(userId, "artist-rate-limited", "Rate Limited Artist")
+
+  def rateLimitedTailArtistFollowedArtistRow(userId: Long): UserFollowedArtistDbRow =
+    followedArtistRow(userId, "artist-rate-limited-tail", "Rate Limited Tail Artist")
 
   def unexpectedFailureFirstArtistFollowedArtistRow(userId: Long): UserFollowedArtistDbRow =
     followedArtistRow(userId, "artist-unexpected-first", "Unexpected Failure First Artist")
@@ -212,6 +215,32 @@ object ArtistReleasesSyncHandlerFixture {
     lockVersion = 0L
   ).toArtistReleaseSyncQueueDbRow
 
+  val RateLimitedTailQueueRow = ArtistReleaseSyncQueueSource(
+    spotifyArtistCode = "artist-rate-limited-tail",
+    syncScope = "INCREMENTAL",
+    status = QueueJobStatus.Scheduled,
+    includeGroups = "album,single",
+    market = Some("JP"),
+    requestedLimit = 10,
+    nextOffset = 0,
+    nextAttemptAt = Some(fixedNow),
+    lastAttemptedAt = None,
+    completedAt = None,
+    attemptCount = 0,
+    lastFailedAt = None,
+    lastErrorType = "",
+    lockToken = "",
+    lockedUntil = None,
+    createdAt = fixedNow,
+    updatedAt = fixedNow,
+    deletedAt = None,
+    createdUser = AuditUser.System,
+    updatedUser = AuditUser.System,
+    deletedUser = AuditUser.Empty,
+    deleted = 0L,
+    lockVersion = 0L
+  ).toArtistReleaseSyncQueueDbRow
+
   val UnexpectedFailureFirstQueueRow = ArtistReleaseSyncQueueSource(
     spotifyArtistCode = "artist-unexpected-first",
     syncScope = "INCREMENTAL",
@@ -304,81 +333,88 @@ object ArtistReleasesSyncHandlerFixture {
     lockVersion = 0L
   ).toArtistReleaseDbRow
 
-  val PageWithNextOffset: SpotifyArtistReleasePage = SpotifyArtistReleasePage(
+  val PageRelease: SpotifyArtistRelease =
+    artistRelease(
+      spotifyReleaseCode = "release-page",
+      spotifyArtistCode = "artist-page",
+      releaseName = "Page Release",
+      tracks = Seq(
+        releaseTrack("release-page-track-1"),
+        releaseTrack("release-page-track-2")
+      )
+    )
+
+  val PageWithNextOffset: SpotifyArtistReleaseSummaryPage = SpotifyArtistReleaseSummaryPage(
+    releases = Seq(artistReleaseSummary(PageRelease)),
+    nextOffset = Some(20)
+  )
+
+  val FinalRelease: SpotifyArtistRelease =
+    artistRelease(
+      spotifyReleaseCode = "release-final",
+      spotifyArtistCode = "artist-final",
+      releaseName = "Final Release",
+      tracks = Seq(releaseTrack("release-final-track-1"))
+    )
+
+  val FinalPage: SpotifyArtistReleaseSummaryPage = SpotifyArtistReleaseSummaryPage(
+    releases = Seq(artistReleaseSummary(FinalRelease)),
+    nextOffset = None
+  )
+
+  val ExistingReleasePage: SpotifyArtistReleaseSummaryPage = SpotifyArtistReleaseSummaryPage(
     releases = Seq(
-      artistRelease(
-        spotifyReleaseCode = "release-page",
-        spotifyArtistCode = "artist-page",
-        releaseName = "Page Release",
-        tracks = Seq(
-          releaseTrack("release-page-track-1"),
-          releaseTrack("release-page-track-2")
+      artistReleaseSummary(
+        artistRelease(
+          spotifyReleaseCode = "release-existing",
+          spotifyArtistCode = "artist-existing",
+          releaseName = "Existing Release",
+          tracks = Seq(releaseTrack("release-existing-track-1"))
         )
       )
     ),
     nextOffset = Some(20)
   )
 
-  val FinalPage: SpotifyArtistReleasePage = SpotifyArtistReleasePage(
-    releases = Seq(
-      artistRelease(
-        spotifyReleaseCode = "release-final",
-        spotifyArtistCode = "artist-final",
-        releaseName = "Final Release",
-        tracks = Seq(releaseTrack("release-final-track-1"))
-      )
-    ),
+  val UnauthorizedRetryRelease: SpotifyArtistRelease =
+    artistRelease(
+      spotifyReleaseCode = "release-unauthorized-retry",
+      spotifyArtistCode = "artist-unauthorized",
+      releaseName = "Unauthorized Retry Release",
+      tracks = Seq(releaseTrack("release-unauthorized-retry-track-1"))
+    )
+
+  val UnauthorizedRetryPage: SpotifyArtistReleaseSummaryPage = SpotifyArtistReleaseSummaryPage(
+    releases = Seq(artistReleaseSummary(UnauthorizedRetryRelease)),
     nextOffset = None
   )
 
-  val ExistingReleasePage: SpotifyArtistReleasePage = SpotifyArtistReleasePage(
-    releases = Seq(
-      artistRelease(
-        spotifyReleaseCode = "release-existing",
-        spotifyArtistCode = "artist-existing",
-        releaseName = "Existing Release",
-        tracks = Seq(releaseTrack("release-existing-track-1"))
+  val ReleaseWithDuplicateTracks: SpotifyArtistRelease =
+    artistRelease(
+      spotifyReleaseCode = "release-unexpected-first",
+      spotifyArtistCode = "artist-unexpected-first",
+      releaseName = "Unexpected First Release",
+      tracks = Seq(
+        releaseTrack("duplicated-track"),
+        releaseTrack("duplicated-track")
       )
-    ),
-    nextOffset = Some(20)
-  )
+    )
 
-  val UnauthorizedRetryPage: SpotifyArtistReleasePage = SpotifyArtistReleasePage(
-    releases = Seq(
-      artistRelease(
-        spotifyReleaseCode = "release-unauthorized-retry",
-        spotifyArtistCode = "artist-unauthorized",
-        releaseName = "Unauthorized Retry Release",
-        tracks = Seq(releaseTrack("release-unauthorized-retry-track-1"))
-      )
-    ),
+  val PageWithDuplicateTracks: SpotifyArtistReleaseSummaryPage = SpotifyArtistReleaseSummaryPage(
+    releases = Seq(artistReleaseSummary(ReleaseWithDuplicateTracks)),
     nextOffset = None
   )
 
-  val PageWithDuplicateTracks: SpotifyArtistReleasePage = SpotifyArtistReleasePage(
-    releases = Seq(
-      artistRelease(
-        spotifyReleaseCode = "release-unexpected-first",
-        spotifyArtistCode = "artist-unexpected-first",
-        releaseName = "Unexpected First Release",
-        tracks = Seq(
-          releaseTrack("duplicated-track"),
-          releaseTrack("duplicated-track")
-        )
-      )
-    ),
-    nextOffset = None
-  )
+  val UnexpectedFailureSecondRelease: SpotifyArtistRelease =
+    artistRelease(
+      spotifyReleaseCode = "release-unexpected-second",
+      spotifyArtistCode = "artist-unexpected-second",
+      releaseName = "Unexpected Second Release",
+      tracks = Seq(releaseTrack("release-unexpected-second-track-1"))
+    )
 
-  val UnexpectedFailureSecondPage: SpotifyArtistReleasePage = SpotifyArtistReleasePage(
-    releases = Seq(
-      artistRelease(
-        spotifyReleaseCode = "release-unexpected-second",
-        spotifyArtistCode = "artist-unexpected-second",
-        releaseName = "Unexpected Second Release",
-        tracks = Seq(releaseTrack("release-unexpected-second-track-1"))
-      )
-    ),
+  val UnexpectedFailureSecondPage: SpotifyArtistReleaseSummaryPage = SpotifyArtistReleaseSummaryPage(
+    releases = Seq(artistReleaseSummary(UnexpectedFailureSecondRelease)),
     nextOffset = None
   )
 
@@ -450,6 +486,21 @@ object ArtistReleasesSyncHandlerFixture {
       restrictionsJson = None,
       popularity = Some(50),
       tracks = tracks
+    )
+
+  private def artistReleaseSummary(release: SpotifyArtistRelease): SpotifyArtistReleaseSummary =
+    SpotifyArtistReleaseSummary(
+      spotifyReleaseCode = release.spotifyReleaseCode,
+      releaseName = release.releaseName,
+      albumType = release.albumType,
+      albumGroup = release.albumGroup,
+      spotifyReleaseUri = release.spotifyReleaseUri,
+      spotifyUrl = release.spotifyUrl,
+      href = release.href,
+      images = Seq.empty[SpotifyImage],
+      releaseDateText = release.releaseDateText,
+      releaseDatePrecision = release.releaseDatePrecision,
+      restrictionsJson = release.restrictionsJson
     )
 
   private def releaseTrack(spotifyTrackCode: String): SpotifyReleaseTrack =

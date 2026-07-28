@@ -9,7 +9,7 @@ import io.github.stoneream.dachshund.infra.db.writer.UserFollowedArtistsWriter
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.lib.executor.Executors.DatabaseExecutor
 import io.github.stoneream.dachshund.service.application.followed_artists_sync_queue.model.FollowedArtistSyncQueueTarget
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyFollowedArtistsPage
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_followed_artist.model.SpotifyFollowedArtistsPage
 import io.github.stoneream.dachshund.usecase.spotify.followed_artists_sync.context.UserFollowedArtistsSyncResult
 
 import scala.concurrent.Future

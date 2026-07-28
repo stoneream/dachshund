@@ -3,7 +3,7 @@ package io.github.stoneream.dachshund.infra.db.ex
 import io.github.stoneream.dachshund.infra.db.AuditUser
 import io.github.stoneream.dachshund.infra.db.generated.ReleaseTrackDbRow
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyReleaseTrack
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.SpotifyReleaseTrack
 
 object ReleaseTrackDbRowSyntax {
 

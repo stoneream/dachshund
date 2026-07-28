@@ -8,7 +8,7 @@ import io.github.stoneream.dachshund.infra.db.transaction.{DatabaseRole, Databas
 import io.github.stoneream.dachshund.infra.db.writer.UserPlaylistSettingWriter
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.lib.executor.Executors.DatabaseExecutor
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyCreatePlaylistResult
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_playlist.model.SpotifyCreatePlaylistResult
 import io.github.stoneream.dachshund.usecase.user_settings.UserSettingsManagedPlaylist
 
 import scala.concurrent.Future

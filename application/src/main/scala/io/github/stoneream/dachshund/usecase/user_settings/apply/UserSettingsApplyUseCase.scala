@@ -10,7 +10,7 @@ import io.github.stoneream.dachshund.service.spotify.auth.access_token.SpotifyAu
 import io.github.stoneream.dachshund.service.spotify.client.SpotifyClientException
 import io.github.stoneream.dachshund.usecase.UseCase
 import io.github.stoneream.dachshund.usecase.user_settings.apply.{UserSettingsApplyUseCaseException as UseCaseException, UserSettingsApplyUseCaseInput as UseCaseInput, UserSettingsApplyUseCaseOutput as UseCaseOutput}
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyCreatePlaylistResult
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_playlist.model.SpotifyCreatePlaylistResult
 import io.github.stoneream.dachshund.usecase.user_settings.apply.step.{CleanupSpotifyManagedPlaylistStep, CreateSpotifyManagedPlaylistStep, FindManagedPlaylistSettingStep, ResolveManagedPlaylistNameStep, ResolveSpotifyAccessTokenStep, UpdateManagedPlaylistSettingEnabledStep, WriteManagedPlaylistSettingStep}
 
 import scala.concurrent.Future

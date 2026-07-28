@@ -87,6 +87,8 @@ object ApplicationConfigReader extends Logger {
       kv("spotify.client.redirectUri.configured", configured(client.redirectUri)),
       kv("spotify.client.connectTimeout", client.connectTimeout.toString),
       kv("spotify.client.requestTimeout", client.requestTimeout.toString),
+      kv("spotify.client.requestPolicy.pacingInterval", client.requestPolicy.pacingInterval.toString),
+      kv("spotify.client.requestPolicy.rateLimitFallbackDelay", client.requestPolicy.rateLimitFallbackDelay.toString),
       kv("spotify.client.retry.maxAttempts", client.retry.maxAttempts),
       kv("spotify.token.refreshMargin", token.refreshMargin.toString),
       kv("spotify.token.encryptionKey.configured", configured(token.encryptionKey)),

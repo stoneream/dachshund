@@ -7,14 +7,14 @@ import io.github.stoneream.dachshund.logging.TraceLogger
 import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
 import io.github.stoneream.dachshund.service.application.artist_release_sync_queue.{ArtistReleaseSyncQueueService, ArtistReleaseSyncQueueUpdateResult, ArtistReleaseSyncQueueServiceException as QueueServiceException}
 import io.github.stoneream.dachshund.service.application.artist_release_sync_queue.model.ArtistReleaseSyncQueueTarget
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyArtistReleasePage
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyArtistReleaseSummaryPage}
 import io.github.stoneream.dachshund.service.spotify.client.{SpotifyClient, SpotifyClientException as ClientException}
 import io.github.stoneream.dachshund.service.spotify.client_credentials.SpotifyClientCredentialsAccessTokenProvider
 import io.github.stoneream.dachshund.service.spotify.oauth_client.SpotifyOAuthClientException
 import io.github.stoneream.dachshund.usecase.UseCase
 import io.github.stoneream.dachshund.usecase.spotify.artist_releases_sync.context.ArtistReleasesSyncResult.{PageProcessed, StaleLockSkipped}
 import io.github.stoneream.dachshund.usecase.spotify.artist_releases_sync.context.{ArtistReleasesSyncFailure, ArtistReleasesSyncFailureType, ArtistReleasesSyncResult}
-import io.github.stoneream.dachshund.usecase.spotify.artist_releases_sync.step.{HandleArtistReleasesSyncFailureStep, SyncArtistReleasePageStep, SyncArtistReleasesTargetsStep}
+import io.github.stoneream.dachshund.usecase.spotify.artist_releases_sync.step.{FindUnsyncedArtistReleaseSummariesStep, HandleArtistReleasesSyncFailureStep, SyncArtistReleasePageStep, SyncArtistReleasesTargetsStep}
 
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -26,6 +26,7 @@ class ArtistReleasesSyncUseCase @Inject() (
     queueService: ArtistReleaseSyncQueueService,
     clientCredentialsAccessTokenProvider: SpotifyClientCredentialsAccessTokenProvider,
     spotifyClient: SpotifyClient,
+    findUnsyncedSummariesStep: FindUnsyncedArtistReleaseSummariesStep,
     syncPageStep: SyncArtistReleasePageStep,
     handleFailureStep: HandleArtistReleasesSyncFailureStep,
     syncTargetsStep: SyncArtistReleasesTargetsStep,
@@ -45,7 +46,7 @@ class ArtistReleasesSyncUseCase @Inject() (
       .flatMap { targets =>
         logTargetsSelected(input.batchSize, targets.size)
         syncTargetsStep
-          .run(targets)(target => syncTarget(target, input.now))
+          .run(targets, input.now)(target => syncTarget(target, input.now))
           .map(_ => ArtistReleasesSyncUseCaseOutput())
           .recoverWith { case NonFatal(exception) =>
             failAfterReleasingTargets(targets, input.now, exception)
@@ -67,10 +68,12 @@ class ArtistReleasesSyncUseCase @Inject() (
       target: ArtistReleaseSyncQueueTarget,
       now: BusinessDateTime
   )(using LoggingContext, DefaultExecutor): Future[ArtistReleasesSyncResult] =
-    fetchPage(target, now, forceRefresh = false, retryUnauthorized = true)
+    fetchSummaryPage(target, now)
       .flatMap { page =>
         for {
-          syncResult <- syncPageStep.run(page, now)
+          unsyncedSummaries <- findUnsyncedSummariesStep.run(page.releases)
+          releases <- fetchReleaseDetails(target, unsyncedSummaries, now)
+          syncResult <- syncPageStep.run(releases, now)
           queueResult <- queueService.markPageProcessed(
             target = target,
             nextOffset = page.nextOffset.getOrElse(0),
@@ -78,7 +81,13 @@ class ArtistReleasesSyncUseCase @Inject() (
             now = now
           )
         } yield {
-          logPageSynced(target, page, syncResult.releaseCount, syncResult.trackCount)
+          logPageSynced(
+            target = target,
+            page = page,
+            detailFetchCount = unsyncedSummaries.size,
+            releaseCount = syncResult.releaseCount,
+            trackCount = syncResult.trackCount
+          )
           queueResult match {
             case ArtistReleaseSyncQueueUpdateResult.Updated => PageProcessed
             case ArtistReleaseSyncQueueUpdateResult.StaleLockSkipped => StaleLockSkipped
@@ -92,32 +101,57 @@ class ArtistReleasesSyncUseCase @Inject() (
           handleUnexpectedTargetFailure(target, now, exception)
       }
 
-  private def fetchPage(
+  private def fetchSummaryPage(
       target: ArtistReleaseSyncQueueTarget,
+      now: BusinessDateTime
+  )(using LoggingContext, DefaultExecutor): Future[SpotifyArtistReleaseSummaryPage] =
+    requestSpotify(now) { accessToken =>
+      spotifyClient.getArtistReleaseSummaryPage(
+        accessToken = accessToken,
+        spotifyArtistCode = target.spotifyArtistCode,
+        includeGroups = target.includeGroups,
+        market = target.market,
+        limit = target.requestedLimit,
+        offset = target.nextOffset
+      )
+    }
+
+  private def fetchReleaseDetails(
+      target: ArtistReleaseSyncQueueTarget,
+      summaries: Seq[SpotifyArtistReleaseSummary],
+      now: BusinessDateTime
+  )(using LoggingContext, DefaultExecutor): Future[Seq[SpotifyArtistRelease]] =
+    summaries.foldLeft(Future.successful(Vector.empty[SpotifyArtistRelease])) { (futureReleases, summary) =>
+      for {
+        releases <- futureReleases
+        release <- requestSpotify(now) { accessToken =>
+          spotifyClient.getArtistRelease(
+            accessToken = accessToken,
+            sourceSpotifyArtistCode = target.spotifyArtistCode,
+            summary = summary,
+            market = target.market
+          )
+        }
+      } yield releases :+ release
+    }
+
+  private def requestSpotify[A](
       now: BusinessDateTime,
-      forceRefresh: Boolean,
-      retryUnauthorized: Boolean
-  )(using LoggingContext, DefaultExecutor): Future[SpotifyArtistReleasePage] =
+      forceRefresh: Boolean = false,
+      retryUnauthorized: Boolean = true
+  )(
+      request: String => Future[A]
+  )(using LoggingContext, DefaultExecutor): Future[A] =
     clientCredentialsAccessTokenProvider
       .resolve(now, forceRefresh = forceRefresh)
       .recoverWith { case NonFatal(exception) =>
         Future.failed(classifyFailure(exception))
       }
       .flatMap { accessToken =>
-        // BUG : 最新50件しか取れない？
-        // 再帰的に全県取得して差分が取れるようになってないとおかしい
-        spotifyClient
-          .getArtistReleasePage(
-            accessToken = accessToken.accessToken,
-            spotifyArtistCode = target.spotifyArtistCode,
-            includeGroups = target.includeGroups,
-            market = target.market,
-            limit = target.requestedLimit,
-            offset = target.nextOffset
-          )
+        request(accessToken.accessToken)
           .recoverWith {
             case ClientException.Unauthorized(_) if retryUnauthorized =>
-              fetchPage(target, now, forceRefresh = true, retryUnauthorized = false)
+              requestSpotify(now, forceRefresh = true, retryUnauthorized = false)(request)
             case NonFatal(exception) =>
               Future.failed(classifyFailure(exception))
           }
@@ -203,7 +237,8 @@ class ArtistReleasesSyncUseCase @Inject() (
 
   private def logPageSynced(
       target: ArtistReleaseSyncQueueTarget,
-      page: SpotifyArtistReleasePage,
+      page: SpotifyArtistReleaseSummaryPage,
+      detailFetchCount: Int,
       releaseCount: Int,
       trackCount: Int
   )(using LoggingContext): Unit =
@@ -211,7 +246,9 @@ class ArtistReleasesSyncUseCase @Inject() (
       "アーティストリリース同期ページを保存しました",
       kv("artistReleaseSyncQueueId", target.queueId),
       kv("artistReleasesSync.offset", target.nextOffset),
-      kv("artistReleasesSync.fetchedReleaseCount", page.releases.size),
+      kv("artistReleasesSync.listedReleaseCount", page.releases.size),
+      kv("artistReleasesSync.skippedExistingReleaseCount", page.releases.size - detailFetchCount),
+      kv("artistReleasesSync.detailFetchCount", detailFetchCount),
       kv("artistReleasesSync.savedReleaseCount", releaseCount),
       kv("artistReleasesSync.savedTrackCount", trackCount),
       kv("artistReleasesSync.hasNextPage", page.nextOffset.nonEmpty)

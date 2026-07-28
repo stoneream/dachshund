@@ -38,7 +38,10 @@ private[user_new_release_notification_delivery_queue] class HandleUserNewRelease
   )(using DefaultExecutor): Future[UserNewReleaseNotificationDeliveryQueueResult] = {
     val retryConfig = applicationConfig.spotify.client.retry
 
-    if (requiresOperationAction(failure.failureType) || reachedMaxAttempts(target, retryConfig.maxAttempts)) {
+    if (
+      requiresOperationAction(failure.failureType) ||
+      (reachedMaxAttempts(target, retryConfig.maxAttempts) && !isRequestCapacityFailure(failure.failureType))
+    ) {
       queueService
         .markBlocked(target, failure.failureType.dbValue, now)
         .map(queueUpdateResult(_, Blocked))
@@ -53,7 +56,7 @@ private[user_new_release_notification_delivery_queue] class HandleUserNewRelease
       }
       queueService
         .markTemporaryFailure(target, failure.failureType.dbValue, nextAttemptAt, now)
-        .map(queueUpdateResult(_, TemporaryFailure))
+        .map(queueUpdateResult(_, TemporaryFailure(failure.failureType, nextAttemptAt)))
     }
   }
 
@@ -82,6 +85,11 @@ private[user_new_release_notification_delivery_queue] class HandleUserNewRelease
 
   private def requiresOperationAction(failureType: UserNewReleaseNotificationDeliveryQueueFailureType): Boolean =
     OperationActionFailureTypes.contains(failureType)
+
+  private def isRequestCapacityFailure(
+      failureType: UserNewReleaseNotificationDeliveryQueueFailureType
+  ): Boolean =
+    failureType == UserNewReleaseNotificationDeliveryQueueFailureType.RateLimited
 
   private def queueUpdateResult(
       result: UserNewReleaseNotificationDeliveryQueueUpdateResult,

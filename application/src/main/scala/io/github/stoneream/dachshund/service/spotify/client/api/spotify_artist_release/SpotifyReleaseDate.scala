@@ -1,9 +1,9 @@
-package io.github.stoneream.dachshund.service.spotify.client
+package io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release
 
 import java.time.{LocalDate, LocalDateTime}
 import scala.util.Try
 
-private[client] object SpotifyReleaseDate {
+private[spotify_artist_release] object SpotifyReleaseDate {
   private val UnknownReleaseDate: LocalDateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 59)
 
   def releaseDateAt(

@@ -7,7 +7,7 @@ import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
 import io.github.stoneream.dachshund.logging.TraceLogger
 import io.github.stoneream.dachshund.service.application.followed_artists_sync_queue.{FollowedArtistSyncQueueProgressResult, FollowedArtistSyncQueueService, FollowedArtistSyncQueueServiceException as QueueServiceException, FollowedArtistSyncQueueUpdateResult}
 import io.github.stoneream.dachshund.service.application.followed_artists_sync_queue.model.FollowedArtistSyncQueueTarget
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyFollowedArtistsPage
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_followed_artist.model.SpotifyFollowedArtistsPage
 import io.github.stoneream.dachshund.service.spotify.auth.access_token.{SpotifyAuthorizationCodeAccessTokenProvider, SpotifyAuthorizationCodeAccessTokenProviderException as TokenProviderException, SpotifyAuthorizationCodeAccessTokenResolveInput}
 import io.github.stoneream.dachshund.service.spotify.client.{SpotifyClient, SpotifyClientException as ClientException}
 import io.github.stoneream.dachshund.usecase.UseCase
@@ -42,7 +42,7 @@ class FollowedArtistsSyncUseCase @Inject() (
       .flatMap { targets =>
         logTargetsSelected(input.batchSize, targets.size)
         syncTargetsStep
-          .run(targets)(target => syncTarget(target, input.now))
+          .run(targets, input.now)(target => syncTarget(target, input.now))
           .map(_ => FollowedArtistsSyncUseCaseOutput())
           .recoverWith { case NonFatal(exception) =>
             failAfterReleasingTargets(targets, input.now, exception)

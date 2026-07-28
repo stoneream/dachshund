@@ -10,13 +10,12 @@ import scala.concurrent.duration.*
 
 class CalculateNextSpotifyAccessTokenRefreshAttemptAtSpec extends AnyFeatureSpec {
   Feature("Spotify access token refresh retry schedule") {
-    Scenario("rate limit retry-after を上限で丸め、通常失敗は指数 backoff にする") {
+    Scenario("rate limit retry-after をそのまま使い、通常失敗は指数 backoff にする") {
       val retryConfig = RetryConfig(
         maxAttempts = 3,
         baseDelay = 1.second,
         maxDelay = 30.seconds,
-        jitterRatio = None,
-        rateLimitMaxDelay = Some(10.seconds)
+        jitterRatio = None
       )
 
       val rateLimited = CalculateNextSpotifyAccessTokenRefreshAttemptAt(
@@ -35,7 +34,7 @@ class CalculateNextSpotifyAccessTokenRefreshAttemptAtSpec extends AnyFeatureSpec
         retryConfig = retryConfig
       )
 
-      assert(rateLimited.toLocalDateTime == fixedNow.plus(10.seconds).toLocalDateTime)
+      assert(rateLimited.toLocalDateTime == fixedNow.plus(15.seconds).toLocalDateTime)
       assert(network.toLocalDateTime == fixedNow.plus(4.seconds).toLocalDateTime)
     }
 
@@ -44,8 +43,7 @@ class CalculateNextSpotifyAccessTokenRefreshAttemptAtSpec extends AnyFeatureSpec
         maxAttempts = 3,
         baseDelay = 1.millis,
         maxDelay = 30.seconds,
-        jitterRatio = None,
-        rateLimitMaxDelay = None
+        jitterRatio = None
       )
 
       val result = CalculateNextSpotifyAccessTokenRefreshAttemptAt(

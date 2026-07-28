@@ -14,6 +14,7 @@ final case class SpotifyClientConfig(
     redirectUri: String,
     connectTimeout: FiniteDuration,
     requestTimeout: FiniteDuration,
+    requestPolicy: SpotifyRequestPolicyConfig,
     retry: RetryConfig
 )
 
@@ -26,6 +27,7 @@ object SpotifyClientConfig {
       redirectUri: String,
       connectTimeout: FiniteDuration,
       requestTimeout: FiniteDuration,
+      requestPolicy: SpotifyRequestPolicyConfig,
       retry: RetryConfig
   ) derives ConfigReader
 
@@ -45,6 +47,7 @@ object SpotifyClientConfig {
       redirectUri = redirectUri,
       connectTimeout = raw.connectTimeout,
       requestTimeout = raw.requestTimeout,
+      requestPolicy = raw.requestPolicy,
       retry = raw.retry
     )
 }

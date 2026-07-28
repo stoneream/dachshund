@@ -19,7 +19,7 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.lib.encrypt.spotify.{EncryptedSpotifyToken, SpotifyTokenEncryptionAad, SpotifyTokenEncryptor}
 import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
 import io.github.stoneream.dachshund.model.{PlaylistUsageType, QueueJobStatus, ReleaseNotificationType}
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyAddItemsToPlaylistResult
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_playlist.model.SpotifyAddItemsToPlaylistResult
 import io.github.stoneream.dachshund.service.spotify.client.{SpotifyClient, SpotifyClientException}
 import io.github.stoneream.dachshund.service.spotify.oauth_client.SpotifyOAuthClient
 import io.github.stoneream.dachshund.service.spotify.oauth_client.SpotifyOAuthClient.TokenResponse
@@ -216,7 +216,7 @@ class UserNewReleaseNotificationDeliveryQueueHandlerSpec extends AnyFeatureSpec 
       )
     }
 
-    Scenario("Spotify API rate limit が最大試行回数に達した場合は blocked として保存する") {
+    Scenario("Spotify API rate limit は最大試行回数に達しても retry 時刻を保存して scheduled に戻す") {
       databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
         val userId = userWriter.write(Rows.userRow("delivery-rate-limit-exhausted-user"))
         writeAuthorization(userId, "current-access-token", "current-refresh-token")
@@ -237,7 +237,7 @@ class UserNewReleaseNotificationDeliveryQueueHandlerSpec extends AnyFeatureSpec 
 
       assert(
         queueRows().map(row => (row.status, row.nextAttemptAt, row.lastFailedAt, row.lastErrorType, row.attemptCount, row.lockToken, row.lockVersion)) ==
-          Seq((QueueJobStatus.Blocked.dbValue, None, Some(fixedNow), "rate_limited", 3, "", 2L))
+          Seq((QueueJobStatus.Scheduled.dbValue, Some(fixedNow.plus(10.seconds)), Some(fixedNow), "rate_limited", 3, "", 2L))
       )
     }
 

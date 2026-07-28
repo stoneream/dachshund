@@ -1,11 +1,9 @@
 package io.github.stoneream.dachshund.service.spotify.client
 
 import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyAddItemsToPlaylistResult
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyCreatePlaylistResult
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyFollowedArtistsPage
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyArtistReleasePage
-import io.github.stoneream.dachshund.service.spotify.client.model.SpotifyPlaylistPage
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyArtistReleaseSummaryPage}
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_followed_artist.model.SpotifyFollowedArtistsPage
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_playlist.model.{SpotifyAddItemsToPlaylistResult, SpotifyCreatePlaylistResult, SpotifyPlaylistPage}
 
 import scala.concurrent.Future
 
@@ -39,24 +37,19 @@ trait SpotifyClient {
       spotifyPlaylistCode: String
   )(using LoggingContext): Future[Unit]
 
-  def getArtistReleasePage(
+  def getArtistReleaseSummaryPage(
       accessToken: String,
       spotifyArtistCode: String,
       includeGroups: String,
       market: Option[String],
       limit: Int,
       offset: Int
-  )(using loggingContext: LoggingContext): Future[SpotifyArtistReleasePage] =
-    Future.failed(
-      new UnsupportedOperationException(
-        s"getArtistReleasePage is not implemented: " +
-          s"accessTokenDefined=${accessToken.nonEmpty}, " +
-          s"spotifyArtistCode=$spotifyArtistCode, " +
-          s"includeGroups=$includeGroups, " +
-          s"market=$market, " +
-          s"limit=$limit, " +
-          s"offset=$offset, " +
-          s"traceId=${loggingContext.traceId}"
-      )
-    )
+  )(using loggingContext: LoggingContext): Future[SpotifyArtistReleaseSummaryPage]
+
+  def getArtistRelease(
+      accessToken: String,
+      sourceSpotifyArtistCode: String,
+      summary: SpotifyArtistReleaseSummary,
+      market: Option[String]
+  )(using loggingContext: LoggingContext): Future[SpotifyArtistRelease]
 }

@@ -15,7 +15,9 @@ import io.github.stoneream.dachshund.module.{ApplicationModule, DatabaseInitiali
 import io.github.stoneream.dachshund.service.spotify.auth.access_token.SpotifyAuthorizationCodeAccessTokenProvider.ResolvedSpotifyAuthorizationCodeAccessToken
 import io.github.stoneream.dachshund.service.spotify.auth.access_token.{SpotifyAuthorizationCodeAccessTokenProvider, SpotifyAuthorizationCodeAccessTokenResolveInput}
 import io.github.stoneream.dachshund.service.spotify.client.{SpotifyClient, SpotifyClientException}
-import io.github.stoneream.dachshund.service.spotify.client.model.{SpotifyAddItemsToPlaylistResult, SpotifyArtistReleasePage, SpotifyCreatePlaylistResult, SpotifyFollowedArtistsPage, SpotifyPlaylist, SpotifyPlaylistPage}
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyArtistReleaseSummaryPage}
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_followed_artist.model.SpotifyFollowedArtistsPage
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_playlist.model.{SpotifyAddItemsToPlaylistResult, SpotifyCreatePlaylistResult, SpotifyPlaylist, SpotifyPlaylistPage}
 import io.github.stoneream.dachshund.service.spotify.oauth_client.{SpotifyOAuthClient, SpotifyOAuthClientImpl}
 import io.github.stoneream.dachshund.service.spotify.user_profile_client.{SpotifyUserProfileClient, SpotifyUserProfileClientImpl}
 import io.github.stoneream.dachshund.test.lib.PlayApplicationDatabaseSupport
@@ -438,14 +440,23 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
     )(using LoggingContext): Future[SpotifyAddItemsToPlaylistResult] =
       Future.failed(new AssertionError("addItemsToPlaylist must not be called"))
 
-    override def getArtistReleasePage(
+    override def getArtistReleaseSummaryPage(
         accessToken: String,
         spotifyArtistCode: String,
         includeGroups: String,
         market: Option[String],
         limit: Int,
         offset: Int
-    )(using loggingContext: LoggingContext): Future[SpotifyArtistReleasePage] =
-      Future.failed(new AssertionError("getArtistReleasePage must not be called"))
+    )(using LoggingContext): Future[SpotifyArtistReleaseSummaryPage] =
+      Future.failed(new AssertionError("getArtistReleaseSummaryPage must not be called"))
+
+    override def getArtistRelease(
+        accessToken: String,
+        sourceSpotifyArtistCode: String,
+        summary: SpotifyArtistReleaseSummary,
+        market: Option[String]
+    )(using LoggingContext): Future[SpotifyArtistRelease] =
+      Future.failed(new AssertionError("getArtistRelease must not be called"))
+
   }
 }

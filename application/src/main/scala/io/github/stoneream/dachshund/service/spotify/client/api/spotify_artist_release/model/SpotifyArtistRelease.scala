@@ -1,4 +1,4 @@
-package io.github.stoneream.dachshund.service.spotify.client.model
+package io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model
 
 import java.time.LocalDateTime
 

@@ -8,6 +8,5 @@ final case class RetryConfig(
     maxAttempts: Int,
     baseDelay: FiniteDuration,
     maxDelay: FiniteDuration,
-    jitterRatio: Option[Double],
-    rateLimitMaxDelay: Option[FiniteDuration]
+    jitterRatio: Option[Double]
 ) derives ConfigReader

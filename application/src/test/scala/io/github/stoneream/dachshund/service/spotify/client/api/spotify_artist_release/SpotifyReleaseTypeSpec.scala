@@ -1,4 +1,4 @@
-package io.github.stoneream.dachshund.service.spotify.client
+package io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release
 
 import org.scalatest.featurespec.AnyFeatureSpec
 

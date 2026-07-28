@@ -8,7 +8,7 @@ import io.github.stoneream.dachshund.infra.db.transaction.{DatabaseRole, Databas
 import io.github.stoneream.dachshund.infra.db.writer.ArtistReleasesWriter
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.lib.executor.Executors.DatabaseExecutor
-import io.github.stoneream.dachshund.service.spotify.client.model.{SpotifyArtistRelease, SpotifyArtistReleasePage}
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.SpotifyArtistRelease
 import io.github.stoneream.dachshund.usecase.spotify.artist_releases_sync.context.ArtistReleasePageSyncResult
 import scalikejdbc.DBSession
 
@@ -22,12 +22,12 @@ private[artist_releases_sync] class SyncArtistReleasePageStep @Inject() (
     databaseExecutor: DatabaseExecutor
 ) {
   def run(
-      page: SpotifyArtistReleasePage,
+      releases: Seq[SpotifyArtistRelease],
       now: BusinessDateTime
   ): Future[ArtistReleasePageSyncResult] =
     Future {
       databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
-        val trackCount = page.releases.flatMap(saveNewRelease(_, now))
+        val trackCount = releases.flatMap(saveNewRelease(_, now))
         ArtistReleasePageSyncResult(
           releaseCount = trackCount.size,
           trackCount = trackCount.sum
