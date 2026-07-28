@@ -7,7 +7,7 @@ import io.github.stoneream.dachshund.daemon.handler.spotify.artist_releases_sync
 import io.github.stoneream.dachshund.daemon.handler.spotify.followed_artists_sync.FollowedArtistsSyncJob
 import io.github.stoneream.dachshund.daemon.handler.spotify.followed_artists_sync_queue.FollowedArtistsSyncQueueJob
 import io.github.stoneream.dachshund.daemon.handler.spotify.user_new_release_events_sync.UserNewReleaseEventsSyncJob
-import io.github.stoneream.dachshund.daemon.handler.spotify.user_new_release_notification_delivery.UserNewReleaseNotificationDeliveryJob
+import io.github.stoneream.dachshund.daemon.handler.spotify.user_new_release_notification_delivery_queue.UserNewReleaseNotificationDeliveryQueueJob
 import io.github.stoneream.dachshund.daemon.job.model.Job
 import io.github.stoneream.dachshund.logging.Logger
 import zio.{Task, ZIO}
@@ -20,7 +20,7 @@ class JobLoaderImpl @Inject() (
     artistReleaseSyncQueueJob: ArtistReleaseSyncQueueJob,
     artistReleasesSyncJob: ArtistReleasesSyncJob,
     userNewReleaseEventsSyncJob: UserNewReleaseEventsSyncJob,
-    userNewReleaseNotificationDeliveryJob: UserNewReleaseNotificationDeliveryJob
+    userNewReleaseNotificationDeliveryQueueJob: UserNewReleaseNotificationDeliveryQueueJob
 ) extends JobLoader
     with Logger {
   override def load(): Task[List[Job]] =
@@ -32,7 +32,7 @@ class JobLoaderImpl @Inject() (
         artistReleaseSyncQueueJob,
         artistReleasesSyncJob,
         userNewReleaseEventsSyncJob,
-        userNewReleaseNotificationDeliveryJob
+        userNewReleaseNotificationDeliveryQueueJob
       )
       val enabledJobs = jobs.filter(_.setting.enabled)
       val disabledJobNames = jobs.filterNot(_.setting.enabled).map(_.setting.name.value)

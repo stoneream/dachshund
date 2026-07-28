@@ -38,7 +38,7 @@
                 <div class="job-status-checks">
                     @for(filter <- output.statusFilters) {
                         <label class="job-status-check">
-                            <input type="checkbox" name="status" value="@filter.status.dbValue" @if(filter.selected) {checked}>
+                            <input type="checkbox" name="status" value="@filter.value" @if(filter.selected) {checked}>
                             <span>@filter.status.dbValue</span>
                         </label>
                     }

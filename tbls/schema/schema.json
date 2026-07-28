@@ -2223,9 +2223,9 @@
       "def": "CREATE TABLE `user_new_release_event` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_id` bigint unsigned NOT NULL COMMENT 'ユーザーID',\n  `artist_release_id` bigint unsigned NOT NULL COMMENT 'アーティストリリースID',\n  `spotify_release_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'SpotifyリリースID',\n  `source_spotify_artist_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '取得元SpotifyアーティストID',\n  `detected_at` datetime NOT NULL COMMENT '新着検出日時',\n  `detection_sync_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '検出同期コード',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_user_new_release_event_user_release` (`user_id`,`spotify_release_code`),\n  UNIQUE KEY `uq_user_new_release_event_user_artist_release` (`user_id`,`artist_release_id`),\n  KEY `idx_user_new_release_event_release` (`artist_release_id`,`deleted`),\n  KEY `idx_user_new_release_event_detected` (`user_id`,`deleted`,`detected_at`),\n  CONSTRAINT `fk_user_new_release_event_artist_release_id` FOREIGN KEY (`artist_release_id`) REFERENCES `artist_release` (`id`),\n  CONSTRAINT `fk_user_new_release_event_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザー別新着リリース履歴'"
     },
     {
-      "name": "user_new_release_notification_queue",
+      "name": "user_new_release_notification_delivery_queue",
       "type": "BASE TABLE",
-      "comment": "ユーザー別新着リリース通知キュー",
+      "comment": "ユーザー別新着リリース通知配信キュー",
       "columns": [
         {
           "name": "id",
@@ -2371,9 +2371,9 @@
       ],
       "indexes": [
         {
-          "name": "idx_user_new_release_notification_queue_playlist_setting",
-          "def": "KEY idx_user_new_release_notification_queue_playlist_setting (playlist_setting_id, deleted, status) USING BTREE",
-          "table": "user_new_release_notification_queue",
+          "name": "idx_unr_delivery_queue_playlist_setting",
+          "def": "KEY idx_unr_delivery_queue_playlist_setting (playlist_setting_id, deleted, status) USING BTREE",
+          "table": "user_new_release_notification_delivery_queue",
           "columns": [
             "playlist_setting_id",
             "deleted",
@@ -2381,9 +2381,9 @@
           ]
         },
         {
-          "name": "idx_user_new_release_notification_queue_target",
-          "def": "KEY idx_user_new_release_notification_queue_target (deleted, status, next_attempt_at, locked_until, id) USING BTREE",
-          "table": "user_new_release_notification_queue",
+          "name": "idx_unr_delivery_queue_target",
+          "def": "KEY idx_unr_delivery_queue_target (deleted, status, next_attempt_at, locked_until, id) USING BTREE",
+          "table": "user_new_release_notification_delivery_queue",
           "columns": [
             "deleted",
             "status",
@@ -2395,7 +2395,7 @@
         {
           "name": "PRIMARY",
           "def": "PRIMARY KEY (id) USING BTREE",
-          "table": "user_new_release_notification_queue",
+          "table": "user_new_release_notification_delivery_queue",
           "columns": [
             "id"
           ]
@@ -2403,15 +2403,15 @@
         {
           "name": "id",
           "def": "UNIQUE KEY id (id) USING BTREE",
-          "table": "user_new_release_notification_queue",
+          "table": "user_new_release_notification_delivery_queue",
           "columns": [
             "id"
           ]
         },
         {
-          "name": "uq_user_new_release_notification_queue_event_type_playlist",
-          "def": "UNIQUE KEY uq_user_new_release_notification_queue_event_type_playlist (user_new_release_event_id, release_notification_type, playlist_setting_id) USING BTREE",
-          "table": "user_new_release_notification_queue",
+          "name": "uq_unr_delivery_queue_event_type_playlist",
+          "def": "UNIQUE KEY uq_unr_delivery_queue_event_type_playlist (user_new_release_event_id, release_notification_type, playlist_setting_id) USING BTREE",
+          "table": "user_new_release_notification_delivery_queue",
           "columns": [
             "user_new_release_event_id",
             "release_notification_type",
@@ -2421,10 +2421,10 @@
       ],
       "constraints": [
         {
-          "name": "fk_user_new_release_notification_queue_event_id",
+          "name": "fk_unr_delivery_queue_event_id",
           "type": "FOREIGN KEY",
           "def": "FOREIGN KEY (user_new_release_event_id) REFERENCES user_new_release_event (id)",
-          "table": "user_new_release_notification_queue",
+          "table": "user_new_release_notification_delivery_queue",
           "referenced_table": "user_new_release_event",
           "columns": [
             "user_new_release_event_id"
@@ -2434,10 +2434,10 @@
           ]
         },
         {
-          "name": "fk_user_new_release_notification_queue_playlist_setting_id",
+          "name": "fk_unr_delivery_queue_playlist_setting_id",
           "type": "FOREIGN KEY",
           "def": "FOREIGN KEY (playlist_setting_id) REFERENCES user_playlist_setting (id)",
-          "table": "user_new_release_notification_queue",
+          "table": "user_new_release_notification_delivery_queue",
           "referenced_table": "user_playlist_setting",
           "columns": [
             "playlist_setting_id"
@@ -2450,7 +2450,7 @@
           "name": "id",
           "type": "UNIQUE",
           "def": "UNIQUE KEY id (id)",
-          "table": "user_new_release_notification_queue",
+          "table": "user_new_release_notification_delivery_queue",
           "columns": [
             "id"
           ]
@@ -2459,16 +2459,16 @@
           "name": "PRIMARY",
           "type": "PRIMARY KEY",
           "def": "PRIMARY KEY (id)",
-          "table": "user_new_release_notification_queue",
+          "table": "user_new_release_notification_delivery_queue",
           "columns": [
             "id"
           ]
         },
         {
-          "name": "uq_user_new_release_notification_queue_event_type_playlist",
+          "name": "uq_unr_delivery_queue_event_type_playlist",
           "type": "UNIQUE",
-          "def": "UNIQUE KEY uq_user_new_release_notification_queue_event_type_playlist (user_new_release_event_id, release_notification_type, playlist_setting_id)",
-          "table": "user_new_release_notification_queue",
+          "def": "UNIQUE KEY uq_unr_delivery_queue_event_type_playlist (user_new_release_event_id, release_notification_type, playlist_setting_id)",
+          "table": "user_new_release_notification_delivery_queue",
           "columns": [
             "user_new_release_event_id",
             "release_notification_type",
@@ -2476,7 +2476,7 @@
           ]
         }
       ],
-      "def": "CREATE TABLE `user_new_release_notification_queue` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_new_release_event_id` bigint unsigned NOT NULL COMMENT 'ユーザー別新着リリース履歴ID',\n  `release_notification_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PLAYLIST' COMMENT 'リリース通知種別(PLAYLIST)',\n  `playlist_setting_id` bigint unsigned NOT NULL COMMENT 'ユーザープレイリスト設定ID',\n  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SCHEDULED' COMMENT 'キュー状態(SCHEDULED, PROCESSING, SUCCEEDED, FAILED, BLOCKED, SKIPPED)',\n  `next_attempt_at` datetime DEFAULT NULL COMMENT '次回試行日時',\n  `attempt_count` int NOT NULL DEFAULT '0' COMMENT '試行回数',\n  `last_failed_at` datetime DEFAULT NULL COMMENT '最終失敗日時',\n  `last_error_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '最終エラー種別',\n  `lock_token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '処理ロックトークン',\n  `locked_until` datetime DEFAULT NULL COMMENT '処理ロック期限',\n  `last_attempted_at` datetime DEFAULT NULL COMMENT '最終試行日時',\n  `completed_at` datetime DEFAULT NULL COMMENT '処理完了日時',\n  `spotify_snapshot_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'SpotifyプレイリストスナップショットID',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_user_new_release_notification_queue_event_type_playlist` (`user_new_release_event_id`,`release_notification_type`,`playlist_setting_id`),\n  KEY `idx_user_new_release_notification_queue_playlist_setting` (`playlist_setting_id`,`deleted`,`status`),\n  KEY `idx_user_new_release_notification_queue_target` (`deleted`,`status`,`next_attempt_at`,`locked_until`,`id`),\n  CONSTRAINT `fk_user_new_release_notification_queue_event_id` FOREIGN KEY (`user_new_release_event_id`) REFERENCES `user_new_release_event` (`id`),\n  CONSTRAINT `fk_user_new_release_notification_queue_playlist_setting_id` FOREIGN KEY (`playlist_setting_id`) REFERENCES `user_playlist_setting` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザー別新着リリース通知キュー'"
+      "def": "CREATE TABLE `user_new_release_notification_delivery_queue` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `user_new_release_event_id` bigint unsigned NOT NULL COMMENT 'ユーザー別新着リリース履歴ID',\n  `release_notification_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PLAYLIST' COMMENT 'リリース通知種別(PLAYLIST)',\n  `playlist_setting_id` bigint unsigned NOT NULL COMMENT 'ユーザープレイリスト設定ID',\n  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SCHEDULED' COMMENT 'キュー状態(SCHEDULED, PROCESSING, SUCCEEDED, FAILED, BLOCKED, SKIPPED)',\n  `next_attempt_at` datetime DEFAULT NULL COMMENT '次回試行日時',\n  `attempt_count` int NOT NULL DEFAULT '0' COMMENT '試行回数',\n  `last_failed_at` datetime DEFAULT NULL COMMENT '最終失敗日時',\n  `last_error_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '最終エラー種別',\n  `lock_token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '処理ロックトークン',\n  `locked_until` datetime DEFAULT NULL COMMENT '処理ロック期限',\n  `last_attempted_at` datetime DEFAULT NULL COMMENT '最終試行日時',\n  `completed_at` datetime DEFAULT NULL COMMENT '処理完了日時',\n  `spotify_snapshot_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'SpotifyプレイリストスナップショットID',\n  `created_at` datetime NOT NULL COMMENT '作成日時',\n  `updated_at` datetime NOT NULL COMMENT '更新日時',\n  `deleted_at` datetime DEFAULT NULL COMMENT '削除日時',\n  `created_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '作成者',\n  `updated_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新者',\n  `deleted_user` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '削除者',\n  `deleted` bigint NOT NULL DEFAULT '0' COMMENT '論理削除フラグ(0=有効、1=無効)',\n  `lock_version` bigint NOT NULL DEFAULT '0' COMMENT '楽観ロックバージョン',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `id` (`id`),\n  UNIQUE KEY `uq_unr_delivery_queue_event_type_playlist` (`user_new_release_event_id`,`release_notification_type`,`playlist_setting_id`),\n  KEY `idx_unr_delivery_queue_target` (`deleted`,`status`,`next_attempt_at`,`locked_until`,`id`),\n  KEY `idx_unr_delivery_queue_playlist_setting` (`playlist_setting_id`,`deleted`,`status`),\n  CONSTRAINT `fk_unr_delivery_queue_event_id` FOREIGN KEY (`user_new_release_event_id`) REFERENCES `user_new_release_event` (`id`),\n  CONSTRAINT `fk_unr_delivery_queue_playlist_setting_id` FOREIGN KEY (`playlist_setting_id`) REFERENCES `user_playlist_setting` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザー別新着リリース通知配信キュー'"
     },
     {
       "name": "user_playlist_setting",
@@ -3532,7 +3532,7 @@
       "def": "FOREIGN KEY (user_id) REFERENCES user (id)"
     },
     {
-      "table": "user_new_release_notification_queue",
+      "table": "user_new_release_notification_delivery_queue",
       "columns": [
         "user_new_release_event_id"
       ],
@@ -3545,7 +3545,7 @@
       "def": "FOREIGN KEY (user_new_release_event_id) REFERENCES user_new_release_event (id)"
     },
     {
-      "table": "user_new_release_notification_queue",
+      "table": "user_new_release_notification_delivery_queue",
       "columns": [
         "playlist_setting_id"
       ],

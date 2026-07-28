@@ -2,7 +2,7 @@ package io.github.stoneream.dachshund.daemon.module
 
 import com.google.inject.{Guice, Injector}
 import io.github.stoneream.dachshund.daemon.DaemonMain
-import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, DaemonConfig, DaemonExecutorConfig, DaemonExecutorsConfig, DaemonJobsConfig, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, JobName, JobRetryPolicy, JobSchedule, JobSetting, SpotifyAccessTokenRefreshJobConfig, UserNewReleaseEventsSyncJobConfig, UserNewReleaseNotificationDeliveryJobConfig}
+import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, DaemonConfig, DaemonExecutorConfig, DaemonExecutorsConfig, DaemonJobsConfig, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, JobName, JobRetryPolicy, JobSchedule, JobSetting, SpotifyAccessTokenRefreshJobConfig, UserNewReleaseEventsSyncJobConfig, UserNewReleaseNotificationDeliveryQueueJobConfig}
 import io.github.stoneream.dachshund.daemon.job.JobScheduler
 import io.github.stoneream.dachshund.lib.executor.Executors.DefaultExecutor
 import io.github.stoneream.dachshund.test.lib.config.TestApplicationConfig
@@ -102,8 +102,8 @@ class DaemonModuleSpec extends AnyFeatureSpec {
           setting = jobSetting("user-new-release-events-sync"),
           batchSize = 1
         ),
-        userNewReleaseNotificationDelivery = UserNewReleaseNotificationDeliveryJobConfig(
-          setting = jobSetting("user-new-release-notification-delivery"),
+        userNewReleaseNotificationDeliveryQueue = UserNewReleaseNotificationDeliveryQueueJobConfig(
+          setting = jobSetting("user-new-release-notification-delivery-queue"),
           batchSize = 1,
           processingLease = 1.minute
         )

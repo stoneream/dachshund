@@ -5,13 +5,13 @@ import io.github.stoneream.dachshund.endpoint.home.HomeEndpointFixture.*
 import io.github.stoneream.dachshund.infra.db.AuditUser
 import io.github.stoneream.dachshund.infra.db.ex.ArtistReleaseSyncQueueDbRowSyntax.*
 import io.github.stoneream.dachshund.infra.db.ex.FollowedArtistSyncQueueDbRowSyntax.*
-import io.github.stoneream.dachshund.infra.db.ex.UserNewReleaseNotificationQueueDbRowSyntax.*
+import io.github.stoneream.dachshund.infra.db.ex.UserNewReleaseNotificationDeliveryQueueDbRowSyntax.*
 import io.github.stoneream.dachshund.infra.db.ex.UserPlaylistSettingDbRowSyntax.*
 import io.github.stoneream.dachshund.infra.db.ex.UserSpotifyAuthorizationDbRowSyntax.*
 import io.github.stoneream.dachshund.infra.db.ex.UserSpotifyAuthorizationRefreshQueueDbRowSyntax.*
-import io.github.stoneream.dachshund.infra.db.ex.{ArtistReleaseSyncQueueSource, FollowedArtistSyncQueueSource, UserNewReleaseNotificationQueueSource, UserPlaylistSettingSource, UserSpotifyAuthorizationRefreshQueueSource, UserSpotifyAuthorizationSource}
+import io.github.stoneream.dachshund.infra.db.ex.{ArtistReleaseSyncQueueSource, FollowedArtistSyncQueueSource, UserNewReleaseNotificationDeliveryQueueSource, UserPlaylistSettingSource, UserSpotifyAuthorizationRefreshQueueSource, UserSpotifyAuthorizationSource}
 import io.github.stoneream.dachshund.infra.db.transaction.DatabaseRole
-import io.github.stoneream.dachshund.infra.db.writer.{ArtistReleaseSyncQueueWriter, ArtistReleasesWriter, FollowedArtistSyncQueueWriter, SpotifyAuthorizationRefreshQueueWriter, SpotifyAuthorizationWriter, SpotifyUserWriter, UserFollowedArtistsWriter, UserNewReleaseEventsWriter, UserNewReleaseNotificationQueueWriter, UserPlaylistSettingWriter, UserSessionTokenWriter}
+import io.github.stoneream.dachshund.infra.db.writer.{ArtistReleaseSyncQueueWriter, ArtistReleasesWriter, FollowedArtistSyncQueueWriter, SpotifyAuthorizationRefreshQueueWriter, SpotifyAuthorizationWriter, SpotifyUserWriter, UserFollowedArtistsWriter, UserNewReleaseEventsWriter, UserNewReleaseNotificationDeliveryQueueWriter, UserPlaylistSettingWriter, UserSessionTokenWriter}
 import io.github.stoneream.dachshund.lib.auth.SessionTokenService
 import io.github.stoneream.dachshund.lib.datetime.DateTimeService
 import io.github.stoneream.dachshund.model.{PlaylistUsageType, QueueJobStatus, ReleaseNotificationType}
@@ -63,7 +63,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
   private val artistReleasesWriter = new ArtistReleasesWriter
   private val userNewReleaseEventsWriter = new UserNewReleaseEventsWriter
   private val playlistSettingWriter = new UserPlaylistSettingWriter
-  private val notificationQueueWriter = new UserNewReleaseNotificationQueueWriter
+  private val notificationQueueWriter = new UserNewReleaseNotificationDeliveryQueueWriter
   private val UserNewReleaseEventsSyncDetectionSyncCode = "user-new-release-events-sync"
 
   Feature("Job status endpoint") {
@@ -166,16 +166,16 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
 
       val result = route(
         app,
-        loggedInGetRequest(loggedInUser.sessionToken, "/job/status/followed-artists-sync?status=FAILED&status=BLOCKED")
+        loggedInGetRequest(loggedInUser.sessionToken, "/job/status/followed-artists-sync?status=failed&status=unknown&status=blocked")
       ).value
       val html = contentAsString(result)
 
       assert(status(result) == OK)
       assertQueueStatusSummaryIsHidden(html)
       assertSummaryHasNoCountColumn(html)
-      assert(html.contains("""value="FAILED" checked"""))
-      assert(html.contains("""value="BLOCKED" checked"""))
-      assert(!html.contains("""value="SCHEDULED" checked"""))
+      assert(html.contains("""value="failed" checked"""))
+      assert(html.contains("""value="blocked" checked"""))
+      assert(!html.contains("""value="scheduled" checked"""))
       assert(html.contains(s"user_id=${loggedInUser.userId}, sync_date=2026-07-07"))
       assert(!html.contains(s"user_id=${loggedInUser.userId}, sync_date=2026-07-08"))
     }
@@ -202,8 +202,8 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
         )
       }
 
-      val page1Result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/followed-artists-sync?status=FAILED")).value
-      val page2Result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/followed-artists-sync?status=FAILED&page=2")).value
+      val page1Result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/followed-artists-sync?status=failed")).value
+      val page2Result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/followed-artists-sync?status=failed&page=2")).value
       val page1Html = contentAsString(page1Result)
       val page2Html = contentAsString(page2Result)
 
@@ -211,14 +211,14 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(page1Html.contains("全 101 件 / Page 1 / 2"))
       assert(page1Html.contains(s"user_id=${loggedInUser.userId}, sync_date=$lastDate"))
       assert(!page1Html.contains(s"user_id=${loggedInUser.userId}, sync_date=$firstDate"))
-      assert(page1Html.contains("""href="/job/status/followed-artists-sync?status=FAILED&amp;page=2">Next</a>"""))
+      assert(page1Html.contains("""href="/job/status/followed-artists-sync?status=failed&amp;page=2">Next</a>"""))
 
       assert(status(page2Result) == OK)
       assert(page2Html.contains("全 101 件 / Page 2 / 2"))
-      assert(page2Html.contains("""value="FAILED" checked"""))
+      assert(page2Html.contains("""value="failed" checked"""))
       assert(page2Html.contains(s"user_id=${loggedInUser.userId}, sync_date=$firstDate"))
       assert(!page2Html.contains(s"user_id=${loggedInUser.userId}, sync_date=$scheduledDate"))
-      assert(page2Html.contains("""href="/job/status/followed-artists-sync?status=FAILED&amp;page=1">Previous</a>"""))
+      assert(page2Html.contains("""href="/job/status/followed-artists-sync?status=failed&amp;page=1">Previous</a>"""))
       assert(page2Html.contains("""<span class="job-status-page-link is-current">2</span>"""))
     }
 
@@ -264,7 +264,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
         route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/artist-releases-sync")).value
       )
       val notificationHtml = contentAsString(
-        route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-notification-delivery")).value
+        route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-notification-delivery-queue")).value
       )
 
       assert(refreshHtml.contains("""<h1>Spotify access token refresh</h1>"""))
@@ -275,7 +275,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(artistHtml.contains("spotify_artist_code=spotify-artist-code, sync_scope=INCREMENTAL"))
       assertStatusBadge(artistHtml, "BLOCKED")
 
-      assert(notificationHtml.contains("""<h1>User new release notification delivery</h1>"""))
+      assert(notificationHtml.contains("""<h1>User new release notification delivery queue</h1>"""))
       assert(notificationHtml.contains(s"user_new_release_event_id=${written.notificationTarget.userNewReleaseEventId}"))
       assert(notificationHtml.contains(s"playlist_setting_id=${written.notificationTarget.playlistSettingId}"))
       assertStatusBadge(notificationHtml, "SUCCEEDED")
@@ -348,7 +348,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(!html.contains(targetLabelCell(s"authorization_id=$disabledUserAuthorizationId")))
     }
 
-    Scenario("user-new-release-notification-delivery は無効な親データに紐づく queue を表示・集計しない") {
+    Scenario("user-new-release-notification-delivery-queue は無効な親データに紐づく queue を表示・集計しない") {
       val loggedInUser = writeLoggedInUserSession()
       val (activeTarget, excludedTargets) = databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
         val activeTarget = writeNotificationTarget(loggedInUser.userId, suffix = "notification-active")
@@ -402,7 +402,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
         )
       }
 
-      val result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-notification-delivery")).value
+      val result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-notification-delivery-queue")).value
       val html = contentAsString(result)
 
       assert(status(result) == OK)
@@ -555,14 +555,27 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       assert(page2Html.contains("""<span class="job-status-page-link is-current">2</span>"""))
     }
 
-    Scenario("未知の status は Bad Request を返す") {
+    Scenario("存在しない status query は無視する") {
       val loggedInUser = writeLoggedInUserSession()
 
-      val result = route(app, loggedInGetRequest(loggedInUser.sessionToken, "/job/status/followed-artists-sync?status=UNKNOWN")).value
-      val html = contentAsString(result)
+      databaseTransaction.localTx(DatabaseRole.Master) { implicit session =>
+        followedArtistSyncQueueWriter.write(
+          followedArtistsQueueRow(loggedInUser.userId, QueueJobStatus.Failed, LocalDate.of(2026, 7, 8))
+        )
+      }
 
-      assert(status(result) == BAD_REQUEST)
-      assert(html.contains("パラメーター status が不正です"))
+      Seq("FAILED", "unknown", "").foreach { queryValue =>
+        val result = route(
+          app,
+          loggedInGetRequest(loggedInUser.sessionToken, s"/job/status/followed-artists-sync?status=$queryValue")
+        ).value
+        val html = contentAsString(result)
+
+        assert(status(result) == OK)
+        assert(html.contains("該当する queue はありません。"))
+        assert(!html.contains(s"user_id=${loggedInUser.userId}, sync_date=2026-07-08"))
+        assert(!html.contains(" checked"))
+      }
     }
 
     Scenario("user-new-release-events-sync は status query を受け付けない") {
@@ -570,7 +583,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
 
       val result = route(
         app,
-        loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-events-sync?status=SUCCEEDED")
+        loggedInGetRequest(loggedInUser.sessionToken, "/job/status/user-new-release-events-sync?status=succeeded")
       ).value
       val html = contentAsString(result)
 
@@ -886,7 +899,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       status: QueueJobStatus,
       lastErrorType: String = ""
   ) =
-    UserNewReleaseNotificationQueueSource(
+    UserNewReleaseNotificationDeliveryQueueSource(
       userNewReleaseEventId = userNewReleaseEventId,
       releaseNotificationType = ReleaseNotificationType.Playlist,
       playlistSettingId = playlistSettingId,
@@ -908,7 +921,7 @@ class JobStatusEndpointSpec extends AnyFeatureSpec with PlayApplicationDatabaseS
       deletedUser = AuditUser.Empty,
       deleted = 0L,
       lockVersion = 0L
-    ).toUserNewReleaseNotificationQueueDbRow
+    ).toUserNewReleaseNotificationDeliveryQueueDbRow
 
   private def loggedInGetRequest(sessionToken: String, path: String) =
     FakeRequest(GET, path)

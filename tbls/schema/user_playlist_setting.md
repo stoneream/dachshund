@@ -38,7 +38,7 @@ CREATE TABLE `user_playlist_setting` (
 
 | Name | Type | Default | Nullable | Extra Definition | Children | Parents | Comment |
 | ---- | ---- | ------- | -------- | ---------------- | -------- | ------- | ------- |
-| id | bigint unsigned |  | false | auto_increment | [user_new_release_notification_queue](user_new_release_notification_queue.md) |  |  |
+| id | bigint unsigned |  | false | auto_increment | [user_new_release_notification_delivery_queue](user_new_release_notification_delivery_queue.md) |  |  |
 | user_id | bigint unsigned |  | false |  |  | [user](user.md) | ユーザーID |
 | playlist_usage_type | varchar(255) | NEW_RELEASE_NOTIFICATION | false |  |  |  | プレイリスト用途種別(NEW_RELEASE_NOTIFICATION) |
 | spotify_playlist_code | varchar(255) |  | false |  |  |  | SpotifyプレイリストID |
@@ -77,8 +77,8 @@ CREATE TABLE `user_playlist_setting` (
 ```mermaid
 erDiagram
 
-"user_new_release_notification_queue" }o--|| "user_playlist_setting" : ""
-"user_new_release_notification_queue" }o--|| "user_new_release_event" : ""
+"user_new_release_notification_delivery_queue" }o--|| "user_playlist_setting" : ""
+"user_new_release_notification_delivery_queue" }o--|| "user_new_release_event" : ""
 "user_playlist_setting" }o--|| "user" : ""
 "blocked_label" }o--|| "user" : ""
 "followed_artist_sync_queue" }o--|| "user" : ""
@@ -105,7 +105,7 @@ erDiagram
   bigint deleted "論理削除フラグ(0=有効、1=無効)"
   bigint lock_version "楽観ロックバージョン"
 }
-"user_new_release_notification_queue" {
+"user_new_release_notification_delivery_queue" {
   bigint_unsigned id PK ""
   bigint_unsigned user_new_release_event_id FK "ユーザー別新着リリース履歴ID"
   varchar_255_ release_notification_type "リリース通知種別(PLAYLIST)"

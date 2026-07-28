@@ -43,11 +43,12 @@ class FollowedArtistSyncQueueServiceImpl @Inject() (
           lockToken = lockToken,
           lockedUntil = lockedUntil
         )
-        claimResults.find(!_.claimed).foreach { result =>
-          throw ServiceException.TargetClaimFailed(result.target.id)
+        claimResults.find(!_.claimed) match {
+          case Some(result) =>
+            throw ServiceException.TargetClaimFailed(result.target.id)
+          case None =>
+            claimResults.map(result => toTarget(result.target))
         }
-
-        claimResults.map(result => toTarget(result.target))
       }
     }(using databaseExecutor)
 

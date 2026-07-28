@@ -19,14 +19,14 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
       val artistReleaseSyncQueueJobConfig = result.jobs.artistReleaseSyncQueue
       val artistReleasesSyncJobConfig = result.jobs.artistReleasesSync
       val userNewReleaseEventsSyncJobConfig = result.jobs.userNewReleaseEventsSync
-      val userNewReleaseNotificationDeliveryJobConfig = result.jobs.userNewReleaseNotificationDelivery
+      val userNewReleaseNotificationDeliveryQueueJobConfig = result.jobs.userNewReleaseNotificationDeliveryQueue
       val commonJobConfig: JobConfig = jobConfig
       val followedCommonJobConfig: JobConfig = followedArtistsSyncQueueJobConfig
       val syncCommonJobConfig: JobConfig = followedArtistsSyncJobConfig
       val artistReleaseCommonJobConfig: JobConfig = artistReleaseSyncQueueJobConfig
       val artistReleasesCommonJobConfig: JobConfig = artistReleasesSyncJobConfig
       val userNewReleaseEventsCommonJobConfig: JobConfig = userNewReleaseEventsSyncJobConfig
-      val userNewReleaseNotificationDeliveryCommonJobConfig: JobConfig = userNewReleaseNotificationDeliveryJobConfig
+      val userNewReleaseNotificationDeliveryQueueCommonJobConfig: JobConfig = userNewReleaseNotificationDeliveryQueueJobConfig
 
       assert(executorsConfig.defaultExecutor == DaemonExecutorConfig(2, 1.second))
       assert(executorsConfig.databaseExecutor == DaemonExecutorConfig(16, 1.second))
@@ -67,13 +67,13 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
       assert(userNewReleaseEventsCommonJobConfig.setting.timeout == 5.minutes)
       assert(userNewReleaseEventsCommonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
       assert(userNewReleaseEventsSyncJobConfig.batchSize == 500)
-      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.name == JobName("user-new-release-notification-delivery"))
-      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.enabled)
-      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.schedule == JobSchedule.Every(1.minute))
-      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.timeout == 10.minutes)
-      assert(userNewReleaseNotificationDeliveryCommonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
-      assert(userNewReleaseNotificationDeliveryJobConfig.batchSize == 25)
-      assert(userNewReleaseNotificationDeliveryJobConfig.processingLease == 1.hour)
+      assert(userNewReleaseNotificationDeliveryQueueCommonJobConfig.setting.name == JobName("user-new-release-notification-delivery-queue"))
+      assert(userNewReleaseNotificationDeliveryQueueCommonJobConfig.setting.enabled)
+      assert(userNewReleaseNotificationDeliveryQueueCommonJobConfig.setting.schedule == JobSchedule.Every(1.minute))
+      assert(userNewReleaseNotificationDeliveryQueueCommonJobConfig.setting.timeout == 10.minutes)
+      assert(userNewReleaseNotificationDeliveryQueueCommonJobConfig.setting.retryPolicy == JobRetryPolicy(3, 1.second, 30.seconds, Some(0.2)))
+      assert(userNewReleaseNotificationDeliveryQueueJobConfig.batchSize == 25)
+      assert(userNewReleaseNotificationDeliveryQueueJobConfig.processingLease == 1.hour)
     }
 
     Scenario("Spotify access token refresh job の enabled が false の場合は false として読み込む") {
@@ -167,16 +167,16 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
       }
     }
 
-    Scenario("User new release notification delivery job の batch size が 0 の場合は読み込みを拒否する") {
-      val config = daemonConfig(interval = "60s", timeout = "5m", batchSize = 50, userNewReleaseNotificationDeliveryBatchSize = 0)
+    Scenario("User new release notification delivery queue job の batch size が 0 の場合は読み込みを拒否する") {
+      val config = daemonConfig(interval = "60s", timeout = "5m", batchSize = 50, userNewReleaseNotificationDeliveryQueueBatchSize = 0)
 
       assertThrows[ConfigReaderException[?]] {
         DaemonConfigReader.load(config)
       }
     }
 
-    Scenario("User new release notification delivery job の processing lease が 0 の場合は読み込みを拒否する") {
-      val config = daemonConfig(interval = "60s", timeout = "5m", batchSize = 50, userNewReleaseNotificationDeliveryProcessingLease = "0s")
+    Scenario("User new release notification delivery queue job の processing lease が 0 の場合は読み込みを拒否する") {
+      val config = daemonConfig(interval = "60s", timeout = "5m", batchSize = 50, userNewReleaseNotificationDeliveryQueueProcessingLease = "0s")
 
       assertThrows[ConfigReaderException[?]] {
         DaemonConfigReader.load(config)
@@ -268,8 +268,8 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
       artistReleasesSyncBatchSize: Int = 5,
       artistReleasesSyncProcessingLease: String = "1h",
       userNewReleaseEventsSyncBatchSize: Int = 500,
-      userNewReleaseNotificationDeliveryBatchSize: Int = 25,
-      userNewReleaseNotificationDeliveryProcessingLease: String = "1h",
+      userNewReleaseNotificationDeliveryQueueBatchSize: Int = 25,
+      userNewReleaseNotificationDeliveryQueueProcessingLease: String = "1h",
       spotifyAccessTokenRefreshEnabledConfig: Option[String] = Some("enabled = true"),
       retryConfig: Option[String] = None
   ) = {
@@ -344,13 +344,13 @@ class DaemonConfigReaderSpec extends AnyFeatureSpec {
          |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
          |    batch-size = $userNewReleaseEventsSyncBatchSize
          |  }
-         |  user-new-release-notification-delivery {
+         |  user-new-release-notification-delivery-queue {
          |    enabled = true
          |    interval = 1m
          |    timeout = 10m
          |${resolvedRetryConfig.linesIterator.map(line => s"    $line").mkString("\n")}
-         |    batch-size = $userNewReleaseNotificationDeliveryBatchSize
-         |    processing-lease = $userNewReleaseNotificationDeliveryProcessingLease
+         |    batch-size = $userNewReleaseNotificationDeliveryQueueBatchSize
+         |    processing-lease = $userNewReleaseNotificationDeliveryQueueProcessingLease
          |  }
          |}
          |}

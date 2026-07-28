@@ -163,7 +163,7 @@ docker run --rm \
   --network dachshund-db \
   --volume "${MISE_PROJECT_ROOT}:/work" \
   --workdir /work \
-  ghcr.io/k1low/tbls:latest \
+  ghcr.io/k1low/tbls:v1.95.0 \
   doc --config /work/tbls/tbls.yml --force --rm-dist
 '''
 

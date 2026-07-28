@@ -3,12 +3,12 @@ package io.github.stoneream.dachshund.daemon.module
 import com.google.inject.{AbstractModule, Provides, Singleton}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.github.stoneream.dachshund.config.{ApplicationConfig, ApplicationConfigReader}
-import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, DaemonConfig, DaemonConfigReader, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, SpotifyAccessTokenRefreshJobConfig, UserNewReleaseEventsSyncJobConfig, UserNewReleaseNotificationDeliveryJobConfig}
+import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, DaemonConfig, DaemonConfigReader, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, SpotifyAccessTokenRefreshJobConfig, UserNewReleaseEventsSyncJobConfig, UserNewReleaseNotificationDeliveryQueueJobConfig}
 import io.github.stoneream.dachshund.daemon.job.{JobLoader, JobLoaderImpl, JobRunner, JobRunnerImpl, JobScheduler, JobSchedulerImpl}
 import io.github.stoneream.dachshund.lib.executor.Executors.{DatabaseExecutor, DefaultExecutor, IoDispatcher}
 import io.github.stoneream.dachshund.service.application.artist_release_sync_queue.{ArtistReleaseSyncQueueService, ArtistReleaseSyncQueueServiceImpl}
 import io.github.stoneream.dachshund.service.application.followed_artists_sync_queue.{FollowedArtistSyncQueueService, FollowedArtistSyncQueueServiceImpl}
-import io.github.stoneream.dachshund.service.application.user_new_release_notification_queue.{UserNewReleaseNotificationQueueService, UserNewReleaseNotificationQueueServiceImpl}
+import io.github.stoneream.dachshund.service.application.user_new_release_notification_delivery_queue.{UserNewReleaseNotificationDeliveryQueueService, UserNewReleaseNotificationDeliveryQueueServiceImpl}
 import io.github.stoneream.dachshund.service.spotify.auth.access_token.{SpotifyAuthorizationCodeAccessTokenProvider, SpotifyAuthorizationCodeAccessTokenProviderImpl}
 import io.github.stoneream.dachshund.service.spotify.client.{SpotifyClient, SpotifyClientImpl}
 import io.github.stoneream.dachshund.service.spotify.client_credentials.{SpotifyClientCredentialsAccessTokenProvider, SpotifyClientCredentialsAccessTokenProviderImpl}
@@ -22,7 +22,7 @@ class DaemonModule(
   override def configure(): Unit = {
     bind(classOf[FollowedArtistSyncQueueService]).to(classOf[FollowedArtistSyncQueueServiceImpl])
     bind(classOf[ArtistReleaseSyncQueueService]).to(classOf[ArtistReleaseSyncQueueServiceImpl])
-    bind(classOf[UserNewReleaseNotificationQueueService]).to(classOf[UserNewReleaseNotificationQueueServiceImpl])
+    bind(classOf[UserNewReleaseNotificationDeliveryQueueService]).to(classOf[UserNewReleaseNotificationDeliveryQueueServiceImpl])
     bind(classOf[SpotifyOAuthClient]).to(classOf[SpotifyOAuthClientImpl])
     bind(classOf[SpotifyAuthorizationCodeAccessTokenProvider]).to(classOf[SpotifyAuthorizationCodeAccessTokenProviderImpl])
     bind(classOf[SpotifyClientCredentialsAccessTokenProvider]).to(classOf[SpotifyClientCredentialsAccessTokenProviderImpl])
@@ -89,6 +89,6 @@ class DaemonModule(
 
   @Provides
   @Singleton
-  def provideUserNewReleaseNotificationDeliveryJobConfig(daemonConfig: DaemonConfig): UserNewReleaseNotificationDeliveryJobConfig =
-    daemonConfig.jobs.userNewReleaseNotificationDelivery
+  def provideUserNewReleaseNotificationDeliveryQueueJobConfig(daemonConfig: DaemonConfig): UserNewReleaseNotificationDeliveryQueueJobConfig =
+    daemonConfig.jobs.userNewReleaseNotificationDeliveryQueue
 }

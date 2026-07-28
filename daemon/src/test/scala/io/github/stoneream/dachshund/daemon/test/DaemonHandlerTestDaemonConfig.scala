@@ -1,6 +1,6 @@
 package io.github.stoneream.dachshund.daemon.test
 
-import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, DaemonConfig, DaemonExecutorConfig, DaemonExecutorsConfig, DaemonJobsConfig, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, JobName, JobRetryPolicy, JobSchedule, JobSetting, SpotifyAccessTokenRefreshJobConfig, UserNewReleaseEventsSyncJobConfig, UserNewReleaseNotificationDeliveryJobConfig}
+import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, DaemonConfig, DaemonExecutorConfig, DaemonExecutorsConfig, DaemonJobsConfig, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, JobName, JobRetryPolicy, JobSchedule, JobSetting, SpotifyAccessTokenRefreshJobConfig, UserNewReleaseEventsSyncJobConfig, UserNewReleaseNotificationDeliveryQueueJobConfig}
 
 import scala.concurrent.duration.*
 
@@ -46,8 +46,8 @@ private[test] object DaemonHandlerTestDaemonConfig {
           setting = jobSetting("user-new-release-events-sync"),
           batchSize = 1
         ),
-        userNewReleaseNotificationDelivery = UserNewReleaseNotificationDeliveryJobConfig(
-          setting = jobSetting("user-new-release-notification-delivery"),
+        userNewReleaseNotificationDeliveryQueue = UserNewReleaseNotificationDeliveryQueueJobConfig(
+          setting = jobSetting("user-new-release-notification-delivery-queue"),
           batchSize = 1,
           processingLease = 1.minute
         )

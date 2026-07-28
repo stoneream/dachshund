@@ -14,7 +14,10 @@ object JobStatusFilterParser {
     if (rawValues.isEmpty) {
       QueueJobStatus.values.toSet
     } else {
-      rawValues.map(parseStatus).toSet
+      rawValues.iterator
+        .map(_.trim)
+        .flatMap(QueueJobStatus.fromString)
+        .toSet
     }
   }
 
@@ -34,17 +37,6 @@ object JobStatusFilterParser {
       case Seq(value) => parsePage(value)
       case _ => throw new IllegalArgumentException("page が複数指定されています")
     }
-  }
-
-  private def parseStatus(value: String): QueueJobStatus = {
-    val normalized = value.trim
-    if (normalized.isEmpty) {
-      throw new IllegalArgumentException("status が空です")
-    }
-
-    QueueJobStatus.values
-      .find(_.dbValue == normalized)
-      .getOrElse(throw new IllegalArgumentException(s"status が想定外です: $normalized"))
   }
 
   private def parsePage(value: String): Int = {

@@ -9,7 +9,7 @@ import io.github.stoneream.dachshund.handler.job_status.followed_artists_sync.Fo
 import io.github.stoneream.dachshund.handler.job_status.lib.JobStatusIndexHandler
 import io.github.stoneream.dachshund.handler.job_status.spotify_access_token_refresh.SpotifyAccessTokenRefreshJobStatusHandler
 import io.github.stoneream.dachshund.handler.job_status.user_new_release_events_sync.UserNewReleaseEventsSyncJobStatusHandler
-import io.github.stoneream.dachshund.handler.job_status.user_new_release_notification_delivery.UserNewReleaseNotificationDeliveryJobStatusHandler
+import io.github.stoneream.dachshund.handler.job_status.user_new_release_notification_delivery_queue.UserNewReleaseNotificationDeliveryQueueJobStatusHandler
 import io.github.stoneream.dachshund.handler.lib.PageMeta
 import io.github.stoneream.dachshund.usecase.job_status.context.JobStatusJob
 import play.api.mvc.*
@@ -25,7 +25,7 @@ class JobStatusController @Inject() (
     followedArtistsSyncHandler: FollowedArtistsSyncJobStatusHandler,
     artistReleasesSyncHandler: ArtistReleasesSyncJobStatusHandler,
     userNewReleaseEventsSyncHandler: UserNewReleaseEventsSyncJobStatusHandler,
-    userNewReleaseNotificationDeliveryHandler: UserNewReleaseNotificationDeliveryJobStatusHandler
+    userNewReleaseNotificationDeliveryQueueHandler: UserNewReleaseNotificationDeliveryQueueJobStatusHandler
 ) extends AbstractController(cc)
     with ControllerBaseImpl {
   private given ExecutionContext = cc.executionContext
@@ -44,8 +44,8 @@ class JobStatusController @Inject() (
         handle(artistReleasesSyncHandler)(request)
       case Some(JobStatusJob.UserNewReleaseEventsSync) =>
         handle(userNewReleaseEventsSyncHandler)(request)
-      case Some(JobStatusJob.UserNewReleaseNotificationDelivery) =>
-        handle(userNewReleaseNotificationDeliveryHandler)(request)
+      case Some(JobStatusJob.UserNewReleaseNotificationDeliveryQueue) =>
+        handle(userNewReleaseNotificationDeliveryQueueHandler)(request)
       case None =>
         Future.successful(notFound(jobName))
     }

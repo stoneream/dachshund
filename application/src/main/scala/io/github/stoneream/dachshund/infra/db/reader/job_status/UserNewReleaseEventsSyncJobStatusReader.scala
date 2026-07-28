@@ -85,7 +85,7 @@ class UserNewReleaseEventsSyncJobStatusReader @Inject() () {
         inner join artist_release ar
           on ar.id = e.artist_release_id
           and ar.deleted = 0
-        left join user_new_release_notification_queue q
+        left join user_new_release_notification_delivery_queue q
           on q.user_new_release_event_id = e.id
           and q.deleted = 0
           and exists (

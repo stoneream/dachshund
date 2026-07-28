@@ -1,14 +1,14 @@
 package io.github.stoneream.dachshund.daemon.job
 
 import io.github.stoneream.dachshund.daemon.config.SpotifyAccessTokenRefreshJobConfig
-import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, JobName, JobRetryPolicy, JobSchedule, JobSetting, UserNewReleaseEventsSyncJobConfig, UserNewReleaseNotificationDeliveryJobConfig}
+import io.github.stoneream.dachshund.daemon.config.{ArtistReleaseSyncQueueJobConfig, ArtistReleasesSyncJobConfig, FollowedArtistsSyncJobConfig, FollowedArtistsSyncQueueJobConfig, JobName, JobRetryPolicy, JobSchedule, JobSetting, UserNewReleaseEventsSyncJobConfig, UserNewReleaseNotificationDeliveryQueueJobConfig}
 import io.github.stoneream.dachshund.daemon.handler.spotify.{SpotifyAccessTokenRefreshJob, SpotifyAccessTokenRefreshJobHandler}
 import io.github.stoneream.dachshund.daemon.handler.spotify.artist_release_sync_queue.{ArtistReleaseSyncQueueHandler, ArtistReleaseSyncQueueJob}
 import io.github.stoneream.dachshund.daemon.handler.spotify.artist_releases_sync.{ArtistReleasesSyncHandler, ArtistReleasesSyncJob}
 import io.github.stoneream.dachshund.daemon.handler.spotify.followed_artists_sync.{FollowedArtistsSyncHandler, FollowedArtistsSyncJob}
 import io.github.stoneream.dachshund.daemon.handler.spotify.followed_artists_sync_queue.{FollowedArtistsSyncQueueHandler, FollowedArtistsSyncQueueJob}
 import io.github.stoneream.dachshund.daemon.handler.spotify.user_new_release_events_sync.{UserNewReleaseEventsSyncHandler, UserNewReleaseEventsSyncJob}
-import io.github.stoneream.dachshund.daemon.handler.spotify.user_new_release_notification_delivery.{UserNewReleaseNotificationDeliveryHandler, UserNewReleaseNotificationDeliveryJob}
+import io.github.stoneream.dachshund.daemon.handler.spotify.user_new_release_notification_delivery_queue.{UserNewReleaseNotificationDeliveryQueueHandler, UserNewReleaseNotificationDeliveryQueueJob}
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.featurespec.AnyFeatureSpec
 import zio.{Exit, Runtime, Task, Unsafe}
@@ -25,8 +25,8 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
       val artistReleasesSyncJob = new ArtistReleasesSyncJob(mock[ArtistReleasesSyncHandler], artistReleasesSyncJobConfig)
       val userNewReleaseEventsSyncJob =
         new UserNewReleaseEventsSyncJob(mock[UserNewReleaseEventsSyncHandler], userNewReleaseEventsSyncJobConfig)
-      val userNewReleaseNotificationDeliveryJob =
-        new UserNewReleaseNotificationDeliveryJob(mock[UserNewReleaseNotificationDeliveryHandler], userNewReleaseNotificationDeliveryJobConfig)
+      val userNewReleaseNotificationDeliveryQueueJob =
+        new UserNewReleaseNotificationDeliveryQueueJob(mock[UserNewReleaseNotificationDeliveryQueueHandler], userNewReleaseNotificationDeliveryQueueJobConfig)
       val loader = new JobLoaderImpl(
         spotifyJob,
         followedJob,
@@ -34,7 +34,7 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
         artistReleaseJob,
         artistReleasesSyncJob,
         userNewReleaseEventsSyncJob,
-        userNewReleaseNotificationDeliveryJob
+        userNewReleaseNotificationDeliveryQueueJob
       )
 
       val jobs = unsafeRun(loader.load())
@@ -47,7 +47,7 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
           JobName("artist-release-sync-queue"),
           JobName("artist-releases-sync"),
           JobName("user-new-release-events-sync"),
-          JobName("user-new-release-notification-delivery")
+          JobName("user-new-release-notification-delivery-queue")
         )
       )
     }
@@ -63,8 +63,8 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
       val artistReleasesSyncJob = new ArtistReleasesSyncJob(mock[ArtistReleasesSyncHandler], artistReleasesSyncJobConfig)
       val userNewReleaseEventsSyncJob =
         new UserNewReleaseEventsSyncJob(mock[UserNewReleaseEventsSyncHandler], userNewReleaseEventsSyncJobConfig)
-      val userNewReleaseNotificationDeliveryJob =
-        new UserNewReleaseNotificationDeliveryJob(mock[UserNewReleaseNotificationDeliveryHandler], userNewReleaseNotificationDeliveryJobConfig)
+      val userNewReleaseNotificationDeliveryQueueJob =
+        new UserNewReleaseNotificationDeliveryQueueJob(mock[UserNewReleaseNotificationDeliveryQueueHandler], userNewReleaseNotificationDeliveryQueueJobConfig)
       val loader = new JobLoaderImpl(
         spotifyJob,
         followedJob,
@@ -72,7 +72,7 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
         artistReleaseJob,
         artistReleasesSyncJob,
         userNewReleaseEventsSyncJob,
-        userNewReleaseNotificationDeliveryJob
+        userNewReleaseNotificationDeliveryQueueJob
       )
 
       val jobs = unsafeRun(loader.load())
@@ -84,7 +84,7 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
           JobName("artist-release-sync-queue"),
           JobName("artist-releases-sync"),
           JobName("user-new-release-events-sync"),
-          JobName("user-new-release-notification-delivery")
+          JobName("user-new-release-notification-delivery-queue")
         )
       )
     }
@@ -162,10 +162,10 @@ class JobLoaderImplSpec extends AnyFeatureSpec with IdiomaticMockito {
       batchSize = 500
     )
 
-  private def userNewReleaseNotificationDeliveryJobConfig: UserNewReleaseNotificationDeliveryJobConfig =
-    UserNewReleaseNotificationDeliveryJobConfig(
+  private def userNewReleaseNotificationDeliveryQueueJobConfig: UserNewReleaseNotificationDeliveryQueueJobConfig =
+    UserNewReleaseNotificationDeliveryQueueJobConfig(
       setting = JobSetting(
-        name = JobName("user-new-release-notification-delivery"),
+        name = JobName("user-new-release-notification-delivery-queue"),
         enabled = true,
         schedule = JobSchedule.Every(1.minute),
         timeout = 10.minutes,

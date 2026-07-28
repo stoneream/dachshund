@@ -1,0 +1,3 @@
+package io.github.stoneream.dachshund.usecase.spotify.user_new_release_notification_delivery_queue
+
+final case class UserNewReleaseNotificationDeliveryQueueUseCaseOutput()

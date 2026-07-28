@@ -8,7 +8,7 @@ title: user-new-release-events-sync
 
 `artist-releases-sync` ジョブが取得したアーティストのリリース情報を参照し、各ユーザーがフォローしているアーティストのリリースを新着リリースイベントとして扱えるようにする。
 新着リリースイベントを新規作成できた場合、その時点で新着リリース通知用の playlist 設定が有効なユーザーについて、同じ transaction 内で playlist 通知キューも作成する。
-作成された通知キューは `user-new-release-notification-delivery` ジョブが配信する。
+作成された通知キューは `user-new-release-notification-delivery-queue` ジョブが配信する。
 
 リリース取得は、アーティスト単位で Spotify API からリリース情報を取得する処理である。
 一方、ユーザー別新着リリースイベントの作成は、同期済みのリリース情報をユーザーのフォロー状態やブロック中レーベルと照合する処理である。

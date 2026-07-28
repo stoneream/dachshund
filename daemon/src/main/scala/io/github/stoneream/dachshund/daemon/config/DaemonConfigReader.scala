@@ -19,7 +19,7 @@ object DaemonConfigReader extends Logger {
     val artistReleaseSyncQueue = daemonConfig.jobs.artistReleaseSyncQueue
     val artistReleasesSync = daemonConfig.jobs.artistReleasesSync
     val userNewReleaseEventsSync = daemonConfig.jobs.userNewReleaseEventsSync
-    val userNewReleaseNotificationDelivery = daemonConfig.jobs.userNewReleaseNotificationDelivery
+    val userNewReleaseNotificationDeliveryQueue = daemonConfig.jobs.userNewReleaseNotificationDeliveryQueue
     logger.info(
       "daemon 設定を読み込みました",
       kv("daemon.executors.defaultExecutor.threadCount", executors.defaultExecutor.threadCount),
@@ -70,14 +70,17 @@ object DaemonConfigReader extends Logger {
       kv("daemon.jobs.userNewReleaseEventsSync.retry.baseDelay", userNewReleaseEventsSync.setting.retryPolicy.baseDelay.toString),
       kv("daemon.jobs.userNewReleaseEventsSync.retry.maxDelay", userNewReleaseEventsSync.setting.retryPolicy.maxDelay.toString),
       kv("daemon.jobs.userNewReleaseEventsSync.batchSize", userNewReleaseEventsSync.batchSize),
-      kv("daemon.jobs.userNewReleaseNotificationDelivery.enabled", userNewReleaseNotificationDelivery.setting.enabled),
-      kv("daemon.jobs.userNewReleaseNotificationDelivery.schedule", userNewReleaseNotificationDelivery.setting.schedule.toString),
-      kv("daemon.jobs.userNewReleaseNotificationDelivery.timeout", userNewReleaseNotificationDelivery.setting.timeout.toString),
-      kv("daemon.jobs.userNewReleaseNotificationDelivery.retry.maxAttempts", userNewReleaseNotificationDelivery.setting.retryPolicy.maxAttempts),
-      kv("daemon.jobs.userNewReleaseNotificationDelivery.retry.baseDelay", userNewReleaseNotificationDelivery.setting.retryPolicy.baseDelay.toString),
-      kv("daemon.jobs.userNewReleaseNotificationDelivery.retry.maxDelay", userNewReleaseNotificationDelivery.setting.retryPolicy.maxDelay.toString),
-      kv("daemon.jobs.userNewReleaseNotificationDelivery.batchSize", userNewReleaseNotificationDelivery.batchSize),
-      kv("daemon.jobs.userNewReleaseNotificationDelivery.processingLease", userNewReleaseNotificationDelivery.processingLease.toString)
+      kv("daemon.jobs.userNewReleaseNotificationDeliveryQueue.enabled", userNewReleaseNotificationDeliveryQueue.setting.enabled),
+      kv("daemon.jobs.userNewReleaseNotificationDeliveryQueue.schedule", userNewReleaseNotificationDeliveryQueue.setting.schedule.toString),
+      kv("daemon.jobs.userNewReleaseNotificationDeliveryQueue.timeout", userNewReleaseNotificationDeliveryQueue.setting.timeout.toString),
+      kv("daemon.jobs.userNewReleaseNotificationDeliveryQueue.retry.maxAttempts", userNewReleaseNotificationDeliveryQueue.setting.retryPolicy.maxAttempts),
+      kv(
+        "daemon.jobs.userNewReleaseNotificationDeliveryQueue.retry.baseDelay",
+        userNewReleaseNotificationDeliveryQueue.setting.retryPolicy.baseDelay.toString
+      ),
+      kv("daemon.jobs.userNewReleaseNotificationDeliveryQueue.retry.maxDelay", userNewReleaseNotificationDeliveryQueue.setting.retryPolicy.maxDelay.toString),
+      kv("daemon.jobs.userNewReleaseNotificationDeliveryQueue.batchSize", userNewReleaseNotificationDeliveryQueue.batchSize),
+      kv("daemon.jobs.userNewReleaseNotificationDeliveryQueue.processingLease", userNewReleaseNotificationDeliveryQueue.processingLease.toString)
     )
   }
 }

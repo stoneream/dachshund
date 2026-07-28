@@ -4,6 +4,8 @@ import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.model.QueueJobStatus
 import io.github.stoneream.dachshund.usecase.job_status.context.{JobStatusJob, JobStatusJobOption}
 
+import java.util.Locale
+
 final case class JobStatusDetailPageContext(
     user: JobStatusDetailPageContext.ViewUser,
     currentJob: JobStatusJobOption,
@@ -22,6 +24,7 @@ object JobStatusDetailPageContext {
 
   final case class StatusFilter(
       status: QueueJobStatus,
+      value: String,
       label: String,
       selected: Boolean
   )
@@ -83,6 +86,7 @@ object JobStatusDetailPageContext {
       statusFilters = QueueJobStatus.values.toSeq.map { status =>
         StatusFilter(
           status = status,
+          value = statusValue(status),
           label = statusLabel(status),
           selected = selectedStatuses.contains(status)
         )
@@ -183,10 +187,13 @@ object JobStatusDetailPageContext {
       } else {
         QueueJobStatus.values.toSeq
           .filter(selectedStatuses.contains)
-          .map(status => s"status=${status.dbValue}")
+          .map(status => s"status=${statusValue(status)}")
       }
     val params = statusParams :+ s"page=$page"
 
     s"/job/status/${job.name}?${params.mkString("&")}"
   }
+
+  private def statusValue(status: QueueJobStatus): String =
+    status.toString.toLowerCase(Locale.ROOT)
 }

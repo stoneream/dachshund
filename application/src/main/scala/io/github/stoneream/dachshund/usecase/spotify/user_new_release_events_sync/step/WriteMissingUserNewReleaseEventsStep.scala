@@ -2,12 +2,12 @@ package io.github.stoneream.dachshund.usecase.spotify.user_new_release_events_sy
 
 import com.google.inject.{Inject, Singleton}
 import io.github.stoneream.dachshund.infra.db.AuditUser
-import io.github.stoneream.dachshund.infra.db.ex.UserNewReleaseNotificationQueueDbRowSyntax.*
+import io.github.stoneream.dachshund.infra.db.ex.UserNewReleaseNotificationDeliveryQueueDbRowSyntax.*
 import io.github.stoneream.dachshund.infra.db.ex.UserNewReleaseEventDbRowSyntax.*
-import io.github.stoneream.dachshund.infra.db.ex.{UserNewReleaseEventSource, UserNewReleaseNotificationQueueSource}
+import io.github.stoneream.dachshund.infra.db.ex.{UserNewReleaseEventSource, UserNewReleaseNotificationDeliveryQueueSource}
 import io.github.stoneream.dachshund.infra.db.reader.user_playlist_setting.UserPlaylistSettingReader
 import io.github.stoneream.dachshund.infra.db.transaction.{DatabaseRole, DatabaseTransaction}
-import io.github.stoneream.dachshund.infra.db.writer.{UserNewReleaseEventsWriter, UserNewReleaseNotificationQueueWriter}
+import io.github.stoneream.dachshund.infra.db.writer.{UserNewReleaseEventsWriter, UserNewReleaseNotificationDeliveryQueueWriter}
 import io.github.stoneream.dachshund.lib.datetime.BusinessDateTime
 import io.github.stoneream.dachshund.lib.executor.Executors.DatabaseExecutor
 import io.github.stoneream.dachshund.model.{PlaylistUsageType, QueueJobStatus, ReleaseNotificationType}
@@ -27,7 +27,7 @@ private[user_new_release_events_sync] class WriteMissingUserNewReleaseEventsStep
     databaseTransaction: DatabaseTransaction,
     userNewReleaseEventsWriter: UserNewReleaseEventsWriter,
     userPlaylistSettingReader: UserPlaylistSettingReader,
-    userNewReleaseNotificationQueueWriter: UserNewReleaseNotificationQueueWriter,
+    userNewReleaseNotificationDeliveryQueueWriter: UserNewReleaseNotificationDeliveryQueueWriter,
     databaseExecutor: DatabaseExecutor
 ) {
   def run(
@@ -75,8 +75,8 @@ private[user_new_release_events_sync] class WriteMissingUserNewReleaseEventsStep
         playlistUsageType = PlaylistUsageType.NewReleaseNotification
       )
       .map { playlistSetting =>
-        userNewReleaseNotificationQueueWriter.write(
-          UserNewReleaseNotificationQueueSource(
+        userNewReleaseNotificationDeliveryQueueWriter.write(
+          UserNewReleaseNotificationDeliveryQueueSource(
             userNewReleaseEventId = userNewReleaseEventId,
             releaseNotificationType = ReleaseNotificationType.Playlist,
             playlistSettingId = playlistSetting.id,
@@ -98,7 +98,7 @@ private[user_new_release_events_sync] class WriteMissingUserNewReleaseEventsStep
             deletedUser = AuditUser.Empty,
             deleted = 0L,
             lockVersion = 0L
-          ).toUserNewReleaseNotificationQueueDbRow
+          ).toUserNewReleaseNotificationDeliveryQueueDbRow
         )
       }
       .getOrElse(0)

@@ -41,11 +41,12 @@ private[refresh] class FindSpotifyAuthorizationRefreshTargetsStep @Inject() (
           lockToken = lockToken,
           lockedUntil = lockedUntil
         )
-        claimResults.find(!_.claimed).foreach { result =>
-          throw SpotifyAccessTokenRefreshUseCaseException.RefreshTargetClaimFailed(result.target.queueId)
+        claimResults.find(!_.claimed) match {
+          case Some(result) =>
+            throw SpotifyAccessTokenRefreshUseCaseException.RefreshTargetClaimFailed(result.target.queueId)
+          case None =>
+            claimResults.map(result => toRefreshTarget(result.target))
         }
-
-        claimResults.map(result => toRefreshTarget(result.target))
       }
     }(using databaseExecutor)
   }

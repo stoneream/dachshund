@@ -173,7 +173,7 @@ class UserNewReleaseEventsSyncHandlerSpec extends AnyFeatureSpec with DaemonHand
           q.lock_token,
           q.deleted,
           q.lock_version
-        from user_new_release_notification_queue q
+        from user_new_release_notification_delivery_queue q
           inner join user_new_release_event unre on unre.id = q.user_new_release_event_id
           inner join user u on u.id = unre.user_id
           inner join artist_release ar on ar.id = unre.artist_release_id
