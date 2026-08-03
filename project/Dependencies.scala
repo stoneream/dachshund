@@ -5,7 +5,7 @@ object Dependencies {
   private object versions {
     val jackson2 = "2.17.0"
     val scalafixRules = "0.6.27"
-    val mockitoScala = "2.2.1"
+    val mockitoScala = "2.2.3"
     val caffeine = "3.2.4"
   }
 
@@ -67,7 +67,7 @@ object Dependencies {
   ).flatten
 
   lazy val loggingCore: Seq[ModuleID] = Seq(
-    "ch.qos.logback" % "logback-classic" % "1.5.32",
+    "ch.qos.logback" % "logback-classic" % "1.6.1",
     "net.logstash.logback" % "logstash-logback-encoder" % "9.0"
   )
 
@@ -105,7 +105,7 @@ object Dependencies {
     "org.mockito" %% "mockito-scala-scalatest" % versions.mockitoScala % Test
 
   lazy val logCaptor: Seq[ModuleID] = Seq(
-    "io.github.hakky54" % "logcaptor" % "2.12.5" % Test
+    "io.github.hakky54" % "logcaptor" % "2.12.6" % Test
   )
 
   lazy val playScalaTest: Seq[ModuleID] = Seq(
@@ -121,11 +121,11 @@ object Dependencies {
   )
 
   lazy val hikariCp: Seq[ModuleID] = Seq(
-    "com.zaxxer" % "HikariCP" % "7.0.2"
+    "com.zaxxer" % "HikariCP" % "7.1.0"
   )
 
   lazy val mysqlConnector: Seq[ModuleID] = Seq(
-    "com.mysql" % "mysql-connector-j" % "9.6.0"
+    "com.mysql" % "mysql-connector-j" % "26.7.0"
   )
 
   lazy val pureconfig: Seq[ModuleID] = Seq(
