@@ -12,7 +12,11 @@ if [ "$#" -ne 2 ]; then
 fi
 
 command="$1"
-project_dir="$2"
+if ! project_dir="$(cd "$2" 2>/dev/null && pwd -P)"; then
+  echo "project directory not found: $2" >&2
+  exit 1
+fi
+
 port="${METALS_MCP_PORT:-39000}"
 config_dir="${project_dir}/.codex"
 config_file="${config_dir}/config.toml"
@@ -20,17 +24,9 @@ binary_file="${project_dir}/.coursier/bin/metals-mcp"
 log_dir="${project_dir}/logs"
 log_file="${log_dir}/metals-mcp.log"
 pid_file="${log_dir}/metals-mcp.pid"
-
-ensure_project_dir() {
-  if [ ! -d "${project_dir}" ]; then
-    echo "project directory not found: ${project_dir}" >&2
-    exit 1
-  fi
-}
-
-read_pid_file() {
-  cat "${pid_file}"
-}
+sbt_bsp_file="${project_dir}/.bsp/sbt.json"
+metals_db_file="${project_dir}/.metals/metals.mv.db"
+current_uid="$(id -u)"
 
 is_positive_pid() {
   local pid="$1"
@@ -45,61 +41,62 @@ is_positive_pid() {
   esac
 }
 
-process_cmdline_matches() {
+process_metadata() {
   local pid="$1"
   local cmdline_file="/proc/${pid}/cmdline"
+  local process_uid
+  local arg
+  local previous_arg=""
+  local workspace=""
+  local has_binary=0
+  local has_http_transport=0
+  local has_expected_port=0
 
-  if [ -r "${cmdline_file}" ]; then
-    local arg
-    local previous_arg=""
-    local has_binary=0
-    local has_workspace=0
+  is_positive_pid "${pid}" || return 1
+  [ -r "${cmdline_file}" ] || return 1
 
-    while IFS= read -r -d '' arg; do
-      if [ "${arg}" = "${binary_file}" ]; then
-        has_binary=1
-      fi
-      if [ "${previous_arg}" = "--workspace" ] && [ "${arg}" = "${project_dir}" ]; then
-        has_workspace=1
-      fi
-      previous_arg="${arg}"
-    done <"${cmdline_file}"
+  process_uid="$(stat -c %u "/proc/${pid}" 2>/dev/null)" || return 1
+  [ "${process_uid}" = "${current_uid}" ] || return 1
 
-    [ "${has_binary}" -eq 1 ] && [ "${has_workspace}" -eq 1 ]
-    return
-  fi
+  while IFS= read -r -d '' arg; do
+    if [ "${arg}" = "${binary_file}" ]; then
+      has_binary=1
+    fi
 
-  local args
-  args="$(ps -p "${pid}" -o args= 2>/dev/null || true)"
-  case "${args}" in
-    *"${binary_file}"*"--workspace ${project_dir}"*)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+    if [ "${previous_arg}" = "--workspace" ]; then
+      workspace="${arg}"
+    elif [ "${previous_arg}" = "--transport" ] && [ "${arg}" = "http" ]; then
+      has_http_transport=1
+    elif [ "${previous_arg}" = "--port" ] && [ "${arg}" = "${port}" ]; then
+      has_expected_port=1
+    fi
+
+    previous_arg="${arg}"
+  done <"${cmdline_file}"
+
+  [ "${has_binary}" -eq 1 ] || return 1
+  [ "${has_http_transport}" -eq 1 ] || return 1
+  [ "${has_expected_port}" -eq 1 ] || return 1
+  [ "${workspace}" = "${project_dir}" ] || return 1
+
+  printf '%s\n' "${pid}"
 }
 
-is_expected_metals_mcp_process() {
-  local pid="$1"
-
-  is_positive_pid "${pid}" &&
-    kill -0 "${pid}" 2>/dev/null &&
-    process_cmdline_matches "${pid}"
-}
-
-find_expected_metals_mcp_pid() {
+find_expected_server() {
   local pid
 
   while read -r pid; do
-    if is_expected_metals_mcp_process "${pid}"; then
-      echo "${pid}"
+    if process_metadata "${pid}" >/dev/null; then
+      printf '%s\n' "${pid}"
       return 0
     fi
-  done < <(ps -eo pid= 2>/dev/null || true)
+  done < <(pgrep -u "${current_uid}" -f metals-mcp 2>/dev/null || true)
 
   return 1
+}
+
+port_is_listening() {
+  [ -n "$(ss -H -ltn "sport = :${port}" 2>/dev/null)" ]
 }
 
 write_tool_approval_config() {
@@ -138,7 +135,6 @@ EOF
 }
 
 write_config() {
-  ensure_project_dir
   mkdir -p "${config_dir}"
   cat >"${config_file}" <<EOF
 [sandbox_workspace_write]
@@ -154,100 +150,114 @@ EOF
   echo "generated: ${config_file} (metals_mcp: http://127.0.0.1:${port}/mcp)"
 }
 
-start_server() {
-  ensure_project_dir
-
-  mkdir -p "${log_dir}"
-
-  if [ -f "${pid_file}" ]; then
-    pid="$(read_pid_file)"
-    if is_expected_metals_mcp_process "${pid}"; then
-      echo "Metals MCP is already running (pid: ${pid}, port: ${port})"
-      exit 0
-    fi
-    rm -f "${pid_file}"
+prepare_bloop() {
+  if [ ! -f "${sbt_bsp_file}" ]; then
+    return 0
   fi
 
-  if pid="$(find_expected_metals_mcp_pid)"; then
-    echo "${pid}" >"${pid_file}"
-    echo "Metals MCP is already running (pid: ${pid}, port: ${port})"
-    exit 0
-  fi
-
-  write_config
-
-  if [ ! -x "${binary_file}" ]; then
-    echo "metals-mcp が見つかりません。mise metals-mcp-install を実行してください。" >&2
-    exit 1
-  fi
-
-  PATH="${project_dir}/.coursier/bin:${PATH}" nohup "${binary_file}" \
-    --workspace "${project_dir}" \
-    --transport http \
-    --port "${port}" \
-    --default-bsp-to-build-tool \
-    >"${log_file}" 2>&1 &
-
-  pid="$!"
-  echo "${pid}" >"${pid_file}"
-  sleep 2
-
-  if is_expected_metals_mcp_process "${pid}"; then
-    echo "Metals MCP started (pid: ${pid}, port: ${port})"
-    echo "log: ${log_file}"
-  else
-    rm -f "${pid_file}"
-    echo "Metals MCP failed to start. See ${log_file}" >&2
-    exit 1
-  fi
+  rm -f "${sbt_bsp_file}" "${metals_db_file}"
+  echo "Removed generated sbt BSP selection; Metals will import the build for Bloop."
 }
 
-stop_server() {
-  if [ ! -f "${pid_file}" ]; then
-    echo "Metals MCP is not running"
-    exit 0
-  fi
+stop_managed_process() {
+  local pid="$1"
 
-  pid="$(read_pid_file)"
-  if ! is_positive_pid "${pid}"; then
-    rm -f "${pid_file}"
-    echo "Removed invalid Metals MCP pid file"
-    exit 0
-  fi
-
-  if ! kill -0 "${pid}" 2>/dev/null; then
-    rm -f "${pid_file}"
-    echo "Removed stale Metals MCP pid file (pid: ${pid})"
-    exit 0
-  fi
-
-  if ! process_cmdline_matches "${pid}"; then
-    rm -f "${pid_file}"
-    echo "Removed stale Metals MCP pid file (pid belongs to another process: ${pid})"
-    exit 0
+  if ! process_metadata "${pid}" >/dev/null; then
+    echo "Metals MCP process changed before it could be stopped (pid: ${pid})" >&2
+    return 1
   fi
 
   kill "${pid}"
-  for _ in 1 2 3 4 5; do
-    if ! is_expected_metals_mcp_process "${pid}"; then
-      break
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    if ! kill -0 "${pid}" 2>/dev/null; then
+      return 0
     fi
     sleep 1
   done
 
-  if is_expected_metals_mcp_process "${pid}"; then
-    echo "Metals MCP did not stop within 5 seconds (pid: ${pid})" >&2
-    exit 1
+  echo "Metals MCP did not stop within 10 seconds (pid: ${pid})" >&2
+  return 1
+}
+
+start_server() {
+  local pid
+
+  mkdir -p "${log_dir}"
+
+  if pid="$(find_expected_server)"; then
+    printf '%s\n' "${pid}" >"${pid_file}"
+    echo "Metals MCP is already running (pid: ${pid}, workspace: ${project_dir}, port: ${port})"
+    return 0
+  fi
+
+  if port_is_listening; then
+    echo "Port ${port} is already in use; no process was stopped." >&2
+    return 1
   fi
 
   rm -f "${pid_file}"
-  echo "Metals MCP stopped (pid: ${pid})"
+  write_config
+
+  if [ ! -x "${binary_file}" ]; then
+    echo "metals-mcp が見つかりません。mise metals-mcp-install を実行してください。" >&2
+    return 1
+  fi
+
+  if ! command -v setsid >/dev/null 2>&1; then
+    echo "setsid が見つかりません。バックグラウンド起動を安全に分離できません。" >&2
+    return 1
+  fi
+
+  prepare_bloop
+
+  PATH="${project_dir}/.coursier/bin:${PATH}" nohup setsid -f "${binary_file}" \
+    --workspace "${project_dir}" \
+    --transport http \
+    --port "${port}" \
+    </dev/null \
+    >"${log_file}" 2>&1 &
+
+  printf '%s\n' "$!" >"${pid_file}"
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    if pid="$(find_expected_server)" && port_is_listening; then
+      printf '%s\n' "${pid}" >"${pid_file}"
+      echo "Metals MCP started (pid: ${pid}, workspace: ${project_dir}, port: ${port})"
+      echo "log: ${log_file}"
+      return 0
+    fi
+
+    sleep 1
+  done
+
+  if pid="$(find_expected_server)"; then
+    stop_managed_process "${pid}" || true
+  fi
+  rm -f "${pid_file}"
+  echo "Metals MCP did not listen on port ${port} within 10 seconds. See ${log_file}" >&2
+  return 1
+}
+
+stop_server() {
+  local pid
+
+  if ! pid="$(find_expected_server)"; then
+    rm -f "${pid_file}"
+    echo "Metals MCP is not running for workspace: ${project_dir}"
+    return 0
+  fi
+
+  stop_managed_process "${pid}"
+  rm -f "${pid_file}"
+  echo "Metals MCP stopped (pid: ${pid}, workspace: ${project_dir})"
 }
 
 status_server() {
-  ensure_project_dir
+  local pid
+
   echo "Metals MCP"
   echo "  port: ${port}"
+  echo "  workspace: ${project_dir}"
+  echo "  build server: Bloop"
 
   if [ -x "${binary_file}" ]; then
     echo "  binary: ${binary_file}"
@@ -265,15 +275,10 @@ status_server() {
     echo "  config: missing (${config_file})"
   fi
 
-  if [ -f "${pid_file}" ]; then
-    pid="$(read_pid_file)"
-    if is_expected_metals_mcp_process "${pid}"; then
-      echo "  process: running (pid: ${pid})"
-    elif ! is_positive_pid "${pid}"; then
-      echo "  process: not running (invalid pid file: ${pid_file})"
-    else
-      echo "  process: not running (stale pid file: ${pid_file})"
-    fi
+  if pid="$(find_expected_server)"; then
+    echo "  process: running (pid: ${pid})"
+  elif port_is_listening; then
+    echo "  process: port ${port} is used by another process"
   else
     echo "  process: not running"
   fi
