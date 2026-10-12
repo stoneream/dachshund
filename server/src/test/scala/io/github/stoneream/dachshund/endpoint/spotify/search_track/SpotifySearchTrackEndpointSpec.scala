@@ -131,7 +131,8 @@ class SpotifySearchTrackEndpointSpec extends AnyFeatureSpec with PlayApplication
       val result = route(app, request(session, Some("track"))).value
       val html = contentAsString(result)
       assert(status(result) == OK)
-      assert(html.contains(s"href=\"/spotify/track/detail/$trackId\">詳細あり</a>"))
+      val detailLink = s"""<a\\b[^>]*\\bhref="/spotify/track/detail/$trackId"[^>]*>\\s*詳細あり\\s*</a\\s*>""".r
+      assert(detailLink.findFirstIn(html).nonEmpty)
       assert(html.contains("<span class=\"release-title\">IDなし</span>"))
     }
 

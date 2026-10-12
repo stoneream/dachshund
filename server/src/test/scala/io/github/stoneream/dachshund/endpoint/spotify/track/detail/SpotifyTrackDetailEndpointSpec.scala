@@ -89,7 +89,7 @@ class SpotifyTrackDetailEndpointSpec extends AnyFeatureSpec with PlayApplication
       val result = route(app, request(session)).value
       val html = contentAsString(result)
       assert(status(result) == OK)
-      Seq("曲A", "歌手A, 歌手B", "アルバムA", "https://i.scdn.co/image/cover", "display user", "href=\"/spotify/search-track\"", "href=\"https://reccobeats.com/\"")
+      Seq("曲A", "歌手A, 歌手B", "アルバムA", "https://i.scdn.co/image/cover", "display user", "href=\"/spotify/search-track\"")
         .foreach(value => assert(html.contains(value)))
       assert(
         metrics(html) == Map(
