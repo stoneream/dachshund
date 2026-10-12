@@ -36,6 +36,7 @@ flowchart TD
 | `GET` | `/spotify/auth/login` | Spotify 認可を開始する。             |
 | `GET` | `/spotify/auth/callback` | Spotify 認可 callback を処理する。   |
 | `GET` | `/spotify/search-track` | Spotify の楽曲を検索する。 |
+| `GET` | `/spotify/track/detail/<track_id>` | [楽曲の基本情報と音響指標](spotify-track-detail.md)を表示する。 |
 | `GET` | `/user-settings` | ユーザー設定を表示する。             |
 | `POST` | `/user-settings` | ユーザー設定を保存する。             |
 

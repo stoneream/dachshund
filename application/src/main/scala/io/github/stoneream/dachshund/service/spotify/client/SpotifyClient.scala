@@ -1,6 +1,7 @@
 package io.github.stoneream.dachshund.service.spotify.client
 
 import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_track.model.SpotifyTrackDetail
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_search_track.model.SpotifyTrackSearchPage
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyArtistReleaseSummaryPage}
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_followed_artist.model.SpotifyFollowedArtistsPage
@@ -9,6 +10,8 @@ import io.github.stoneream.dachshund.service.spotify.client.api.spotify_playlist
 import scala.concurrent.Future
 
 trait SpotifyClient {
+  def getTrack(accessToken: String, trackId: String)(using LoggingContext): Future[Option[SpotifyTrackDetail]]
+
   def searchTracks(
       accessToken: String,
       query: String,

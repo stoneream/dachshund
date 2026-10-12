@@ -16,6 +16,7 @@ import io.github.stoneream.dachshund.service.spotify.auth.access_token.SpotifyAu
 import io.github.stoneream.dachshund.service.spotify.auth.access_token.{SpotifyAuthorizationCodeAccessTokenProvider, SpotifyAuthorizationCodeAccessTokenResolveInput}
 import io.github.stoneream.dachshund.service.spotify.client.{SpotifyClient, SpotifyClientException}
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_search_track.model.SpotifyTrackSearchPage
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_track.model.SpotifyTrackDetail
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyArtistReleaseSummaryPage}
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_followed_artist.model.SpotifyFollowedArtistsPage
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_playlist.model.{SpotifyAddItemsToPlaylistResult, SpotifyCreatePlaylistResult, SpotifyPlaylist, SpotifyPlaylistPage}
@@ -375,6 +376,9 @@ class UserSettingsEndpointSpec extends AnyFeatureSpec with PlayApplicationDataba
   }
 
   private final class RecordingSpotifyClient extends SpotifyClient {
+    override def getTrack(accessToken: String, trackId: String)(using LoggingContext): Future[Option[SpotifyTrackDetail]] =
+      Future.failed(new AssertionError("getTrack must not be called"))
+
     override def searchTracks(accessToken: String, query: String, limit: Int, offset: Int)(using LoggingContext): Future[SpotifyTrackSearchPage] =
       Future.failed(new AssertionError("searchTracks must not be called"))
 

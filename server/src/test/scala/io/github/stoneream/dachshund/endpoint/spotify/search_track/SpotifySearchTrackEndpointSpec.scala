@@ -79,7 +79,6 @@ class SpotifySearchTrackEndpointSpec extends AnyFeatureSpec with PlayApplication
         val result = route(app, request(session, query)).value
         val html = contentAsString(result)
         assert(status(result) == OK)
-        assert(html.contains("キーワードを入力して楽曲を検索してください。"))
         assert(html.contains("display user"))
         assert(!html.contains("該当する楽曲はありません。"))
       }
@@ -112,6 +111,28 @@ class SpotifySearchTrackEndpointSpec extends AnyFeatureSpec with PlayApplication
       assert(linkQuery(html, "next") == Map("q" -> query, "offset" -> "10"))
       verify(tokenProvider).resolve(eqTo(SpotifyAuthorizationCodeAccessTokenResolveInput(userId, fixedNow)))(using any[LoggingContext])
       verify(spotifyClient).searchTracks(eqTo("user-token"), eqTo(query), eqTo(10), eqTo(0))(using any[LoggingContext])
+    }
+
+    Scenario("検索結果の曲名から詳細へ進めるが ID のない楽曲はリンクにしない") {
+      val (_, session) = loggedInSession()
+      val trackId = "4uLU6hMCjMI75M1A2tKUQC"
+      stubPage(
+        SpotifyTrackSearchPage(
+          Seq(
+            SpotifyTrackSearchItem(trackId, "詳細あり", Seq.empty, "album", None),
+            SpotifyTrackSearchItem("", "IDなし", Seq.empty, "album", None)
+          ),
+          2,
+          0,
+          10,
+          None
+        )
+      )
+      val result = route(app, request(session, Some("track"))).value
+      val html = contentAsString(result)
+      assert(status(result) == OK)
+      assert(html.contains(s"href=\"/spotify/track/detail/$trackId\">詳細あり</a>"))
+      assert(html.contains("<span class=\"release-title\">IDなし</span>"))
     }
 
     Scenario("途中のページでは検索語を保って前後へ移動できる") {
@@ -214,7 +235,6 @@ class SpotifySearchTrackEndpointSpec extends AnyFeatureSpec with PlayApplication
         assert(contentAsString(result).contains("混み合っています"))
         assert(contentAsString(result).contains("value=\"探したい曲\""))
         assert(contentAsString(result).contains("display user"))
-        assert(!contentAsString(result).contains("キーワードを入力して楽曲を検索してください。"))
         assert(!contentAsString(result).contains("provider-secret"))
       }
       verify(spotifyClient, times(2)).searchTracks(anyString(), anyString(), anyInt(), anyInt())(using any[LoggingContext])
@@ -243,7 +263,6 @@ class SpotifySearchTrackEndpointSpec extends AnyFeatureSpec with PlayApplication
           assert(contentAsString(result).contains("楽曲を検索できませんでした。"))
           assert(contentAsString(result).contains("value=\"探したい曲\""))
           assert(contentAsString(result).contains("display user"))
-          assert(!contentAsString(result).contains("キーワードを入力して楽曲を検索してください。"))
           assert(!contentAsString(result).contains("provider-secret"))
         }
       verify(spotifyClient, times(2)).searchTracks(anyString(), anyString(), anyInt(), anyInt())(using any[LoggingContext])

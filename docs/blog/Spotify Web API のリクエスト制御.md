@@ -14,10 +14,12 @@ title: Spotify Web API のリクエスト制御
 - `client.api.spotify_artist_release.SpotifyArtistReleasesApi`: アーティストリリースの一覧、詳細、track page の取得
 - `client.api.spotify_playlist.SpotifyPlaylistApi`: playlist の一覧、作成、unfollow、track 追加
 - `client.api.spotify_search_track.SpotifySearchTracksApi`: 楽曲検索と検索結果のページ情報の取得
+- `client.api.spotify_track.SpotifyTracksApi`: 楽曲の基本情報の取得
 
 API ごとの application model は各 API package の `model` に置く。
 Spotify SDK と sttp の違い、リクエスト開始前の制御、実行時間のログ、HTTP status と SDK 例外の分類は `client.lib.SpotifyRequestExecutor` に閉じる。
 Artist Release の SDK model から application model への純粋な変換は `client.api.spotify_artist_release.SpotifyArtistReleaseMapper` が担当する。
+楽曲詳細の 404 は `SpotifyTracksApi` 内で `None` に変換する。
 
 機能別 API と共通実行基盤は `service.spotify.client` package 内だけで利用し、HTTP client、SDK、レスポンス decode の詳細を UseCase へ公開しない。
 
