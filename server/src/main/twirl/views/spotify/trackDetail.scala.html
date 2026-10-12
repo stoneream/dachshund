@@ -1,0 +1,33 @@
+@import io.github.stoneream.dachshund.service.spotify.client.api.spotify_track.model.SpotifyTrackDetail
+
+@(displayName: String, track: Option[SpotifyTrackDetail], metrics: Seq[(String, String)], notice: Option[String], errorMessage: Option[String])
+
+@views.html.common.siteHeader(Some(displayName), "/spotify/search-track")
+<main class="page-shell">
+    <section class="home-panel">
+        <h1>Track detail</h1>
+        @for(message <- errorMessage) {
+            <p class="flash-message is-error" role="alert">@message</p>
+        }
+        @for(detail <- track) {
+            <div class="track-detail-summary">
+                @for(url <- detail.imageUrl) {
+                    <img class="track-detail-artwork" src="@url" alt="" referrerpolicy="no-referrer">
+                }
+                <div>
+                    <h2>@detail.trackName</h2>
+                    <p>@detail.artistNames.mkString(", ")</p>
+                    <p>@detail.albumName</p>
+                </div>
+            </div>
+            @for(message <- notice) {
+                <p class="flash-message" role="status">@message</p>
+            }
+            <dl class="track-detail-metrics">
+                @for((label, value) <- metrics) {
+                    <div><dt>@label</dt><dd>@value</dd></div>
+                }
+            </dl>
+        }
+    </section>
+</main>

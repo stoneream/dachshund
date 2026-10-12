@@ -1,6 +1,6 @@
 package io.github.stoneream.dachshund.route
 
-import io.github.stoneream.dachshund.controller.{HomeController, JobStatusController, SpotifyAuthController, SpotifySearchTrackController, UserSettingsController}
+import io.github.stoneream.dachshund.controller.{HomeController, JobStatusController, SpotifyAuthController, SpotifySearchTrackController, SpotifyTrackDetailController, UserSettingsController}
 import play.api.routing.Router.Routes
 import play.api.routing.SimpleRouter
 import play.api.routing.sird.*
@@ -12,7 +12,8 @@ class Root @Inject() (
     spotifyAuthController: SpotifyAuthController,
     userSettingsController: UserSettingsController,
     jobStatusController: JobStatusController,
-    spotifySearchTrackController: SpotifySearchTrackController
+    spotifySearchTrackController: SpotifySearchTrackController,
+    spotifyTrackDetailController: SpotifyTrackDetailController
 ) extends SimpleRouter {
   override def routes: Routes = {
     case GET(p"/") =>
@@ -29,6 +30,8 @@ class Root @Inject() (
       spotifyAuthController.login()
     case GET(p"/spotify/search-track") =>
       spotifySearchTrackController.spotifySearchTrack()
+    case GET(p"/spotify/track/detail/$trackId") =>
+      spotifyTrackDetailController.spotifyTrackDetail(trackId)
     case GET(p"/spotify/auth/callback") =>
       spotifyAuthController.callback()
   }

@@ -164,6 +164,46 @@ h1 {
   margin-top: 24px;
 }
 
+.track-detail-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+  margin-top: 24px;
+  overflow-wrap: anywhere;
+}
+
+.track-detail-artwork {
+  width: 160px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.track-detail-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.track-detail-metrics div {
+  border: 1px solid #8996a1;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.track-detail-metrics dt {
+  font-size: 0.9rem;
+}
+
+.track-detail-metrics dd {
+  margin: 8px 0 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
 .settings-panel {
   width: 100%;
   max-width: 760px;
@@ -318,6 +358,11 @@ h1 {
   font-weight: 800;
   overflow-wrap: anywhere;
   text-decoration: none;
+}
+
+.track-detail-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .release-link {

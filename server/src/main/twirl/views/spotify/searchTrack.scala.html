@@ -1,77 +1,86 @@
 @import io.github.stoneream.dachshund.service.spotify.client.api.spotify_search_track.model.SpotifyTrackSearchPage
 @import java.net.URLEncoder
 @import java.nio.charset.StandardCharsets
-
-@(displayName: String, query: String, searchResult: Option[SpotifyTrackSearchPage], errorMessage: Option[String])
-
-@pageUrl(offset: Int) = @{
-    s"/spotify/search-track?q=${URLEncoder.encode(query, StandardCharsets.UTF_8)}&offset=$offset"
-}
-
+@(displayName: String, query: String, searchResult:
+Option[SpotifyTrackSearchPage], errorMessage: Option[String]) @pageUrl(offset:
+Int) = @{ s"/spotify/search-track?q=${URLEncoder.encode(query,
+StandardCharsets.UTF_8)}&offset=$offset" }
 @views.html.common.siteHeader(Some(displayName), "/spotify/search-track")
 <main class="page-shell">
-    <section class="home-panel">
-        <h1>Search tracks</h1>
-        <form class="track-search-form" action="/spotify/search-track" method="get">
-            <label for="track-query">曲名・アーティスト名など</label>
-            <div class="track-search-controls">
-                <input id="track-query" type="search" name="q" value="@query" placeholder="楽曲を検索" aria-label="楽曲の検索キーワード">
-                <button class="primary-action" type="submit">検索</button>
-            </div>
-        </form>
+  <section class="home-panel">
+    <h1>Search tracks</h1>
+    <form class="track-search-form" action="/spotify/search-track" method="get">
+      <label for="track-query">曲名・アーティスト名など</label>
+      <div class="track-search-controls">
+        <input
+          id="track-query"
+          type="search"
+          name="q"
+          value="@query"
+          placeholder="楽曲を検索"
+          aria-label="楽曲の検索キーワード"
+        />
+        <button class="primary-action" type="submit">検索</button>
+      </div>
+    </form>
 
-        @if(errorMessage.nonEmpty) {
-            @for(message <- errorMessage) {
-                <p class="flash-message is-error" role="alert">@message</p>
-            }
-        } else if(searchResult.isEmpty) {
-            <p class="lead">キーワードを入力して楽曲を検索してください。</p>
-        } else {
-            @for(page <- searchResult) {
-                @if(page.tracks.isEmpty) {
-                    <p class="lead">該当する楽曲はありません。</p>
-                } else {
-                    <p class="lead">検索結果: @page.total 件</p>
-                    <div class="release-table-wrap">
-                        <table class="release-table">
-                            <thead>
-                                <tr>
-                                    <th class="release-artwork-heading" scope="col">ジャケット</th>
-                                    <th scope="col">曲名</th>
-                                    <th scope="col">アーティスト</th>
-                                    <th scope="col">アルバム</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for(track <- page.tracks) {
-                                    <tr>
-                                        <td class="release-artwork-cell">
-                                            <span class="release-artwork">
-                                                @for(url <- track.imageUrl) {
-                                                    <img src="@url" alt="" loading="lazy" referrerpolicy="no-referrer">
-                                                }
-                                            </span>
-                                        </td>
-                                        <td><span class="release-title">@track.trackName</span></td>
-                                        <td class="release-artist">@track.artistNames.mkString(", ")</td>
-                                        <td class="release-label">@track.albumName</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+    @if(errorMessage.nonEmpty) { @for(message <- errorMessage) {
+    <p class="flash-message is-error" role="alert">@message</p>
+    } } else { @for(page <- searchResult) { @if(page.tracks.isEmpty) {
+    <p class="lead">該当する楽曲はありません。</p>
+    } else {
+    <p class="lead">検索結果: @page.total 件</p>
+    <div class="release-table-wrap">
+      <table class="release-table">
+        <thead>
+          <tr>
+            <th class="release-artwork-heading" scope="col">ジャケット</th>
+            <th scope="col">曲名</th>
+            <th scope="col">アーティスト</th>
+            <th scope="col">アルバム</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(track <- page.tracks) {
+          <tr>
+            <td class="release-artwork-cell">
+              <span class="release-artwork">
+                @for(url <- track.imageUrl) {
+                <img
+                  src="@url"
+                  alt=""
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                />
                 }
-                @if(page.previousOffset.nonEmpty || page.nextOffset.nonEmpty) {
-                    <nav class="track-search-pagination" aria-label="検索結果のページ送り">
-                        @for(offset <- page.previousOffset) {
-                            <a class="secondary-action" rel="prev" href="@pageUrl(offset)">前へ</a>
-                        }
-                        @for(offset <- page.nextOffset) {
-                            <a class="secondary-action" rel="next" href="@pageUrl(offset)">次へ</a>
-                        }
-                    </nav>
-                }
-            }
-        }
-    </section>
+              </span>
+            </td>
+            <td>
+              @if(track.spotifyTrackCode.nonEmpty) {
+              <a
+                class="release-title track-detail-link"
+                href="/spotify/track/detail/@URLEncoder.encode(track.spotifyTrackCode, StandardCharsets.UTF_8)"
+                >@track.trackName</a
+              >
+              } else {
+              <span class="release-title">@track.trackName</span>
+              }
+            </td>
+            <td class="release-artist">@track.artistNames.mkString(", ")</td>
+            <td class="release-label">@track.albumName</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    } @if(page.previousOffset.nonEmpty || page.nextOffset.nonEmpty) {
+    <nav class="track-search-pagination" aria-label="検索結果のページ送り">
+      @for(offset <- page.previousOffset) {
+      <a class="secondary-action" rel="prev" href="@pageUrl(offset)">前へ</a>
+      } @for(offset <- page.nextOffset) {
+      <a class="secondary-action" rel="next" href="@pageUrl(offset)">次へ</a>
+      }
+    </nav>
+    } } }
+  </section>
 </main>
