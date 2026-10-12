@@ -132,6 +132,38 @@ h1 {
   text-decoration: none;
 }
 
+.track-search-form {
+  display: grid;
+  gap: 8px;
+  max-width: 760px;
+  margin-top: 24px;
+}
+
+.track-search-controls {
+  display: flex;
+  gap: 12px;
+}
+
+.track-search-controls input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid #8996a1;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.track-search-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
 .settings-panel {
   width: 100%;
   max-width: 760px;

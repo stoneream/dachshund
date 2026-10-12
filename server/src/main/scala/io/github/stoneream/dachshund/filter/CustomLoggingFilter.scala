@@ -93,6 +93,7 @@ object CustomLoggingFilter {
     "code",
     "id_token",
     "password",
+    "q",
     "refresh_token",
     "state",
     "token"

@@ -13,6 +13,7 @@ title: Spotify Web API のリクエスト制御
 - `client.api.spotify_followed_artist.SpotifyFollowedArtistsApi`: フォロー中アーティストの取得と cursor 解決
 - `client.api.spotify_artist_release.SpotifyArtistReleasesApi`: アーティストリリースの一覧、詳細、track page の取得
 - `client.api.spotify_playlist.SpotifyPlaylistApi`: playlist の一覧、作成、unfollow、track 追加
+- `client.api.spotify_search_track.SpotifySearchTracksApi`: 楽曲検索と検索結果のページ情報の取得
 
 API ごとの application model は各 API package の `model` に置く。
 Spotify SDK と sttp の違い、リクエスト開始前の制御、実行時間のログ、HTTP status と SDK 例外の分類は `client.lib.SpotifyRequestExecutor` に閉じる。

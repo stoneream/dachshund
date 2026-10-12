@@ -7,6 +7,7 @@ import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.SpotifyArtistReleasesApi
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_followed_artist.SpotifyFollowedArtistsApi
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_playlist.SpotifyPlaylistApi
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_search_track.SpotifySearchTracksApi
 import io.github.stoneream.dachshund.service.spotify.client.lib.{SpotifyRequestExecutor, SpotifyRequestThrottler}
 import io.github.stoneream.dachshund.test.lib.config.TestApplicationConfig
 import org.scalatest.concurrent.ScalaFutures
@@ -97,7 +98,8 @@ class SpotifyClientImplSpec extends AnyFeatureSpec with ScalaFutures {
     new SpotifyClientImpl(
       followedArtistsApi = new SpotifyFollowedArtistsApi(requestExecutor, ioDispatcher),
       artistReleasesApi = new SpotifyArtistReleasesApi(requestExecutor, ioDispatcher),
-      playlistApi = new SpotifyPlaylistApi(config, requestExecutor, ioDispatcher)
+      playlistApi = new SpotifyPlaylistApi(config, requestExecutor, ioDispatcher),
+      searchTracksApi = new SpotifySearchTracksApi(requestExecutor, ioDispatcher)
     )
   }
 

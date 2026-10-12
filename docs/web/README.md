@@ -35,6 +35,7 @@ flowchart TD
 | `GET` | `/job/status/<job-name>` | 指定したジョブの処理状態を表示する。 |
 | `GET` | `/spotify/auth/login` | Spotify 認可を開始する。             |
 | `GET` | `/spotify/auth/callback` | Spotify 認可 callback を処理する。   |
+| `GET` | `/spotify/search-track` | Spotify の楽曲を検索する。 |
 | `GET` | `/user-settings` | ユーザー設定を表示する。             |
 | `POST` | `/user-settings` | ユーザー設定を保存する。             |
 

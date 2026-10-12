@@ -2,6 +2,8 @@ package io.github.stoneream.dachshund.service.spotify.client
 
 import com.google.inject.{Inject, Singleton}
 import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_search_track.SpotifySearchTracksApi
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_search_track.model.SpotifyTrackSearchPage
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.SpotifyArtistReleasesApi
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyArtistReleaseSummaryPage}
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_followed_artist.SpotifyFollowedArtistsApi
@@ -15,8 +17,17 @@ import scala.concurrent.Future
 class SpotifyClientImpl @Inject() (
     followedArtistsApi: SpotifyFollowedArtistsApi,
     artistReleasesApi: SpotifyArtistReleasesApi,
-    playlistApi: SpotifyPlaylistApi
+    playlistApi: SpotifyPlaylistApi,
+    searchTracksApi: SpotifySearchTracksApi
 ) extends SpotifyClient {
+  override def searchTracks(
+      accessToken: String,
+      query: String,
+      limit: Int,
+      offset: Int
+  )(using LoggingContext): Future[SpotifyTrackSearchPage] =
+    searchTracksApi.searchTracks(accessToken, query, limit, offset)
+
   override def getFollowedArtists(
       accessToken: String,
       afterCursor: Option[String],
