@@ -20,7 +20,9 @@ inThisBuild(
   Seq(
     scalaVersion := "3.3.7",
     scalafmtOnCompile := true,
+    javacOptions ++= Seq("--release", "21"),
     scalacOptions ++= Seq(
+      "-release:21",
       "-no-indent",
       "-Yretain-trees",
       "-Wunused:all"
