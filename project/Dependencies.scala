@@ -71,7 +71,7 @@ object Dependencies {
     "net.logstash.logback" % "logstash-logback-encoder" % "9.0"
   )
 
-  lazy val circeVersion = "0.14.15"
+  lazy val circeVersion = "0.14.17"
   lazy val circe: Seq[ModuleID] = Seq(
     "io.circe" %% "circe-core" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
