@@ -125,7 +125,7 @@ object Dependencies {
   )
 
   lazy val mysqlConnector: Seq[ModuleID] = Seq(
-    "com.mysql" % "mysql-connector-j" % "9.6.0"
+    "com.mysql" % "mysql-connector-j" % "9.7.0"
   )
 
   lazy val pureconfig: Seq[ModuleID] = Seq(
