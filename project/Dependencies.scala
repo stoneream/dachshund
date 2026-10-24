@@ -6,7 +6,7 @@ object Dependencies {
     val jackson2 = "2.17.0"
     val scalafixRules = "0.6.27"
     val mockitoScala = "2.2.1"
-    val caffeine = "3.2.4"
+    val caffeine = "3.3.1"
   }
 
   lazy val scalafixRules: ModuleID =
