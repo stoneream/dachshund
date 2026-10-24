@@ -85,7 +85,7 @@ object Dependencies {
   )
 
   lazy val scopt: Seq[ModuleID] = Seq(
-    "com.github.scopt" %% "scopt" % "4.1.0"
+    "com.github.scopt" %% "scopt" % "4.2.0"
   )
 
   lazy val caffeine: Seq[ModuleID] = Seq(
