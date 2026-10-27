@@ -105,7 +105,7 @@ object Dependencies {
     "org.mockito" %% "mockito-scala-scalatest" % versions.mockitoScala % Test
 
   lazy val logCaptor: Seq[ModuleID] = Seq(
-    "io.github.hakky54" % "logcaptor" % "2.12.5" % Test
+    "io.github.hakky54" % "logcaptor" % "2.12.7" % Test
   )
 
   lazy val playScalaTest: Seq[ModuleID] = Seq(
