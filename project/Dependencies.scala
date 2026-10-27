@@ -5,7 +5,7 @@ object Dependencies {
   private object versions {
     val jackson2 = "2.17.0"
     val scalafixRules = "0.6.27"
-    val mockitoScala = "2.2.1"
+    val mockitoScala = "2.2.3"
     val caffeine = "3.2.4"
   }
 
