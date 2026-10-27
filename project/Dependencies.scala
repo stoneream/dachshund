@@ -78,7 +78,7 @@ object Dependencies {
     "io.circe" %% "circe-parser" % circeVersion
   )
 
-  lazy val sttpVersion = "3.10.3"
+  lazy val sttpVersion = "3.11.0"
   lazy val sttp: Seq[ModuleID] = Seq(
     "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
     "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
