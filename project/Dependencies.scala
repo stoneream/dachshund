@@ -129,7 +129,7 @@ object Dependencies {
   )
 
   lazy val pureconfig: Seq[ModuleID] = Seq(
-    "com.github.pureconfig" %% "pureconfig-core" % "0.17.10"
+    "com.github.pureconfig" %% "pureconfig-core" % "0.17.11"
   )
 
   lazy val zioVersion = "2.1.27"
