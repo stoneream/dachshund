@@ -121,7 +121,7 @@ object Dependencies {
   )
 
   lazy val hikariCp: Seq[ModuleID] = Seq(
-    "com.zaxxer" % "HikariCP" % "7.0.2"
+    "com.zaxxer" % "HikariCP" % "7.1.0"
   )
 
   lazy val mysqlConnector: Seq[ModuleID] = Seq(
