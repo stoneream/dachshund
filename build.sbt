@@ -18,7 +18,7 @@ inThisBuild(
 
 inThisBuild(
   Seq(
-    scalaVersion := "3.3.8",
+    scalaVersion := "3.10.0",
     scalafmtOnCompile := true,
     javacOptions ++= Seq("--release", "21"),
     scalacOptions ++= Seq(
