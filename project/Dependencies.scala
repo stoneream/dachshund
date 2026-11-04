@@ -93,7 +93,7 @@ object Dependencies {
   )
 
   lazy val spotifyWebApiJava: Seq[ModuleID] = Seq(
-    "se.michaelthelin.spotify" % "spotify-web-api-java" % "9.4.0"
+    "se.michaelthelin.spotify" % "spotify-web-api-java" % "10.0.0"
   )
 
   lazy val scalaTest: Seq[ModuleID] = Seq(
