@@ -85,7 +85,7 @@ object Dependencies {
   )
 
   lazy val scopt: Seq[ModuleID] = Seq(
-    "com.github.scopt" %% "scopt" % "4.1.0"
+    "com.github.scopt" %% "scopt" % "4.2.0"
   )
 
   lazy val caffeine: Seq[ModuleID] = Seq(
@@ -93,7 +93,7 @@ object Dependencies {
   )
 
   lazy val spotifyWebApiJava: Seq[ModuleID] = Seq(
-    "se.michaelthelin.spotify" % "spotify-web-api-java" % "9.4.0"
+    "se.michaelthelin.spotify" % "spotify-web-api-java" % "10.0.0"
   )
 
   lazy val scalaTest: Seq[ModuleID] = Seq(
@@ -125,7 +125,7 @@ object Dependencies {
   )
 
   lazy val mysqlConnector: Seq[ModuleID] = Seq(
-    "com.mysql" % "mysql-connector-j" % "9.6.0"
+    "com.mysql" % "mysql-connector-j" % "26.10.0"
   )
 
   lazy val pureconfig: Seq[ModuleID] = Seq(
