@@ -7,6 +7,14 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Tokyo"
+    # Play 3.0.x and the current build plugins target sbt 1.x.
+    # Upgrade sbt 2 separately when the complete plugin chain supports it.
+    # Spotify SDK 10 removes followed-artist endpoints and release metadata in use.
+    ignore:
+      - dependency-name: "org.scala-sbt:sbt"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "se.michaelthelin.spotify:spotify-web-api-java"
+        update-types: ["version-update:semver-major"]
     groups:
       sbt-dependencies:
         patterns:

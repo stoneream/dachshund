@@ -1,6 +1,6 @@
 package io.github.stoneream.dachshund.daemon.handler.spotify.artist_releases_sync
 
-import com.google.inject.{AbstractModule, Module}
+import com.google.inject.AbstractModule
 import io.github.stoneream.dachshund.daemon.config.ArtistReleasesSyncJobConfig
 import io.github.stoneream.dachshund.daemon.test.DaemonHandlerDatabaseSpecSupport
 import io.github.stoneream.dachshund.infra.db.transaction.DatabaseRole
