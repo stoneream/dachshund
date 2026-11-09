@@ -1,7 +1,7 @@
 package io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release
 
 import com.google.inject.{Inject, Singleton}
-import com.neovisionaries.i18n.CountryCode
+import se.michaelthelin.spotify.enums.CountryCode
 import io.github.stoneream.dachshund.lib.executor.Executors.IoDispatcher
 import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyArtistReleaseSummaryPage}
@@ -100,7 +100,7 @@ private[client] class SpotifyArtistReleasesApi @Inject() (
         Future.successful(accumulated)
       } else {
         val builder = spotifyApi
-          .getAlbumsTracks(album.getId)
+          .getAlbumTracks(album.getId)
           .limit(50)
           .offset(nextPageOffset(currentPage))
         market.foreach(value => builder.market(countryCode(value)))
@@ -135,6 +135,6 @@ private[client] class SpotifyArtistReleasesApi @Inject() (
       Option(paging.getLimit).map(_.toInt).getOrElse(pageItems(paging).size)
 
   private def countryCode(value: String): CountryCode =
-    Option(CountryCode.getByCodeIgnoreCase(value.trim))
+    Option(CountryCode.getByCode(value.trim))
       .getOrElse(throw ClientException.InvalidResponse(new IllegalArgumentException(s"invalid Spotify market: $value")))
 }

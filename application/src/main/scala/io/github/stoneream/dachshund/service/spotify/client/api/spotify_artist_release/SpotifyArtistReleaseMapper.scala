@@ -1,6 +1,5 @@
 package io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release
 
-import com.neovisionaries.i18n.CountryCode
 import io.circe.Json
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyImage, SpotifyReleaseTrack}
 import se.michaelthelin.spotify.model_objects.miscellaneous.Restrictions
@@ -9,13 +8,15 @@ import se.michaelthelin.spotify.model_objects.specification.{Album, AlbumSimplif
 import scala.jdk.CollectionConverters.*
 
 private[spotify_artist_release] object SpotifyArtistReleaseMapper {
+  // SDK 10 no longer exposes album_group, available_markets, popularity or linked_from.
+  // Keep these optional application fields absent rather than inventing fallback values.
   def toSummary(summary: AlbumSimplified): Option[SpotifyArtistReleaseSummary] =
     Option(summary.getId).map(_.trim).filter(_.nonEmpty).map { releaseCode =>
       SpotifyArtistReleaseSummary(
         spotifyReleaseCode = releaseCode,
         releaseName = Option(summary.getName).getOrElse(""),
         albumType = Option(summary.getAlbumType).map(_.getType).getOrElse(""),
-        albumGroup = Option(summary.getAlbumGroup).map(_.getGroup),
+        albumGroup = Option.empty[String],
         spotifyReleaseUri = Option(summary.getUri).getOrElse(""),
         spotifyUrl = Option(summary.getExternalUrls).flatMap(spotifyUrl).getOrElse(""),
         href = Option(summary.getHref).getOrElse(""),
@@ -68,10 +69,10 @@ private[spotify_artist_release] object SpotifyArtistReleaseMapper {
       eanCode = externalIds.get("ean"),
       isrcCode = externalIds.get("isrc"),
       copyrightsJson = nonEmptyJsonArray(Option(detail.getCopyrights).map(_.toSeq).getOrElse(Seq.empty).map(copyrightJson)),
-      availableMarketsJson = nonEmptyJsonArray(Option(detail.getAvailableMarkets).map(_.toSeq).getOrElse(Seq.empty).map(countryJson)),
+      availableMarketsJson = Option.empty[String],
       genresJson = nonEmptyJsonArray(Option(detail.getGenres).map(_.toSeq).getOrElse(Seq.empty).map(Json.fromString)),
       restrictionsJson = summary.restrictionsJson,
-      popularity = Option(detail.getPopularity).map(_.toInt),
+      popularity = Option.empty[Int],
       tracks = tracks.flatMap(toReleaseTrack)
     )
   }
@@ -87,17 +88,17 @@ private[spotify_artist_release] object SpotifyArtistReleaseMapper {
         discNumber = Option(track.getDiscNumber).map(_.toInt).getOrElse(0),
         trackNumber = Option(track.getTrackNumber).map(_.toInt).getOrElse(0),
         durationMs = Option(track.getDurationMs).map(_.toInt),
-        explicit = Option(track.getIsExplicit).map(value => booleanLong(value.booleanValue())),
+        explicit = Option(track.getExplicit).map(value => booleanLong(value.booleanValue())),
         isPlayable = Option(track.getIsPlayable).map(value => booleanLong(value.booleanValue())),
         isLocal = Option.empty[Long],
-        linkedFromSpotifyTrackCode = Option(track.getLinkedFrom).flatMap(linkedFrom => Option(linkedFrom.getId)),
-        linkedFromSpotifyTrackUri = Option(track.getLinkedFrom).flatMap(linkedFrom => Option(linkedFrom.getUri)),
+        linkedFromSpotifyTrackCode = Option.empty[String],
+        linkedFromSpotifyTrackUri = Option.empty[String],
         previewUrl = Option(track.getPreviewUrl),
         externalIdsJson = Option.empty[String],
         isrcCode = Option.empty[String],
         eanCode = Option.empty[String],
         upcCode = Option.empty[String],
-        availableMarketsJson = nonEmptyJsonArray(Option(track.getAvailableMarkets).map(_.toSeq).getOrElse(Seq.empty).map(countryJson)),
+        availableMarketsJson = Option.empty[String],
         restrictionsJson = Option.empty[String],
         popularity = Option.empty[Int]
       )
@@ -137,9 +138,6 @@ private[spotify_artist_release] object SpotifyArtistReleaseMapper {
       "text" -> Option(copyright.getText).map(Json.fromString).getOrElse(Json.Null),
       "type" -> Option(copyright.getType).map(value => Json.fromString(value.getType)).getOrElse(Json.Null)
     )
-
-  private def countryJson(countryCode: CountryCode): Json =
-    Json.fromString(countryCode.name())
 
   private def restrictionsJson(restrictions: Restrictions): String =
     Json

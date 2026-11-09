@@ -34,7 +34,7 @@ class SpotifyTracksApiSpec extends AnyFeatureSpec with ScalaFutures {
         assert(track.albumName == "アルバムA")
         assert(track.imageUrl.contains("https://i.scdn.co/image/cover"))
         assert(track.durationMs.contains(180999))
-        assert(track.popularity.contains(42))
+        assert(track.popularity.isEmpty)
         assert(requests.asScala.toSeq == Seq(CapturedRequest(s"/v1/tracks/$trackId", None, "Bearer user-token")))
       }
     }
