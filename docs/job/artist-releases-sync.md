@@ -15,9 +15,6 @@ title: artist-releases-sync
 一覧からはリリース ID と保存に必要な概要だけを取得し、`artist_release` に存在しないリリースだけ詳細と全トラックを追加取得する。
 既存リリースの詳細は再取得しない。
 
-Spotify SDK 10.1.0 では、リリースの album_group・available_markets・popularity と、トラックの available_markets・linked_from を取得できない。
-新規取得時は対応する項目を欠損値（`None`）として扱う。
-
 ## Spotify API のリクエスト制御
 
 このジョブが使用するSpotify Web APIのリクエスト間隔、rate limit、およびバッチ停止時のキュー更新は[Spotify Web APIのリクエスト制御](<../blog/Spotify Web API のリクエスト制御.md>)に従う。

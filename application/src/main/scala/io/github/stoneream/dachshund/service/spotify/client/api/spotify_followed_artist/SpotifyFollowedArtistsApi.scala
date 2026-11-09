@@ -30,7 +30,7 @@ private[client] class SpotifyFollowedArtistsApi @Inject() (
     requestExecutor.recoverFailures {
       val builder = requestExecutor
         .spotifyApi(accessToken)
-        .getFollowedArtists(ModelObjectType.ARTIST)
+        .getUsersFollowedArtists(ModelObjectType.ARTIST)
         .limit(limit)
 
       afterCursor.foreach(builder.after)

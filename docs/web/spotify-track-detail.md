@@ -21,5 +21,4 @@ rate limit で待機時間が得られた場合は、再試行までの秒数を
 ## 補足
 
 基本情報は Spotify、音響指標は ReccoBeats から取得する。
-Spotify SDK 10.1.0 では楽曲の人気度（popularity）を取得できないため、人気度は欠損値として扱い、`—` を表示する。
 採用の背景は [ReccoBeats を利用している経緯](<../blog/ReccoBeats を利用している経緯.md>) を参照。
