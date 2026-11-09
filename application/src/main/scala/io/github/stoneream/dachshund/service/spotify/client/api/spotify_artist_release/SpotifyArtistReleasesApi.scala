@@ -1,6 +1,5 @@
 package io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release
 
-import com.google.gson.{JsonObject, JsonParser}
 import com.google.inject.{Inject, Singleton}
 import se.michaelthelin.spotify.enums.CountryCode
 import io.github.stoneream.dachshund.lib.executor.Executors.IoDispatcher
@@ -9,8 +8,8 @@ import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_r
 import io.github.stoneream.dachshund.service.spotify.client.SpotifyClientException as ClientException
 import io.github.stoneream.dachshund.service.spotify.client.lib.SpotifyRequestExecutor
 import se.michaelthelin.spotify.SpotifyApi
+import se.michaelthelin.spotify.model_objects.specification.{Album, Paging, TrackSimplified}
 
-import scala.jdk.CollectionConverters.*
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -40,7 +39,7 @@ private[client] class SpotifyArtistReleasesApi @Inject() (
 
       requestExecutor
         .executeSdk("api-artist-albums") {
-          JsonParser.parseString(builder.build().getJson()).getAsJsonObject
+          builder.build().execute()
         }
         .map { page =>
           SpotifyArtistReleaseSummaryPage(
@@ -65,7 +64,7 @@ private[client] class SpotifyArtistReleasesApi @Inject() (
             SpotifyArtistReleaseMapper.toRelease(
               sourceSpotifyArtistCode = sourceSpotifyArtistCode,
               summary = summary,
-              detailJson = detail,
+              detail = detail,
               tracks = tracks
             )
           }
@@ -76,39 +75,39 @@ private[client] class SpotifyArtistReleasesApi @Inject() (
       spotifyApi: SpotifyApi,
       releaseCode: String,
       market: Option[String]
-  )(using LoggingContext): Future[JsonObject] = {
+  )(using LoggingContext): Future[Album] = {
     val builder = spotifyApi.getAlbum(releaseCode)
     market.foreach(value => builder.market(countryCode(value)))
 
     requestExecutor.executeSdk("api-album-detail") {
-      JsonParser.parseString(builder.build().getJson()).getAsJsonObject
+      builder.build().execute()
     }
   }
 
   private def getAlbumTracks(
       spotifyApi: SpotifyApi,
-      album: JsonObject,
+      album: Album,
       market: Option[String]
-  )(using LoggingContext): Future[Seq[JsonObject]] = {
-    val firstPage = field(album, "tracks").map(_.getAsJsonObject)
+  )(using LoggingContext): Future[Seq[TrackSimplified]] = {
+    val firstPage = Option(album.getTracks)
     val initialTracks = firstPage.map(pageItems).getOrElse(Seq.empty)
 
     def fetchRemaining(
-        currentPage: JsonObject,
-        accumulated: Seq[JsonObject]
-    ): Future[Seq[JsonObject]] =
+        currentPage: Paging[TrackSimplified],
+        accumulated: Seq[TrackSimplified]
+    ): Future[Seq[TrackSimplified]] =
       if (!hasNextPage(currentPage)) {
         Future.successful(accumulated)
       } else {
         val builder = spotifyApi
-          .getAlbumTracks(album.get("id").getAsString)
+          .getAlbumTracks(album.getId)
           .limit(50)
           .offset(nextPageOffset(currentPage))
         market.foreach(value => builder.market(countryCode(value)))
 
         requestExecutor
           .executeSdk("api-album-tracks") {
-            JsonParser.parseString(builder.build().getJson()).getAsJsonObject
+            builder.build().execute()
           }
           .flatMap(nextPage => fetchRemaining(nextPage, accumulated ++ pageItems(nextPage)))
       }
@@ -119,21 +118,21 @@ private[client] class SpotifyArtistReleasesApi @Inject() (
     }
   }
 
-  private def field(json: JsonObject, name: String): Option[com.google.gson.JsonElement] =
-    Option(json.get(name)).filterNot(_.isJsonNull)
+  private def pageItems[A](paging: Paging[A]): Seq[A] =
+    Option(paging)
+      .flatMap(page => Option(page.getItems))
+      .map(_.toSeq)
+      .getOrElse(Seq.empty)
 
-  private def pageItems(paging: JsonObject): Seq[JsonObject] =
-    field(paging, "items").map(_.getAsJsonArray.asScala.toSeq.map(_.getAsJsonObject)).getOrElse(Seq.empty)
+  private def hasNextPage(paging: Paging[?]): Boolean =
+    Option(paging.getNext).exists(_.trim.nonEmpty)
 
-  private def hasNextPage(paging: JsonObject): Boolean =
-    field(paging, "next").exists(_.getAsString.trim.nonEmpty)
-
-  private def nextOffset(paging: JsonObject): Option[Int] =
+  private def nextOffset(paging: Paging[?]): Option[Int] =
     Option.when(hasNextPage(paging))(nextPageOffset(paging))
 
-  private def nextPageOffset(paging: JsonObject): Int =
-    field(paging, "offset").map(_.getAsInt).getOrElse(0) +
-      field(paging, "limit").map(_.getAsInt).getOrElse(pageItems(paging).size)
+  private def nextPageOffset(paging: Paging[?]): Int =
+    Option(paging.getOffset).map(_.toInt).getOrElse(0) +
+      Option(paging.getLimit).map(_.toInt).getOrElse(pageItems(paging).size)
 
   private def countryCode(value: String): CountryCode =
     Option(CountryCode.getByCode(value.trim))

@@ -5,7 +5,7 @@ import io.github.stoneream.dachshund.service.reccobeats.model.ReccoBeatsAudioFea
 import org.scalatest.featurespec.AnyFeatureSpec
 
 class TrackDetailPresentationSpec extends AnyFeatureSpec {
-  private val track = SpotifyTrackDetail("4uLU6hMCjMI75M1A2tKUQC", "track", Seq.empty, "album", None, Some(180999))
+  private val track = SpotifyTrackDetail("4uLU6hMCjMI75M1A2tKUQC", "track", Seq.empty, "album", None, Some(180999), None)
   private val audio = ReccoBeatsAudioFeatures(None, None, None, None, None, None, None, None, None, None)
 
   Feature("楽曲指標の表示変換") {
@@ -46,13 +46,13 @@ class TrackDetailPresentationSpec extends AnyFeatureSpec {
         assert(TrackDetailPresentation.metrics(track.copy(durationMs = Some(millis)), None).toMap.apply("Duration") == expected)
       }
       val values = TrackDetailPresentation
-        .metrics(track, Some(audio.copy(tempo = Some(99.5), energy = Some(0.625), valence = Some(0), danceability = Some(1))))
+        .metrics(track.copy(popularity = Some(0)), Some(audio.copy(tempo = Some(99.5), energy = Some(0.625), valence = Some(0), danceability = Some(1))))
         .toMap
       assert(values("BPM") == "100")
       assert(values("Energy") == "63%")
       assert(values("Happiness") == "0%")
       assert(values("Danceability") == "100%")
-      assert(!values.contains("Popularity"))
+      assert(values("Popularity") == "0")
       assert(values("Speechiness") == "—")
       assert(TrackDetailPresentation.metrics(track.copy(durationMs = None), None).toMap.values.forall(_ == "—"))
     }

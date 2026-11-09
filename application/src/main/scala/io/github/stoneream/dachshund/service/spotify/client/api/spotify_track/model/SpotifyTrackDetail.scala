@@ -6,5 +6,6 @@ final case class SpotifyTrackDetail(
     artistNames: Seq[String],
     albumName: String,
     imageUrl: Option[String],
-    durationMs: Option[Int]
+    durationMs: Option[Int],
+    popularity: Option[Int]
 )

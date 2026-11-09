@@ -56,7 +56,8 @@ private[client] class SpotifyTracksApi @Inject() (
         .flatMap(_.toSeq)
         .flatMap(image => Option(image).flatMap(i => Option(i.getUrl)))
         .find(_.nonEmpty),
-      durationMs = Option(track.getDurationMs).map(_.toInt).filter(_ >= 0)
+      durationMs = Option(track.getDurationMs).map(_.toInt).filter(_ >= 0),
+      popularity = Option.empty[Int]
     )
   }
 
