@@ -28,7 +28,6 @@ private[detail] object TrackDetailPresentation {
           f"${seconds / 60}%d:${seconds % 60}%02d"
         }
         .getOrElse(Unknown),
-      "Popularity" -> track.popularity.map(_.toString).getOrElse(Unknown),
       "Energy" -> percent(_.energy),
       "Danceability" -> percent(_.danceability),
       "Happiness" -> percent(_.valence),

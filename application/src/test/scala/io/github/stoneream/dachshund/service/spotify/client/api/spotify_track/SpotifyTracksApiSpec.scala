@@ -25,7 +25,7 @@ class SpotifyTracksApiSpec extends AnyFeatureSpec with ScalaFutures {
   Feature("Spotify 楽曲情報 API の SDK 境界") {
     Scenario("Get Track はユーザートークンで取得し market を指定せず表示項目を返す") {
       val body = s"""{"id":"$trackId","name":"曲A","artists":[{"name":"歌手A"},{"name":"歌手B"}],
-        "album":{"name":"アルバムA","images":[{"url":"https://i.scdn.co/image/cover"}]},"duration_ms":180999,"popularity":42}"""
+        "album":{"name":"アルバムA","images":[{"url":"https://i.scdn.co/image/cover"}]},"duration_ms":180999}"""
       withServer(200, body) { (api, requests) =>
         val track = api.getTrack("user-token", trackId).futureValue.get
         assert(track.spotifyTrackCode == trackId)
@@ -34,26 +34,23 @@ class SpotifyTracksApiSpec extends AnyFeatureSpec with ScalaFutures {
         assert(track.albumName == "アルバムA")
         assert(track.imageUrl.contains("https://i.scdn.co/image/cover"))
         assert(track.durationMs.contains(180999))
-        assert(track.popularity.isEmpty)
         assert(requests.asScala.toSeq == Seq(CapturedRequest(s"/v1/tracks/$trackId", None, "Bearer user-token")))
       }
     }
 
-    Scenario("省略された popularity・duration を 0 に変換しない") {
+    Scenario("省略された duration を 0 に変換しない") {
       withServer(200, s"""{"id":"$trackId"}""") { (api, _) =>
         val track = api.getTrack("token", trackId).futureValue.get
         assert(track.durationMs.isEmpty)
-        assert(track.popularity.isEmpty)
         assert(track.imageUrl.isEmpty)
         assert(track.artistNames.isEmpty)
       }
     }
 
     Scenario("範囲外の duration・popularity を欠損として扱う") {
-      withServer(200, s"""{"id":"$trackId","duration_ms":-1,"popularity":101}""") { (api, _) =>
+      withServer(200, s"""{"id":"$trackId","duration_ms":-1}""") { (api, _) =>
         val track = api.getTrack("token", trackId).futureValue.get
         assert(track.durationMs.isEmpty)
-        assert(track.popularity.isEmpty)
       }
     }
 

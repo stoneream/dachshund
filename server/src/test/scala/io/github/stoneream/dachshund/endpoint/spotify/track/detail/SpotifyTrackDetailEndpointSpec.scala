@@ -39,7 +39,7 @@ class SpotifyTrackDetailEndpointSpec extends AnyFeatureSpec with PlayApplication
   private val token = ResolvedSpotifyAuthorizationCodeAccessToken("user-token", "Bearer", "", fixedNow.plus(1.hour))
   private val trackId = "4uLU6hMCjMI75M1A2tKUQC"
   private val path = s"/spotify/track/detail/$trackId"
-  private val track = SpotifyTrackDetail(trackId, "曲A", Seq("歌手A", "歌手B"), "アルバムA", Some("https://i.scdn.co/image/cover"), Some(180999), Some(42))
+  private val track = SpotifyTrackDetail(trackId, "曲A", Seq("歌手A", "歌手B"), "アルバムA", Some("https://i.scdn.co/image/cover"), Some(180999))
   private val features = ReccoBeatsAudioFeatures(Some(7), Some(0), Some(100.5), Some(0.625), Some(0.75), Some(0.5), Some(0), Some(1), Some(0.1), Some(0.2))
 
   override protected lazy val app: Application = GuiceApplicationBuilder()
@@ -84,20 +84,20 @@ class SpotifyTrackDetailEndpointSpec extends AnyFeatureSpec with PlayApplication
       verifyNoInteractions(tokenProvider, spotifyClient, reccoBeatsClient)
     }
 
-    Scenario("基本情報と 12 指標、検索への戻りリンクを表示する") {
+    Scenario("基本情報と 11 指標、検索への戻りリンクを表示する") {
       val (userId, session) = loggedInSession()
       val result = route(app, request(session)).value
       val html = contentAsString(result)
       assert(status(result) == OK)
       Seq("曲A", "歌手A, 歌手B", "アルバムA", "https://i.scdn.co/image/cover", "display user", "href=\"/spotify/search-track\"")
         .foreach(value => assert(html.contains(value)))
+      assert(!html.contains("Popularity"))
       assert(
         metrics(html) == Map(
           "Key" -> "G Minor",
           "Camelot" -> "6A",
           "BPM" -> "101",
           "Duration" -> "3:00",
-          "Popularity" -> "42",
           "Energy" -> "63%",
           "Danceability" -> "75%",
           "Happiness" -> "50%",
@@ -124,13 +124,12 @@ class SpotifyTrackDetailEndpointSpec extends AnyFeatureSpec with PlayApplication
 
     Scenario("欠損指標を 0 にせずダッシュで表示する") {
       val (_, session) = loggedInSession()
-      when(spotifyClient.getTrack(anyString(), anyString())(using any[LoggingContext])).thenReturn(Future.successful(Some(track.copy(popularity = None))))
       when(reccoBeatsClient.getTrackAudioFeatures(anyString())(using any[LoggingContext]))
         .thenReturn(Future.successful(Some(features.copy(key = Some(-1), tempo = None, energy = None))))
       val result = route(app, request(session)).value
       assert(status(result) == OK)
       val values = metrics(contentAsString(result))
-      Seq("Key", "Camelot", "BPM", "Popularity", "Energy").foreach(label => assert(values(label) == "—"))
+      Seq("Key", "Camelot", "BPM", "Energy").foreach(label => assert(values(label) == "—"))
       assert(values("Acousticness") == "0%")
     }
 
@@ -151,7 +150,7 @@ class SpotifyTrackDetailEndpointSpec extends AnyFeatureSpec with PlayApplication
         assert(!html.contains("provider-secret"))
         val values = metrics(html)
         assert(values("Duration") == "3:00")
-        assert(values("Popularity") == "42")
+        assert(!values.contains("Popularity"))
         assert(values.count(_._2 == "—") == 10)
       }
       verify(tokenProvider, times(3)).resolve(eqTo(SpotifyAuthorizationCodeAccessTokenResolveInput(loggedInUserId, fixedNow)))(using any[LoggingContext])
