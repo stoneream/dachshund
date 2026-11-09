@@ -1,0 +1,67 @@
+name: Sync agent skills
+
+on:
+  schedule:
+    # Monday 09:00 JST
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: agents-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          submodules: true
+          persist-credentials: false
+
+      - name: Set up mise
+        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          install: false
+
+      - name: Update ai-dotfiles from main
+        id: source
+        run: |
+          set -euo pipefail
+          echo "before=$(git -C ai-dotfiles rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git -C ai-dotfiles fetch --no-tags https://github.com/stoneream/ai-dotfiles.git main
+          git -C ai-dotfiles checkout --detach FETCH_HEAD
+          echo "after=$(git -C ai-dotfiles rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Sync skills
+        run: mise run --skip-tools agents-sync
+
+      - name: Create or update pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: ${{ github.event.repository.default_branch }}
+          branch: automation/agents-sync
+          delete-branch: true
+          add-paths: |
+            ai-dotfiles
+            .agents/skills
+          commit-message: 'chore: sync agent skills from ai-dotfiles'
+          title: 'chore: sync agent skills from ai-dotfiles'
+          body: |
+            ai-dotfiles の main 最新版からスキルを同期しました。
+
+            - ai-dotfiles の参照と `.agents/skills` を更新します。
+            - 更新前: `${{ steps.source.outputs.before }}`
+            - 更新後: `${{ steps.source.outputs.after }}`
+            - [上流の変更](https://github.com/stoneream/ai-dotfiles/compare/${{ steps.source.outputs.before }}...${{ steps.source.outputs.after }})
