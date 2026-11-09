@@ -45,16 +45,7 @@ mise trust --yes "$repo_dir/.mise.toml"
 mise install --yes --cd "$repo_dir"
 mise reshim --yes --cd "$repo_dir"
 
-mise exec --yes --cd "$repo_dir" -- bash -eu -o pipefail -c 'cd frontend && pnpm install --frozen-lockfile'
-
-mise exec --yes --cd "$repo_dir" -- bash -eu -o pipefail -c '
-mise --version
-java -version
-node --version
-pnpm --version
-just --version
-gh --version | head -n 1
-sbt --script-version
-'
+mise run --yes --cd "$repo_dir" toolchain-check
+mise run --yes --cd "$repo_dir" setup
 
 echo "Codex Cloud setup completed"
