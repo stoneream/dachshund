@@ -4,9 +4,9 @@ object Dependencies {
 
   private object versions {
     val jackson2 = "2.17.0"
-    val scalafixRules = "0.6.27"
-    val mockitoScala = "2.2.1"
-    val caffeine = "3.2.4"
+    val scalafixRules = "0.6.31"
+    val mockitoScala = "2.2.3"
+    val caffeine = "3.3.1"
   }
 
   lazy val scalafixRules: ModuleID =
@@ -67,18 +67,18 @@ object Dependencies {
   ).flatten
 
   lazy val loggingCore: Seq[ModuleID] = Seq(
-    "ch.qos.logback" % "logback-classic" % "1.5.32",
+    "ch.qos.logback" % "logback-classic" % "1.6.6",
     "net.logstash.logback" % "logstash-logback-encoder" % "9.0"
   )
 
-  lazy val circeVersion = "0.14.15"
+  lazy val circeVersion = "0.14.17"
   lazy val circe: Seq[ModuleID] = Seq(
     "io.circe" %% "circe-core" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
     "io.circe" %% "circe-parser" % circeVersion
   )
 
-  lazy val sttpVersion = "3.10.3"
+  lazy val sttpVersion = "3.11.0"
   lazy val sttp: Seq[ModuleID] = Seq(
     "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
     "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
@@ -105,7 +105,7 @@ object Dependencies {
     "org.mockito" %% "mockito-scala-scalatest" % versions.mockitoScala % Test
 
   lazy val logCaptor: Seq[ModuleID] = Seq(
-    "io.github.hakky54" % "logcaptor" % "2.12.5" % Test
+    "io.github.hakky54" % "logcaptor" % "2.13.0" % Test
   )
 
   lazy val playScalaTest: Seq[ModuleID] = Seq(
@@ -121,7 +121,7 @@ object Dependencies {
   )
 
   lazy val hikariCp: Seq[ModuleID] = Seq(
-    "com.zaxxer" % "HikariCP" % "7.0.2"
+    "com.zaxxer" % "HikariCP" % "7.1.0"
   )
 
   lazy val mysqlConnector: Seq[ModuleID] = Seq(
@@ -129,10 +129,10 @@ object Dependencies {
   )
 
   lazy val pureconfig: Seq[ModuleID] = Seq(
-    "com.github.pureconfig" %% "pureconfig-core" % "0.17.10"
+    "com.github.pureconfig" %% "pureconfig-core" % "0.17.11"
   )
 
-  lazy val zioVersion = "2.1.26"
+  lazy val zioVersion = "2.1.27"
   lazy val zio: Seq[ModuleID] = Seq(
     "dev.zio" %% "zio" % zioVersion
   )
