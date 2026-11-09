@@ -1,63 +1,51 @@
 package io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release
 
-import com.google.gson.JsonObject
 import io.circe.Json
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.SpotifyArtistReleaseResponse.*
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyImage, SpotifyReleaseTrack}
-import se.michaelthelin.spotify.model_objects.miscellaneous.Restrictions
-import se.michaelthelin.spotify.model_objects.specification.{Album, AlbumSimplified, Copyright, ExternalId, ExternalUrl, Image, TrackSimplified}
-
-import scala.jdk.CollectionConverters.*
 
 private[spotify_artist_release] object SpotifyArtistReleaseMapper {
-  // Read fields removed from SDK models from the same API response, without extra requests.
-  def toSummary(json: JsonObject): Option[SpotifyArtistReleaseSummary] = {
-    val summary = new AlbumSimplified.JsonUtil().createModelObject(json)
-    Option(summary.getId).map(_.trim).filter(_.nonEmpty).map { releaseCode =>
+  def toSummary(summary: AlbumResponse): Option[SpotifyArtistReleaseSummary] =
+    summary.id.map(_.trim).filter(_.nonEmpty).map { releaseCode =>
       SpotifyArtistReleaseSummary(
         spotifyReleaseCode = releaseCode,
-        releaseName = Option(summary.getName).getOrElse(""),
-        albumType = Option(summary.getAlbumType).map(_.getType).getOrElse(""),
-        albumGroup = stringField(json, "album_group"),
-        spotifyReleaseUri = Option(summary.getUri).getOrElse(""),
-        spotifyUrl = Option(summary.getExternalUrls).flatMap(spotifyUrl).getOrElse(""),
-        href = Option(summary.getHref).getOrElse(""),
-        images = Option(summary.getImages).map(_.toSeq.map(toSpotifyImage)).getOrElse(Seq.empty),
-        releaseDateText = Option(summary.getReleaseDate).getOrElse(""),
-        releaseDatePrecision = Option(summary.getReleaseDatePrecision).map(_.getPrecision).getOrElse(""),
-        restrictionsJson = Option(summary.getRestrictions).map(restrictionsJson)
+        releaseName = summary.name.getOrElse(""),
+        albumType = summary.albumType.getOrElse(""),
+        albumGroup = summary.albumGroup,
+        spotifyReleaseUri = summary.uri.getOrElse(""),
+        spotifyUrl = spotifyUrl(summary.externalUrls).getOrElse(""),
+        href = summary.href.getOrElse(""),
+        images = summary.images.toSeq.flatten.map(toSpotifyImage),
+        releaseDateText = summary.releaseDate.getOrElse(""),
+        releaseDatePrecision = summary.releaseDatePrecision.getOrElse(""),
+        restrictionsJson = summary.restrictions.map(restrictionsJson)
       )
     }
-
-  }
 
   def toRelease(
       sourceSpotifyArtistCode: String,
       summary: SpotifyArtistReleaseSummary,
-      detailJson: JsonObject,
-      tracks: Seq[JsonObject]
+      detail: AlbumResponse,
+      tracks: Seq[TrackResponse]
   ): SpotifyArtistRelease = {
-    val detail = new Album.JsonUtil().createModelObject(detailJson)
-    val images = Option(detail.getImages).map(_.toSeq.map(toSpotifyImage)).getOrElse(summary.images)
+    val images = detail.images.fold(summary.images)(_.map(toSpotifyImage))
     val primaryImage = images.headOption
-    val externalIds = externalIdMap(Option(detail.getExternalIds))
-    val releaseDateText = Option(detail.getReleaseDate).getOrElse(summary.releaseDateText)
-    val releaseDatePrecision = Option(detail.getReleaseDatePrecision)
-      .map(_.getPrecision)
-      .getOrElse(summary.releaseDatePrecision)
-    val totalTracksCount = Some(tracks.size)
-    val albumType = Option(detail.getAlbumType).map(_.getType).getOrElse(summary.albumType)
-    val labelName = Option(detail.getLabel).map(_.trim).filter(_.nonEmpty)
+    val externalIds = detail.externalIds.getOrElse(Map.empty).view.mapValues(_.getOrElse("")).toMap
+    val releaseDateText = detail.releaseDate.getOrElse(summary.releaseDateText)
+    val releaseDatePrecision = detail.releaseDatePrecision.getOrElse(summary.releaseDatePrecision)
+    val albumType = detail.albumType.getOrElse(summary.albumType)
+    val labelName = detail.label.map(_.trim).filter(_.nonEmpty)
 
     SpotifyArtistRelease(
-      spotifyReleaseCode = Option(detail.getId).map(_.trim).filter(_.nonEmpty).getOrElse(summary.spotifyReleaseCode),
+      spotifyReleaseCode = detail.id.map(_.trim).filter(_.nonEmpty).getOrElse(summary.spotifyReleaseCode),
       sourceSpotifyArtistCode = sourceSpotifyArtistCode,
-      releaseName = Option(detail.getName).getOrElse(summary.releaseName),
+      releaseName = detail.name.getOrElse(summary.releaseName),
       releaseType = SpotifyReleaseType.fromAlbumType(albumType),
       albumType = albumType,
       albumGroup = summary.albumGroup,
-      spotifyReleaseUri = Option(detail.getUri).getOrElse(summary.spotifyReleaseUri),
-      spotifyUrl = Option(detail.getExternalUrls).flatMap(spotifyUrl).getOrElse(summary.spotifyUrl),
-      href = Option(detail.getHref).getOrElse(summary.href),
+      spotifyReleaseUri = detail.uri.getOrElse(summary.spotifyReleaseUri),
+      spotifyUrl = spotifyUrl(detail.externalUrls).getOrElse(summary.spotifyUrl),
+      href = detail.href.getOrElse(summary.href),
       primaryImageUrl = primaryImage.map(_.url).getOrElse(""),
       primaryImageHeight = primaryImage.flatMap(_.height),
       primaryImageWidth = primaryImage.flatMap(_.width),
@@ -65,70 +53,51 @@ private[spotify_artist_release] object SpotifyArtistReleaseMapper {
       releaseDateText = releaseDateText,
       releaseDatePrecision = releaseDatePrecision,
       releaseDateAt = SpotifyReleaseDate.releaseDateAt(releaseDateText, releaseDatePrecision),
-      totalTracksCount = totalTracksCount,
+      totalTracksCount = Some(tracks.size),
       labelName = labelName,
       normalizedLabelName = labelName.map(normalizeLabelName),
       externalIdsJson = nonEmptyJsonObject(externalIds),
       upcCode = externalIds.get("upc"),
       eanCode = externalIds.get("ean"),
       isrcCode = externalIds.get("isrc"),
-      copyrightsJson = nonEmptyJsonArray(Option(detail.getCopyrights).map(_.toSeq).getOrElse(Seq.empty).map(copyrightJson)),
-      availableMarketsJson = marketsJson(detailJson),
-      genresJson = nonEmptyJsonArray(Option(detail.getGenres).map(_.toSeq).getOrElse(Seq.empty).map(Json.fromString)),
+      copyrightsJson = nonEmptyJsonArray(detail.copyrights.toSeq.flatten.map(copyrightJson)),
+      availableMarketsJson = nonEmptyJsonArray(detail.availableMarkets.toSeq.flatten.map(Json.fromString)),
+      genresJson = nonEmptyJsonArray(detail.genres.toSeq.flatten.map(Json.fromString)),
       restrictionsJson = summary.restrictionsJson,
-      popularity = field(detailJson, "popularity").map(_.getAsInt),
+      popularity = detail.popularity,
       tracks = tracks.flatMap(toReleaseTrack)
     )
   }
 
-  private def toReleaseTrack(json: JsonObject): Option[SpotifyReleaseTrack] = {
-    val track = new TrackSimplified.JsonUtil().createModelObject(json)
-    Option(track.getId).map(_.trim).filter(_.nonEmpty).map { trackCode =>
+  private def toReleaseTrack(track: TrackResponse): Option[SpotifyReleaseTrack] =
+    track.id.map(_.trim).filter(_.nonEmpty).map { trackCode =>
       SpotifyReleaseTrack(
         spotifyTrackCode = trackCode,
-        trackName = Option(track.getName).getOrElse(""),
-        spotifyTrackUri = Option(track.getUri).getOrElse(""),
-        spotifyUrl = Option(track.getExternalUrls).flatMap(spotifyUrl).getOrElse(""),
-        href = Option(track.getHref).getOrElse(""),
-        discNumber = Option(track.getDiscNumber).map(_.toInt).getOrElse(0),
-        trackNumber = Option(track.getTrackNumber).map(_.toInt).getOrElse(0),
-        durationMs = Option(track.getDurationMs).map(_.toInt),
-        explicit = Option(track.getExplicit).map(value => booleanLong(value.booleanValue())),
-        isPlayable = Option(track.getIsPlayable).map(value => booleanLong(value.booleanValue())),
-        isLocal = Option.empty[Long],
-        linkedFromSpotifyTrackCode = field(json, "linked_from").flatMap(value => stringField(value.getAsJsonObject, "id")),
-        linkedFromSpotifyTrackUri = field(json, "linked_from").flatMap(value => stringField(value.getAsJsonObject, "uri")),
-        previewUrl = Option(track.getPreviewUrl),
-        externalIdsJson = Option.empty[String],
-        isrcCode = Option.empty[String],
-        eanCode = Option.empty[String],
-        upcCode = Option.empty[String],
-        availableMarketsJson = marketsJson(json),
-        restrictionsJson = Option.empty[String],
-        popularity = Option.empty[Int]
+        trackName = track.name.getOrElse(""),
+        spotifyTrackUri = track.uri.getOrElse(""),
+        spotifyUrl = spotifyUrl(track.externalUrls).getOrElse(""),
+        href = track.href.getOrElse(""),
+        discNumber = track.discNumber.getOrElse(0),
+        trackNumber = track.trackNumber.getOrElse(0),
+        durationMs = track.durationMs,
+        explicit = track.explicit.map(booleanLong),
+        isPlayable = track.isPlayable.map(booleanLong),
+        isLocal = None,
+        linkedFromSpotifyTrackCode = track.linkedFrom.flatMap(_.id),
+        linkedFromSpotifyTrackUri = track.linkedFrom.flatMap(_.uri),
+        previewUrl = track.previewUrl,
+        externalIdsJson = None,
+        isrcCode = None,
+        eanCode = None,
+        upcCode = None,
+        availableMarketsJson = nonEmptyJsonArray(track.availableMarkets.toSeq.flatten.map(Json.fromString)),
+        restrictionsJson = None,
+        popularity = None
       )
     }
 
-  }
-
-  private def field(json: JsonObject, name: String): Option[com.google.gson.JsonElement] =
-    Option(json.get(name)).filterNot(_.isJsonNull)
-
-  private def stringField(json: JsonObject, name: String): Option[String] =
-    field(json, name).map(_.getAsString)
-
-  private def marketsJson(json: JsonObject): Option[String] =
-    field(json, "available_markets")
-      .flatMap(value => nonEmptyJsonArray(value.getAsJsonArray.asScala.toSeq.map(code => Json.fromString(code.getAsString))))
-
-  private def spotifyUrl(externalUrl: ExternalUrl): Option[String] =
-    Option(externalUrl.get("spotify")).map(_.trim).filter(_.nonEmpty)
-
-  private def externalIdMap(externalId: Option[ExternalId]): Map[String, String] =
-    externalId
-      .flatMap(value => Option(value.getExternalIds))
-      .map(_.asScala.toMap.view.mapValues(Option(_).getOrElse("")).toMap)
-      .getOrElse(Map.empty)
+  private def spotifyUrl(externalUrls: Option[Map[String, Option[String]]]): Option[String] =
+    externalUrls.flatMap(_.get("spotify").flatten).map(_.trim).filter(_.nonEmpty)
 
   private def normalizeLabelName(labelName: String): String =
     labelName.trim.toLowerCase(java.util.Locale.ROOT).replaceAll("\\s+", " ")
@@ -136,42 +105,30 @@ private[spotify_artist_release] object SpotifyArtistReleaseMapper {
   private def booleanLong(value: Boolean): Long =
     if (value) 1L else 0L
 
-  private def toSpotifyImage(image: Image): SpotifyImage =
-    SpotifyImage(
-      url = Option(image.getUrl).getOrElse(""),
-      height = Option(image.getHeight).map(_.toInt),
-      width = Option(image.getWidth).map(_.toInt)
-    )
+  private def toSpotifyImage(image: ImageResponse): SpotifyImage =
+    SpotifyImage(url = image.url.getOrElse(""), height = image.height, width = image.width)
 
   private def imageJson(image: SpotifyImage): Json =
     Json.obj(
-      "url" -> Option(image.url).map(Json.fromString).getOrElse(Json.Null),
+      "url" -> Json.fromString(image.url),
       "height" -> image.height.map(Json.fromInt).getOrElse(Json.Null),
       "width" -> image.width.map(Json.fromInt).getOrElse(Json.Null)
     )
 
-  private def copyrightJson(copyright: Copyright): Json =
+  private def copyrightJson(copyright: CopyrightResponse): Json =
     Json.obj(
-      "text" -> Option(copyright.getText).map(Json.fromString).getOrElse(Json.Null),
-      "type" -> Option(copyright.getType).map(value => Json.fromString(value.getType)).getOrElse(Json.Null)
+      "text" -> copyright.text.map(Json.fromString).getOrElse(Json.Null),
+      "type" -> copyright.copyrightType.map(Json.fromString).getOrElse(Json.Null)
     )
 
-  private def restrictionsJson(restrictions: Restrictions): String =
-    Json
-      .obj(
-        "reason" -> Option(restrictions.getReason).map(Json.fromString).getOrElse(Json.Null)
-      )
-      .noSpaces
+  private def restrictionsJson(restrictions: RestrictionsResponse): String =
+    Json.obj("reason" -> restrictions.reason.map(Json.fromString).getOrElse(Json.Null)).noSpaces
 
   private def nonEmptyJsonArray(values: Seq[Json]): Option[String] =
     Option.when(values.nonEmpty)(Json.arr(values*).noSpaces)
 
   private def nonEmptyJsonObject(values: Map[String, String]): Option[String] =
     Option.when(values.nonEmpty) {
-      Json
-        .obj(values.toSeq.sortBy(_._1).map { case (key, value) =>
-          key -> Json.fromString(value)
-        }*)
-        .noSpaces
+      Json.obj(values.toSeq.sortBy(_._1).map { case (key, value) => key -> Json.fromString(value) }*).noSpaces
     }
 }

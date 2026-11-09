@@ -1,16 +1,17 @@
 package io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release
 
-import com.google.gson.{JsonObject, JsonParser}
 import com.google.inject.{Inject, Singleton}
-import se.michaelthelin.spotify.enums.CountryCode
+import io.circe.Decoder
+import io.circe.parser.decode
 import io.github.stoneream.dachshund.lib.executor.Executors.IoDispatcher
 import io.github.stoneream.dachshund.logging.TraceLogger.LoggingContext
+import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.SpotifyArtistReleaseResponse.*
 import io.github.stoneream.dachshund.service.spotify.client.api.spotify_artist_release.model.{SpotifyArtistRelease, SpotifyArtistReleaseSummary, SpotifyArtistReleaseSummaryPage}
 import io.github.stoneream.dachshund.service.spotify.client.SpotifyClientException as ClientException
 import io.github.stoneream.dachshund.service.spotify.client.lib.SpotifyRequestExecutor
 import se.michaelthelin.spotify.SpotifyApi
+import se.michaelthelin.spotify.enums.CountryCode
 
-import scala.jdk.CollectionConverters.*
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -40,12 +41,12 @@ private[client] class SpotifyArtistReleasesApi @Inject() (
 
       requestExecutor
         .executeSdk("api-artist-albums") {
-          JsonParser.parseString(builder.build().getJson()).getAsJsonObject
+          decodeResponse[PageResponse[AlbumResponse]](builder.build().getJson())
         }
         .map { page =>
           SpotifyArtistReleaseSummaryPage(
-            releases = pageItems(page).flatMap(SpotifyArtistReleaseMapper.toSummary),
-            nextOffset = nextOffset(page)
+            releases = page.values.flatMap(SpotifyArtistReleaseMapper.toSummary),
+            nextOffset = page.nextOffset
           )
         }
     }
@@ -59,81 +60,52 @@ private[client] class SpotifyArtistReleasesApi @Inject() (
     requestExecutor.recoverFailures {
       val spotifyApi = requestExecutor.spotifyApi(accessToken)
 
-      getAlbum(spotifyApi, summary.spotifyReleaseCode, market)
-        .flatMap(detail =>
-          getAlbumTracks(spotifyApi, detail, market).map { tracks =>
-            SpotifyArtistReleaseMapper.toRelease(
-              sourceSpotifyArtistCode = sourceSpotifyArtistCode,
-              summary = summary,
-              detailJson = detail,
-              tracks = tracks
-            )
-          }
-        )
+      for {
+        detail <- getAlbum(spotifyApi, summary.spotifyReleaseCode, market)
+        tracks <- getAlbumTracks(spotifyApi, detail, market)
+      } yield SpotifyArtistReleaseMapper.toRelease(sourceSpotifyArtistCode, summary, detail, tracks)
     }
 
   private def getAlbum(
       spotifyApi: SpotifyApi,
       releaseCode: String,
       market: Option[String]
-  )(using LoggingContext): Future[JsonObject] = {
+  )(using LoggingContext): Future[AlbumResponse] = {
     val builder = spotifyApi.getAlbum(releaseCode)
     market.foreach(value => builder.market(countryCode(value)))
 
     requestExecutor.executeSdk("api-album-detail") {
-      JsonParser.parseString(builder.build().getJson()).getAsJsonObject
+      decodeResponse[AlbumResponse](builder.build().getJson())
     }
   }
 
   private def getAlbumTracks(
       spotifyApi: SpotifyApi,
-      album: JsonObject,
+      album: AlbumResponse,
       market: Option[String]
-  )(using LoggingContext): Future[Seq[JsonObject]] = {
-    val firstPage = field(album, "tracks").map(_.getAsJsonObject)
-    val initialTracks = firstPage.map(pageItems).getOrElse(Seq.empty)
-
-    def fetchRemaining(
-        currentPage: JsonObject,
-        accumulated: Seq[JsonObject]
-    ): Future[Seq[JsonObject]] =
-      if (!hasNextPage(currentPage)) {
-        Future.successful(accumulated)
-      } else {
-        val builder = spotifyApi
-          .getAlbumTracks(album.get("id").getAsString)
-          .limit(50)
-          .offset(nextPageOffset(currentPage))
-        market.foreach(value => builder.market(countryCode(value)))
-
-        requestExecutor
-          .executeSdk("api-album-tracks") {
-            JsonParser.parseString(builder.build().getJson()).getAsJsonObject
+  )(using LoggingContext): Future[Seq[TrackResponse]] = {
+    def fetchRemaining(page: PageResponse[TrackResponse], accumulated: Seq[TrackResponse]): Future[Seq[TrackResponse]] =
+      page.nextOffset match {
+        case None => Future.successful(accumulated)
+        case Some(offset) =>
+          val releaseCode = album.id.getOrElse {
+            throw ClientException.InvalidResponse(new IllegalStateException("Spotify album response is missing its id"))
           }
-          .flatMap(nextPage => fetchRemaining(nextPage, accumulated ++ pageItems(nextPage)))
+          val builder = spotifyApi.getAlbumTracks(releaseCode).limit(50).offset(offset)
+          market.foreach(value => builder.market(countryCode(value)))
+
+          requestExecutor
+            .executeSdk("api-album-tracks") {
+              decodeResponse[PageResponse[TrackResponse]](builder.build().getJson())
+            }
+            .flatMap(nextPage => fetchRemaining(nextPage, accumulated ++ nextPage.values))
       }
 
-    firstPage match {
-      case Some(page) => fetchRemaining(page, initialTracks)
-      case None => Future.successful(initialTracks)
-    }
+    album.tracks.fold(Future.successful(Seq.empty[TrackResponse]))(page => fetchRemaining(page, page.values))
   }
 
-  private def field(json: JsonObject, name: String): Option[com.google.gson.JsonElement] =
-    Option(json.get(name)).filterNot(_.isJsonNull)
-
-  private def pageItems(paging: JsonObject): Seq[JsonObject] =
-    field(paging, "items").map(_.getAsJsonArray.asScala.toSeq.map(_.getAsJsonObject)).getOrElse(Seq.empty)
-
-  private def hasNextPage(paging: JsonObject): Boolean =
-    field(paging, "next").exists(_.getAsString.trim.nonEmpty)
-
-  private def nextOffset(paging: JsonObject): Option[Int] =
-    Option.when(hasNextPage(paging))(nextPageOffset(paging))
-
-  private def nextPageOffset(paging: JsonObject): Int =
-    field(paging, "offset").map(_.getAsInt).getOrElse(0) +
-      field(paging, "limit").map(_.getAsInt).getOrElse(pageItems(paging).size)
+  private def decodeResponse[A: Decoder](json: String): A =
+    decode[A](json).fold(error => throw ClientException.InvalidResponse(error), identity)
 
   private def countryCode(value: String): CountryCode =
     Option(CountryCode.getByCode(value.trim))

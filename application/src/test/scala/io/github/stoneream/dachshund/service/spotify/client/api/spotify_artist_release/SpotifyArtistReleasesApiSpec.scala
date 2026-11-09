@@ -35,11 +35,13 @@ class SpotifyArtistReleasesApiSpec extends AnyFeatureSpec with ScalaFutures {
         assert(release.tracks.map(_.availableMarketsJson) == Seq(Some("""["JP"]"""), Some("""["US"]""")))
         assert(release.tracks.last.linkedFromSpotifyTrackCode.contains("original-2"))
         assert(release.tracks.last.linkedFromSpotifyTrackUri.contains("spotify:track:original-2"))
-        assert(requests.asScala.toSeq == Seq(
-          "/v1/artists/artist-1/albums" -> Set("include_groups=album%2Csingle", "market=JP", "limit=20", "offset=40"),
-          "/v1/albums/release-1" -> Set("market=JP"),
-          "/v1/albums/release-1/tracks" -> Set("market=JP", "limit=50", "offset=1")
-        ))
+        assert(
+          requests.asScala.toSeq == Seq(
+            "/v1/artists/artist-1/albums" -> Set("include_groups=album%2Csingle", "market=JP", "limit=20", "offset=40"),
+            "/v1/albums/release-1" -> Set("market=JP"),
+            "/v1/albums/release-1/tracks" -> Set("market=JP", "limit=50", "offset=1")
+          )
+        )
       }
     }
 
@@ -58,32 +60,39 @@ class SpotifyArtistReleasesApiSpec extends AnyFeatureSpec with ScalaFutures {
   private def withServer(test: (SpotifyArtistReleasesApi, ConcurrentLinkedQueue[(String, Set[String])]) => Unit): Unit = {
     val requests = new ConcurrentLinkedQueue[(String, Set[String])]()
     val server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
-    server.createContext("/v1/", exchange => {
-      val path = exchange.getRequestURI.getPath
-      val query = Option(exchange.getRequestURI.getRawQuery).map(_.split("&").toSet).getOrElse(Set.empty[String])
-      requests.add(path -> query)
-      val hasMarket = query.contains("market=JP")
-      val body = path match {
-        case "/v1/artists/artist-1/albums" =>
-          """{"items":[{"id":"release-1","album_type":"album","album_group":"appears_on"}],"next":"next","offset":40,"limit":20}"""
-        case "/v1/albums/release-1" if hasMarket =>
-          """{"id":"release-1","available_markets":["JP"],"popularity":80,"tracks":{"items":[{"id":"track-1","available_markets":["JP"]}],"next":"next","offset":0,"limit":1}}"""
-        case "/v1/albums/release-1/tracks" =>
-          """{"items":[{"id":"track-2","available_markets":["US"],"linked_from":{"id":"original-2","uri":"spotify:track:original-2"}}],"next":null}"""
-        case _ => """{"id":"release-1","tracks":{"items":[{"id":"track-1"}],"next":null}}"""
+    server.createContext(
+      "/v1/",
+      exchange => {
+        val path = exchange.getRequestURI.getPath
+        val query = Option(exchange.getRequestURI.getRawQuery).map(_.split("&").toSet).getOrElse(Set.empty[String])
+        requests.add(path -> query)
+        val hasMarket = query.contains("market=JP")
+        val body = path match {
+          case "/v1/artists/artist-1/albums" =>
+            """{"items":[{"id":"release-1","album_type":"album","album_group":"appears_on"}],"next":"next","offset":40,"limit":20}"""
+          case "/v1/albums/release-1" if hasMarket =>
+            """{"id":"release-1","available_markets":["JP"],"popularity":80,"tracks":{"items":[{"id":"track-1","available_markets":["JP"]}],"next":"next","offset":0,"limit":1}}"""
+          case "/v1/albums/release-1/tracks" =>
+            """{"items":[{"id":"track-2","available_markets":["US"],"linked_from":{"id":"original-2","uri":"spotify:track:original-2"}}],"next":null}"""
+          case _ => """{"id":"release-1","tracks":{"items":[{"id":"track-1"}],"next":null}}"""
+        }
+        val bytes = body.getBytes(StandardCharsets.UTF_8)
+        exchange.sendResponseHeaders(200, bytes.length)
+        try exchange.getResponseBody.write(bytes)
+        finally exchange.close()
       }
-      val bytes = body.getBytes(StandardCharsets.UTF_8)
-      exchange.sendResponseHeaders(200, bytes.length)
-      try exchange.getResponseBody.write(bytes)
-      finally exchange.close()
-    })
+    )
     server.start()
     try {
       val base = TestApplicationConfig()
-      val config = base.copy(spotify = base.spotify.copy(client = base.spotify.client.copy(
-        apiBaseUrl = s"http://127.0.0.1:${server.getAddress.getPort}/v1",
-        requestPolicy = SpotifyRequestPolicyConfig(Duration.Zero, 30.seconds)
-      )))
+      val config = base.copy(spotify =
+        base.spotify.copy(client =
+          base.spotify.client.copy(
+            apiBaseUrl = s"http://127.0.0.1:${server.getAddress.getPort}/v1",
+            requestPolicy = SpotifyRequestPolicyConfig(Duration.Zero, 30.seconds)
+          )
+        )
+      )
       val executor = new SpotifyRequestExecutor(config, ioDispatcher, new SpotifyRequestThrottler(config))
       test(new SpotifyArtistReleasesApi(executor, ioDispatcher), requests)
     } finally server.stop(0)
