@@ -14,10 +14,6 @@ coursier = "2.1.24"
 description = "利用可能な mise task を表示"
 run = "mise tasks ls"
 
-[tasks.agents-sync]
-description = ".agents に ai-dotfiles の skills を同期"
-run = 'bash "${MISE_PROJECT_ROOT}/scripts/agents-sync.sh"'
-
 [tasks.toolchain-install]
 description = "開発ツールを mise の定義に従ってインストール"
 run = "mise install"
