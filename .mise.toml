@@ -16,18 +16,7 @@ run = "mise tasks ls"
 
 [tasks.agents-sync]
 description = ".agents に ai-dotfiles の skills を同期"
-run = '''
-#!/usr/bin/env bash
-set -euo pipefail
-
-test -d "${MISE_PROJECT_ROOT}/ai-dotfiles/skills" || {
-  echo "ai-dotfiles/skills が見つかりません。git submodule update --init --recursive を実行してください。" >&2
-  exit 1
-}
-mkdir -p "${MISE_PROJECT_ROOT}/.agents"
-rm -rf "${MISE_PROJECT_ROOT}/.agents/skills"
-cp -a "${MISE_PROJECT_ROOT}/ai-dotfiles/skills" "${MISE_PROJECT_ROOT}/.agents/skills"
-'''
+run = 'bash "${MISE_PROJECT_ROOT}/scripts/agents-sync.sh"'
 
 [tasks.toolchain-install]
 description = "開発ツールを mise の定義に従ってインストール"
