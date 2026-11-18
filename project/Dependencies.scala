@@ -67,7 +67,7 @@ object Dependencies {
   ).flatten
 
   lazy val loggingCore: Seq[ModuleID] = Seq(
-    "ch.qos.logback" % "logback-classic" % "1.6.6",
+    "ch.qos.logback" % "logback-classic" % "1.6.7",
     "net.logstash.logback" % "logstash-logback-encoder" % "9.0"
   )
 
