@@ -57,7 +57,7 @@ jobs:
           git push origin "refs/tags/${RELEASE_TAG}"
 
       - name: Set up toolchain
-        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
+        uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
         with:
           install_args: java sbt
 
@@ -74,7 +74,7 @@ jobs:
         run: sbt server/Docker/publish daemon/Docker/publish
 
       - name: Create release draft
-        uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0 # v7.10.0
+        uses: release-drafter/release-drafter@d1a19e60e81a7e650d00a7de9277f87e439117ea # v7.11.0
         with:
           config-name: release-drafter.yml
           tag: ${{ env.RELEASE_TAG }}
